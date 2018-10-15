@@ -1,5 +1,7 @@
 package de.quinscape.automaton.model.scope;
 
+import de.quinscape.automaton.model.NamedModel;
+
 import java.util.List;
 
 public class ScopeModel
@@ -14,6 +16,8 @@ public class ScopeModel
 
     public void setDeclarations(List<ScopeDeclaration> declarations)
     {
+        NamedModel.ensureUnique("Scope declarations", declarations);
+
         this.declarations = declarations;
     }
 }

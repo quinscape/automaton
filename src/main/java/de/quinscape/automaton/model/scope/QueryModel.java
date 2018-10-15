@@ -1,4 +1,4 @@
-package de.quinscape.automaton.model;
+package de.quinscape.automaton.model.scope;
 
 import java.util.Map;
 

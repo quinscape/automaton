@@ -1,7 +1,5 @@
 package de.quinscape.automaton.model.scope;
 
-import de.quinscape.automaton.model.QueryModel;
-
 public class DefaultValue
 {
     /**
