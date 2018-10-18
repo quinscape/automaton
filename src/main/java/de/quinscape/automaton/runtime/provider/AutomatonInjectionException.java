@@ -1,9 +1,9 @@
 package de.quinscape.automaton.runtime.provider;
 
-import de.quinscape.automaton.runtime.AutomatonTestException;
+import de.quinscape.automaton.runtime.AutomatonException;
 
 public class AutomatonInjectionException
-    extends AutomatonTestException
+    extends AutomatonException
 {
     private static final long serialVersionUID = -920776421884993084L;
 

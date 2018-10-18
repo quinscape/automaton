@@ -14,6 +14,12 @@ import java.util.Set;
  */
 public class ModuleFunctionReferences
 {
+    /**
+     * Call name configured for call data to injection()
+     */
+    public static final String INJECTION_CALL_NAME = "injection";
+
+    public static final String I18N_CALL_NAME = "i18n";
 
     private final String module;
 

@@ -1,6 +1,6 @@
 package de.quinscape.automaton.runtime.ws;
 
-import de.quinscape.automaton.runtime.AutomatonTestException;
+import de.quinscape.automaton.runtime.AutomatonException;
 import de.quinscape.automaton.model.message.OutgoingMessage;
 import de.quinscape.automaton.model.message.Response;
 import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
@@ -78,7 +78,7 @@ public class AutomatonClientConnectionImpl
         }
         catch (IOException e)
         {
-            throw new AutomatonTestException("Error sending websocket message", e);
+            throw new AutomatonException("Error sending websocket message", e);
         }
     }
 

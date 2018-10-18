@@ -1,29 +1,29 @@
 package de.quinscape.automaton.runtime;
 
-public class AutomatonTestException
+public class AutomatonException
     extends RuntimeException
 {
     private static final long serialVersionUID = 6234711217998647061L;
 
 
-    public AutomatonTestException()
+    public AutomatonException()
     {
     }
 
 
-    public AutomatonTestException(String message)
+    public AutomatonException(String message)
     {
         super(message);
     }
 
 
-    public AutomatonTestException(String message, Throwable cause)
+    public AutomatonException(String message, Throwable cause)
     {
         super(message, cause);
     }
 
 
-    public AutomatonTestException(Throwable cause)
+    public AutomatonException(Throwable cause)
     {
         super(cause);
     }
