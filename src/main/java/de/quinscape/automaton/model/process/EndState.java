@@ -9,6 +9,19 @@ public class EndState
     implements ProcessState
 {
     private String name;
+    private String outputCode;
+
+
+    public String getOutputCode()
+    {
+        return outputCode;
+    }
+
+
+    public void setOutputCode(String outputCode)
+    {
+        this.outputCode = outputCode;
+    }
 
 
     @Override

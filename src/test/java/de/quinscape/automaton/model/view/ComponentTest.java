@@ -7,6 +7,12 @@ import org.slf4j.LoggerFactory;
 import org.svenson.JSONParser;
 import org.svenson.SvensonRuntimeException;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 
@@ -16,6 +22,7 @@ public class ComponentTest
 
 
     private final JSONParser parser = JSONUtil.DEFAULT_PARSER;
+
 
     @Test
     public void testComponentParsing()
@@ -76,6 +83,7 @@ public class ComponentTest
 
     }
 
+
     @Test
     public void testRenderKidsFn()
     {
@@ -103,11 +111,12 @@ public class ComponentTest
 
     }
 
+
     @Test(expected = SvensonRuntimeException.class)
     public void testRenderKidsFnAndKids()
     {
         // kids and kidsFn together -> BOOM
-        
+
         parser.parse(Component.class, "{\n" +
             "    \"name\" : \"Blafasel\",\n" +
             "    \"kidsFn\" : {\n" +
@@ -123,4 +132,111 @@ public class ComponentTest
             "    \"kids\" : []\n" +
             "}");
     }
+
+
+    @Test
+    public void testView()
+    {
+        final View view = new View();
+        view.setName("ExampleView");
+        List<ViewDeclaration> decls = new ArrayList<>();
+        decls.add(new ViewDeclaration("canAccess", "authentication.id === values.ownerId || hasRole(\"ROLE_ADMIN\")"));
+
+        view.setDeclarations(decls);
+
+        view.setRoot(
+            component("React.Fragment", null,
+                component("GlobalErrors"),
+                component("Field", attrs("name", "\"name\"")),
+                component("TextArea", attrs("name", "\"description\"")),
+                component("Field", attrs("name", "\"num\"")),
+                component("div", null,
+
+                    component("button", attrs(
+                        "type", "\"reset\"",
+                        "className", "\"btn btn-secondary\""
+
+                        ),
+                        component("Icon", attrs(
+                            "className", "fa-recycle"
+                        )),
+                        component("[String]", attrs(
+                            "value", "Reset"
+                        ))
+                    ),
+                    component("button", attrs(
+                        "type", "\"submit\"",
+                        "className", "{\n" +
+                            "                            cx(\n" +
+                            "                                \"btn\",\n" +
+                            "                                canAccess ? \"btn-success\" : \"btn-danger\"\n" +
+                            "                            )\n" +
+                            "                        }"
+
+                        ),
+                        component("Icon", attrs(
+                            "className", "fa-save"
+                        )),
+                        component("[String]", attrs(
+                            "value", "Save"
+                        ))
+                    )
+                )
+            )
+
+        );
+
+        log.info(JSONUtil.formatJSON(
+            JSONUtil.DEFAULT_GENERATOR.forValue(view)
+        ));
+
+    }
+
+
+    private Component component(String name)
+    {
+        return component(name, null, null);
+    }
+
+
+    public static Component component(String name, Map<String, Object> attrs)
+    {
+        return component(name, attrs, null);
+    }
+
+
+    public static Component component(String name, Map<String, Object> attrs, Component... kids)
+    {
+        final Component component = new Component();
+        component.setName(name);
+        if (attrs != null)
+        {
+            component.setAttrs(attrs);
+        }
+        if (kids != null)
+        {
+            component.setKids(Arrays.asList(kids));
+
+        }
+        return component;
+
+    }
+
+
+    public static Map<String, Object> attrs(String... keyValues)
+    {
+        final Map<String, Object> map = new HashMap<>();
+
+        for (int i = 0; i < keyValues.length; i += 2)
+        {
+            String key = keyValues[i];
+            String value = keyValues[i + 1];
+            map.put(key, value);
+        }
+
+        return map;
+
+    }
+
+
 }

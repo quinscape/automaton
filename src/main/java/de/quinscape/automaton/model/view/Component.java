@@ -55,6 +55,7 @@ public class Component
     }
 
 
+    @JSONProperty(ignoreIfNull = true)
     public void setKidsFn(RenderFunction kidsFn)
     {
         this.kidsFn = kidsFn;

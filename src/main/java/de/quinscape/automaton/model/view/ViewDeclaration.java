@@ -9,6 +9,7 @@ public class ViewDeclaration
 {
     private String name;
     private String code;
+    private String comment;
 
 
     public ViewDeclaration()
@@ -87,5 +88,17 @@ public class ViewDeclaration
             + "name = '" + name + '\''
             + ", code = '" + code + '\''
             ;
+    }
+
+
+    public String getComment()
+    {
+        return comment;
+    }
+
+
+    public void setComment(String comment)
+    {
+        this.comment = comment;
     }
 }
