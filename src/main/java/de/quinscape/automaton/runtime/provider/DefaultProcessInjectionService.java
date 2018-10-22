@@ -61,7 +61,7 @@ public class DefaultProcessInjectionService
         for (Map.Entry<String, ModuleFunctionReferences> e : refsMap.entrySet())
         {
             final String moduleName = e.getKey();
-            if (ProcessUtil.isInProcesses(moduleName) && !ProcessUtil.isComponentPath(moduleName) && moduleName.endsWith(processSegment))
+            if (ProcessUtil.isInProcesses(moduleName) && !ProcessUtil.isCompositesPath(moduleName) && moduleName.endsWith(processSegment))
             {
                 // Maps the original query string to the result object for that query
                 final List<String> calls = e.getValue().getCalls(INJECTION_CALL_NAME);

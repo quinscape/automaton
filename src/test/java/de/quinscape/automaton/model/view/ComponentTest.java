@@ -9,6 +9,7 @@ import org.svenson.SvensonRuntimeException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,8 +62,8 @@ public class ComponentTest
             "            \"context\": \"context\",\n" +
             "            \"declarations\": [\n" +
             "                {\n" +
-            "                    \"name\": \"tmp\",\n" +
-            "                    \"code\": \"scope.foo - 12\"\n" +
+            "                    \"names\": [\"tmp\"],\n" +
+            "                    \"code\": \"const tmp = scope.foo - 12;\"\n" +
             "                }\n" +
             "            ],\n" +
             "            \"root\": {\n" +
@@ -78,7 +79,7 @@ public class ComponentTest
         final RenderFunction renderFunction = (RenderFunction) component.getAttrs().get("renderFn");
         assertThat(renderFunction, is(notNullValue()));
         assertThat(renderFunction.getContext(), is("context"));
-        assertThat(renderFunction.getDeclarations().get(0).getName(), is("tmp"));
+        assertThat(renderFunction.getDeclarations().get(0).getNames(), is(Collections.singletonList("tmp")));
         assertThat(renderFunction.getDeclarations().get(0).getCode(), is("scope.foo - 12"));
 
     }
@@ -92,8 +93,8 @@ public class ComponentTest
             "    \"kidsFn\" : {\n" +
             "        \"context\" : \"formConfig\",\n" +
             "        \"declarations\" : [{\n" +
-            "            \"name\": \"formikProps\",\n" +
-            "            \"code\": \"formConfig.formikProps\"\n" +
+            "            \"names\": [\"formikProps\"],\n" +
+            "            \"code\": \"const { formikProps } = formConfig;\"\n" +
             "        }],\n" +
             "        \"root\": {\n" +
             "            \"name\" : \"ContextComp\"\n" +
@@ -106,7 +107,7 @@ public class ComponentTest
         final RenderFunction renderFunction = component.getKidsFn();
         assertThat(renderFunction, is(notNullValue()));
         assertThat(renderFunction.getContext(), is("formConfig"));
-        assertThat(renderFunction.getDeclarations().get(0).getName(), is("formikProps"));
+        assertThat(renderFunction.getDeclarations().get(0).getNames(), is(Collections.singletonList("formikProps")));
         assertThat(renderFunction.getDeclarations().get(0).getCode(), is("formConfig.formikProps"));
 
     }
@@ -137,14 +138,14 @@ public class ComponentTest
     @Test
     public void testView()
     {
-        final View view = new View();
-        view.setName("ExampleView");
+        final CompositeComponent compositeComponent = new CompositeComponent();
+        compositeComponent.setName("ExampleView");
         List<ViewDeclaration> decls = new ArrayList<>();
-        decls.add(new ViewDeclaration("canAccess", "authentication.id === values.ownerId || hasRole(\"ROLE_ADMIN\")"));
+        decls.add(new ViewDeclaration(Collections.singletonList("canAccess"), "authentication.id === values.ownerId || hasRole(\"ROLE_ADMIN\")"));
 
-        view.setDeclarations(decls);
+        compositeComponent.setDeclarations(decls);
 
-        view.setRoot(
+        compositeComponent.setRoot(
             component("React.Fragment", null,
                 component("GlobalErrors"),
                 component("Field", attrs("name", "\"name\"")),
@@ -187,7 +188,7 @@ public class ComponentTest
         );
 
         log.info(JSONUtil.formatJSON(
-            JSONUtil.DEFAULT_GENERATOR.forValue(view)
+            JSONUtil.DEFAULT_GENERATOR.forValue(compositeComponent)
         ));
 
     }

@@ -1,41 +1,55 @@
 package de.quinscape.automaton.model.view;
 
 import javax.validation.constraints.NotNull;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A named constant within a view.
  */
 public class ViewDeclaration
 {
-    private String name;
+    private List<String> names;
     private String code;
-    private String comment;
 
 
     public ViewDeclaration()
     {
-        this("noName", "'no-value'");
+        this( Collections.emptyList(), null);
     }
     
     public ViewDeclaration(String name, String code)
     {
-        this.name = name;
+        this(Collections.singletonList(name), code);
+    }
+    public ViewDeclaration(List<String> names, String code)
+    {
+        if (names == null)
+        {
+            throw new IllegalArgumentException("names can't be null");
+        }
+
+        this.names = names;
         this.code = code;
     }
 
 
     @NotNull
-    public String getName()
+    public List<String> getNames()
     {
-        return name;
+        return names;
     }
 
 
-    public void setName(String name)
+    public void setNames(List<String> names)
     {
-        this.name = name;
+        if (names == null)
+        {
+            throw new IllegalArgumentException("names can't be null");
+        }
+        this.names = names;
     }
-
 
     @NotNull
     public String getCode()
@@ -64,19 +78,19 @@ public class ViewDeclaration
 
         ViewDeclaration that = (ViewDeclaration) o;
 
-        if (!name.equals(that.name))
+        if (!names.equals(that.names))
         {
             return false;
         }
-        return code.equals(that.code);
+        return code != null ? code.equals(that.code) : that.code == null;
     }
 
 
     @Override
     public int hashCode()
     {
-        int result = name.hashCode();
-        result = 31 * result + code.hashCode();
+        int result = names.hashCode();
+        result = 31 * result + (code != null ? code.hashCode() : 0);
         return result;
     }
 
@@ -85,20 +99,8 @@ public class ViewDeclaration
     public String toString()
     {
         return super.toString() + ": "
-            + "name = '" + name + '\''
+            + "names = " + names
             + ", code = '" + code + '\''
             ;
-    }
-
-
-    public String getComment()
-    {
-        return comment;
-    }
-
-
-    public void setComment(String comment)
-    {
-        this.comment = comment;
     }
 }

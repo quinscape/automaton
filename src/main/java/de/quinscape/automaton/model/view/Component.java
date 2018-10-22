@@ -6,6 +6,7 @@ import org.svenson.JSONTypeHint;
 import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class Component
 {
@@ -13,6 +14,8 @@ public class Component
      * Special attribute that the render will draw out to control rendering of the complete component.
      */
     public final static String RENDERED_IF = "renderedIf";
+
+    private final static String CODE_BLOCK = "[Code]";
 
     private String name;
 
@@ -92,6 +95,12 @@ public class Component
         this.kids = kids;
     }
 
+
+    @JSONProperty(ignore = true)
+    public boolean isCodeBlock()
+    {
+        return Objects.equals(name, CODE_BLOCK);
+    }
 
     static void describe(StringBuilder buff, Component component, int level)
     {

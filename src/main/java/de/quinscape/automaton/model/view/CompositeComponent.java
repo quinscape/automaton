@@ -5,7 +5,7 @@ import org.svenson.JSONTypeHint;
 
 import java.util.List;
 
-public class View
+public class CompositeComponent
     implements NamedModel
 {
     private String name;

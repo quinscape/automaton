@@ -61,7 +61,7 @@ public class RenderFunction
         for (ViewDeclaration declaration : declarations)
         {
             Component.indent(buff, level + 1);
-            buff.append("const ").append(declaration.getName()).append(" = ").append(declaration.getCode()).append(";\n");
+            buff.append(declaration.getCode()).append("\n");
         }
         Component.indent(buff, level + 1);
         buff.append("return (\n");

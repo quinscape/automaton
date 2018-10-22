@@ -8,14 +8,14 @@ public final class ProcessUtil
     }
 
 
-    private static final CharSequence COMPONENTS_SUB_DIR = "/components/";
+    private static final CharSequence COMPOSITES_SUB_DIR = "/composites/";
 
     private static final CharSequence PROCESSES_SUB_DIR = "/processes/";
 
 
-    public static boolean isComponentPath(String moduleName)
+    public static boolean isCompositesPath(String moduleName)
     {
-        return moduleName.contains(COMPONENTS_SUB_DIR);
+        return moduleName.contains(COMPOSITES_SUB_DIR);
     }
 
 
