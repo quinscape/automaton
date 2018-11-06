@@ -3,8 +3,11 @@ package de.quinscape.automaton.runtime.util;
 import com.google.common.collect.Maps;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public final class ProcessUtil
 {
@@ -34,6 +37,16 @@ public final class ProcessUtil
         return moduleName.startsWith(appSegment)  && moduleName.contains(processSegment);
     }
 
+
+    /**
+     * Takes the parameter map of the given request and flattens it so that single values are just strings and
+     * multiple values are lists.
+     *
+     * Values that contain only digits are converted to int.
+     *
+     * @param request
+     * @return
+     */
     public static Map<String, Object> flattenParameterMap(HttpServletRequest request)
     {
         final Map<String, String[]> parameterMap = request.getParameterMap();
@@ -46,14 +59,43 @@ public final class ProcessUtil
 
             if (value.length == 1)
             {
-                out.put(e.getKey(), value[0]);
+                out.put(e.getKey(), parse(value[0]));
             }
             else
             {
-                out.put(e.getKey(), Arrays.asList(value));
+                final List<Object> values = new ArrayList<>(value.length);
+
+                for (String v : value)
+                {
+                    values.add(parse(v));
+                }
+
+
+                out.put(e.getKey(), values);
             }
         }
         return out;
 
+    }
+
+    // all positive and negative number up to 16 digits which is about the safe range for integers in Javascript.
+    private final static Pattern NUMBER_PATTERN = Pattern.compile("^-?[0-9]{1,15}$");
+
+    private static Object parse(String v)
+    {
+        if (NUMBER_PATTERN.matcher(v).matches())
+        {
+            final long asLong = Long.parseLong(v);
+
+            if (asLong >= Integer.MIN_VALUE && asLong <= Integer.MAX_VALUE)
+            {
+                return (int) asLong;
+            }
+            else
+            {
+                return asLong;
+            }
+        }
+        return v;
     }
 }
