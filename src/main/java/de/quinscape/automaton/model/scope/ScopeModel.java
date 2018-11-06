@@ -1,23 +1,18 @@
 package de.quinscape.automaton.model.scope;
 
-import de.quinscape.automaton.model.NamedModel;
-
-import java.util.List;
-
 public class ScopeModel
 {
-    private List<ScopeDeclaration> declarations;
+    private String name;
 
-    public List<ScopeDeclaration> getDeclarations()
+
+    public String getName()
     {
-        return declarations;
+        return name;
     }
 
 
-    public void setDeclarations(List<ScopeDeclaration> declarations)
+    public void setName(String name)
     {
-        NamedModel.ensureUnique("Scope declarations", declarations);
-
-        this.declarations = declarations;
+        this.name = name;
     }
 }

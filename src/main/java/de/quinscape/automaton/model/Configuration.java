@@ -12,22 +12,22 @@ import java.util.List;
  */
 public class Configuration
 {
-    private ScopeModel applicationScope;
+    private ScopeModel appScope;
 
     private ScopeModel userScope;
 
 
 
     @JSONProperty(priority = 110)
-    public ScopeModel getApplicationScope()
+    public ScopeModel getAppScope()
     {
-        return applicationScope;
+        return appScope;
     }
 
 
-    public void setApplicationScope(ScopeModel applicationScope)
+    public void setAppScope(ScopeModel appScope)
     {
-        this.applicationScope = applicationScope;
+        this.appScope = appScope;
     }
 
 
