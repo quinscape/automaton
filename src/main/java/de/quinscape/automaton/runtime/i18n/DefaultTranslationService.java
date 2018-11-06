@@ -233,16 +233,15 @@ public class DefaultTranslationService
     {
         final Map<String, JSONHolder> processMap = allTranslations.get(qualifiedProcessName);
 
-        if (processMap == null)
+        if (processMap != null)
         {
-            throw new IllegalStateException("Invalid process '" + qualifiedProcessName + "'");
+            final JSONHolder holder = processMap.get(locale);
+            if (holder != null)
+            {
+                return holder;
+            }
         }
 
-        final JSONHolder holder = processMap.get(locale);
-        if (holder != null)
-        {
-            return holder;
-        }
 
         return EMPTY;
     }

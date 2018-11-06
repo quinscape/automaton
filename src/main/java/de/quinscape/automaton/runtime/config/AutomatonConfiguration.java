@@ -2,8 +2,9 @@ package de.quinscape.automaton.runtime.config;
 
 import de.quinscape.automaton.model.js.StaticFunctionReferences;
 import de.quinscape.automaton.runtime.controller.GraphQLController;
-import de.quinscape.automaton.runtime.i18n.DefaultTranslationService;
-import de.quinscape.automaton.runtime.i18n.TranslationService;
+import de.quinscape.automaton.runtime.controller.ProcessController;
+import de.quinscape.automaton.runtime.controller.ScopeSyncController;
+import de.quinscape.automaton.runtime.controller.ScopeTableConfig;
 import de.quinscape.automaton.runtime.logic.AutomatonStandardLogic;
 import de.quinscape.automaton.runtime.provider.DefaultProcessInjectionService;
 import de.quinscape.automaton.runtime.provider.ProcessInjectionService;
@@ -13,6 +14,8 @@ import de.quinscape.spring.jsview.loader.ResourceLoader;
 import de.quinscape.spring.jsview.loader.ServletResourceLoader;
 import graphql.GraphQL;
 import org.jooq.DSLContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -24,6 +27,7 @@ import org.springframework.web.socket.config.annotation.EnableWebSocket;
 
 import javax.servlet.ServletContext;
 import java.io.IOException;
+
 
 /**
  * Standard bean definitions for automaton applications. The definition is incomplete in parts requiring the actual
@@ -56,6 +60,9 @@ import java.io.IOException;
 @Import(WebsocketConfiguration.class)
 public class AutomatonConfiguration
 {
+    private final static Logger log = LoggerFactory.getLogger(AutomatonConfiguration.class);
+
+
     private final ServletContext servletContext;
 
 
@@ -79,6 +86,30 @@ public class AutomatonConfiguration
     {
         return new GraphQLController(
             graphQL
+        );
+    }
+
+    @Bean
+    public ScopeSyncController scopeSyncController(
+        ScopeTableConfig scopeTableConfig,
+        DSLContext dslContext
+    )
+    {
+        log.info("Create ScopeSyncController");
+        
+        return new ScopeSyncController(
+            scopeTableConfig,
+            dslContext
+        );
+    }
+
+    @Bean
+    public ProcessController processController(
+        ProcessInjectionService processInjectionService
+    )
+    {
+        return new ProcessController(
+            processInjectionService
         );
     }
 

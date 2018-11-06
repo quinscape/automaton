@@ -50,7 +50,7 @@ public class DefaultProcessInjectionService
 
 
     @Override
-    public Map<String,Object> getProcessInjections(String processName) throws IOException
+    public Map<String, Object> getProcessInjections(String appName, String processName, Object input) throws IOException
     {
         final String processSegment = "/" + processName;
 
@@ -61,7 +61,11 @@ public class DefaultProcessInjectionService
         for (Map.Entry<String, ModuleFunctionReferences> e : refsMap.entrySet())
         {
             final String moduleName = e.getKey();
-            if (ProcessUtil.isInProcesses(moduleName) && !ProcessUtil.isCompositesPath(moduleName) && moduleName.endsWith(processSegment))
+            if (
+                ProcessUtil.isInProcess(moduleName, appName, processName) &&
+                !ProcessUtil.isCompositesPath(moduleName) &&
+                moduleName.endsWith(processSegment)
+            )
             {
                 // Maps the original query string to the result object for that query
                 final List<String> calls = e.getValue().getCalls(INJECTION_CALL_NAME);
@@ -84,10 +88,8 @@ public class DefaultProcessInjectionService
                 return injections;
             }
         }
-        return Collections.emptyMap();
+        throw new IllegalArgumentException("Could not find process '" + processName + "' in app '" +appName + "'");
     }
-
-
 
     /**
      * Returns a singular result key from the data of the given result, basically cutting off the lowest level so that
@@ -110,4 +112,6 @@ public class DefaultProcessInjectionService
         }
         return firstKey;
     }
+
+
 }
