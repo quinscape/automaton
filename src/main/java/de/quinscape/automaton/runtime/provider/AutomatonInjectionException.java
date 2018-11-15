@@ -7,12 +7,6 @@ public class AutomatonInjectionException
 {
     private static final long serialVersionUID = -920776421884993084L;
 
-
-    public AutomatonInjectionException()
-    {
-    }
-
-
     public AutomatonInjectionException(String message)
     {
         super(message);

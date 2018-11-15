@@ -6,11 +6,6 @@ public class AutomatonException
     private static final long serialVersionUID = 6234711217998647061L;
 
 
-    public AutomatonException()
-    {
-    }
-
-
     public AutomatonException(String message)
     {
         super(message);
