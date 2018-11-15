@@ -1,6 +1,7 @@
 package de.quinscape.automaton.runtime.provider;
 
 import com.google.common.collect.Maps;
+import de.quinscape.automaton.runtime.ProcessNotFoundException;
 import de.quinscape.automaton.model.js.ModuleFunctionReferences;
 import de.quinscape.automaton.model.js.StaticFunctionReferences;
 import de.quinscape.automaton.runtime.util.GraphQLUtil;
@@ -13,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -88,7 +88,7 @@ public class DefaultProcessInjectionService
                 return injections;
             }
         }
-        throw new IllegalArgumentException("Could not find process '" + processName + "' in app '" +appName + "'");
+        throw new ProcessNotFoundException("Could not find process '" + processName + "' in app '" +appName + "'");
     }
 
     /**

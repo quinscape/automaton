@@ -1,5 +1,6 @@
 package de.quinscape.automaton.runtime.controller;
 
+import de.quinscape.automaton.runtime.ProcessNotFoundException;
 import de.quinscape.automaton.runtime.provider.ProcessInjectionService;
 import de.quinscape.automaton.runtime.util.ProcessUtil;
 import de.quinscape.spring.jsview.util.JSONUtil;
@@ -63,20 +64,33 @@ public class ProcessController
         @RequestBody String json
     ) throws IOException
     {
-        final Map<String,Object> input = JSONUtil.DEFAULT_PARSER.parse(Map.class, json);
+        try
+        {
+            final Map<String,Object> input = JSONUtil.DEFAULT_PARSER.parse(Map.class, json);
 
-        final Map<String, Object> data = processInjectionService.getProcessInjections(
-            appName,
-            processName,
-            input
-        );
+            final Map<String, Object> data = processInjectionService.getProcessInjections(
+                appName,
+                processName,
+                input
+            );
 
-        return new ResponseEntity<>(
-            JSONBuilder.buildObject(JSONUtil.DEFAULT_GENERATOR)
-                .property("injections", data)
-                .property("input", input)
-                .output(),
-            HttpStatus.OK
-        );
+            return new ResponseEntity<>(
+                JSONBuilder.buildObject(JSONUtil.DEFAULT_GENERATOR)
+                    .property("injections", data)
+                    .property("input", input)
+                    .output(),
+                HttpStatus.OK
+            );
+        }
+        catch(ProcessNotFoundException e)
+        {
+            return new ResponseEntity<>(
+                JSONBuilder.buildObject(JSONUtil.DEFAULT_GENERATOR)
+                    .property("error", e.getMessage())
+                    .output(),
+                HttpStatus.NOT_FOUND
+            );
+        }
+
     }
 }
