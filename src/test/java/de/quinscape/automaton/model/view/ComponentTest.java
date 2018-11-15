@@ -80,7 +80,7 @@ public class ComponentTest
         assertThat(renderFunction, is(notNullValue()));
         assertThat(renderFunction.getContext(), is("context"));
         assertThat(renderFunction.getDeclarations().get(0).getNames(), is(Collections.singletonList("tmp")));
-        assertThat(renderFunction.getDeclarations().get(0).getCode(), is("scope.foo - 12"));
+        assertThat(renderFunction.getDeclarations().get(0).getCode(), is("const tmp = scope.foo - 12;"));
 
     }
 
@@ -108,7 +108,7 @@ public class ComponentTest
         assertThat(renderFunction, is(notNullValue()));
         assertThat(renderFunction.getContext(), is("formConfig"));
         assertThat(renderFunction.getDeclarations().get(0).getNames(), is(Collections.singletonList("formikProps")));
-        assertThat(renderFunction.getDeclarations().get(0).getCode(), is("formConfig.formikProps"));
+        assertThat(renderFunction.getDeclarations().get(0).getCode(), is("const { formikProps } = formConfig;"));
 
     }
 
