@@ -3,6 +3,7 @@ import graphql.Scalars;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +13,7 @@ public class GraphQLRegression
     private final static Logger log = LoggerFactory.getLogger(GraphQLRegression.class);
 
 
+    @Ignore
     @Test(expected = AssertException.class)
     public void testDoubleDeclaration()
     {
