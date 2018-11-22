@@ -4,9 +4,13 @@
 
 Diese Anleitung ist als Überblick in Technologien, Konzepte und Libraries im Umfeld on Automaton-Projekten gedacht.
 Je nach Projekt-Rolle könnt ihr die Teile einfach als Zusammenfassung sehen, als auch als Ausgangspunkt beliebig
-tiefer gehender Beschäftigung mit der Materie. Links zu den einzelnen Teilen finden sich am Ende.
+tiefer gehender Beschäftigung mit der Materie. 
 
 ## JavaScript/EcmaScript
+
+Link: ???  
+Referenz: https://developer.mozilla.org/de/docs/Web/JavaScript  
+Kompatibilitätsprüfung: http://caniuse.com/
 
 Modernes EcmaScript ist im Prinzip die fünfte oder sechste Javascript-Generation:
 
@@ -18,11 +22,14 @@ Modernes EcmaScript ist im Prinzip die fünfte oder sechste Javascript-Generatio
    Einführung von Klassen, aber mit JavaScript-Prototype-Semantik
  * ... weitere inkrementelle Versionen
 
-Parallel dazu die Evolution der Javascript-Entwicklungs-Methodik. Von Einzeldateien über bundler/minifier bis hin zu den heute üblichen, und auch von uns verwendeten Transpiler-Build-Chain.
+Parallel dazu die Evolution der Javascript-Entwicklungs-Methodik. Von Einzeldateien über bundler/minifier bis hin zu 
+den heute üblichen, und auch von uns verwendeten Transpiler-Build-Chains.
 
 ## Node.js
 
 ( Siehe https://intern.quinscape.de/confluence/display/OA/DomainQL-Projeke )
+
+![Modulecounts Artefakt-Graph](./modulecounts.png)
 
 Node.js ist der immens populäre Ansatz, Javascript aus dem Browser zu holen und mit einer eigenen Runtime-Engine zu einer
 server-seitigen Sprache zu machen. Es besteht auch der V8-JavaScript engine von Google Chrome mit einer Reihe von Standard-Paketen.
@@ -263,7 +270,10 @@ DomainQL repo: https://github.com/quinscape/domainql
 Wir benutzen [Atomikos JTA](https://www.atomikos.com/Main/TransactionsEssentials) als generellen JTA-Service-Provider, 
 über den wir alle Datenbank-Zugriffe abwickeln. Dies erlaubt uns zukunftssicher beliebige Datenbanken und Messaging-
 Services in diese zunächst nicht wirklich verteilten Transaktionen aufzunehmen. Der Overhead scheint für unsere
-Belange erstmal generell vertretbar.
+Belange erstmal generell vertretbar. Für unser Standard-Tomcat deployment stellt Atomikos eine JTA Umgebung bereit,
+andernfalls integrieren wir uns mit einem Teil von Atomikos in die JTA-Infrastruktur des Application-Server.
+
+#### Daten-Modellierung
 
 Zur Zeit arbeiten wir noch SQL-schema first, auf lange Sicht werden wir uns normalerweise Richtung 
 Domain-Model-First bewegen, außer bei legacy DB-Einbindungen.
@@ -288,6 +298,8 @@ Baums vom Frontend.
 
 Funktionalität wird entweder von automaton bereit gestellt oder muss als Komponenten und/oder Java Methoden
 implementiert werden.
+
+#### @GraphQLLogic / Query-Beispiel
 
 Wie verwenden eine in Spring Boot integrierte annotationsgetriebene Methodologie der GraphQL-Konfiguration (DomainQL).
 GraphQL an sich wird per graphql-java erledigt.  
@@ -346,6 +358,7 @@ public class ExampleLogic
 werden soweit die entsprechenden component scans aufgesetzt sind.
 
 Logik Implementationen können die komplette Breite der Spring Platform benutzen ( @Transactional etc )
+
 
 Die Query-  und Mutations-Methoden wie hier `getFoos()` werden automatisch in die GraphQL-Domäne überführt.
 
@@ -439,5 +452,6 @@ export const PRELOADED_QUERIES = {
 }
 ```
 erhält man das Resultat der GraphQL-Query als Teil der initialen Daten. Im Prinzip reines DomainQL an dem
-Automaton-System vorbei. 
+Automaton-System vorbei.
+ 
 
