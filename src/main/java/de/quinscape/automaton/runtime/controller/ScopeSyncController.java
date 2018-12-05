@@ -1,5 +1,6 @@
 package de.quinscape.automaton.runtime.controller;
 
+import de.quinscape.automaton.runtime.config.ScopeTableConfig;
 import de.quinscape.domainql.jsonb.JSONB;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.jooq.DSLContext;

@@ -4,10 +4,10 @@ import de.quinscape.automaton.model.js.StaticFunctionReferences;
 import de.quinscape.automaton.runtime.controller.GraphQLController;
 import de.quinscape.automaton.runtime.controller.ProcessController;
 import de.quinscape.automaton.runtime.controller.ScopeSyncController;
-import de.quinscape.automaton.runtime.controller.ScopeTableConfig;
 import de.quinscape.automaton.runtime.logic.AutomatonStandardLogic;
 import de.quinscape.automaton.runtime.provider.DefaultProcessInjectionService;
 import de.quinscape.automaton.runtime.provider.ProcessInjectionService;
+import de.quinscape.domainql.DomainQL;
 import de.quinscape.spring.jsview.loader.JSONResourceConverter;
 import de.quinscape.spring.jsview.loader.ResourceHandle;
 import de.quinscape.spring.jsview.loader.ResourceLoader;
@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.ContextStoppedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -75,10 +76,11 @@ public class AutomatonConfiguration
 
     @Bean
     public AutomatonStandardLogic automatonStandardLogic(
-        DSLContext dslContext
+        DSLContext dslContext,
+        @Lazy DomainQL domainQL
     )
     {
-        return new AutomatonStandardLogic(dslContext);
+        return new AutomatonStandardLogic(dslContext, domainQL);
     }
 
     @Bean

@@ -2,7 +2,6 @@ package de.quinscape.automaton.runtime.controller;
 
 import de.quinscape.automaton.runtime.ProcessNotFoundException;
 import de.quinscape.automaton.runtime.provider.ProcessInjectionService;
-import de.quinscape.automaton.runtime.util.ProcessUtil;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +67,7 @@ public class ProcessController
         {
             final Map<String,Object> input = JSONUtil.DEFAULT_PARSER.parse(Map.class, json);
 
-            final Map<String, Object> data = processInjectionService.getProcessInjections(
+            final Map<String, Map<String, Object>> data = processInjectionService.getProcessInjections(
                 appName,
                 processName,
                 input

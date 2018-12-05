@@ -23,6 +23,9 @@ public class AutomatonAuthentication
      */
     public static final String ROLE_ANONYMOUS = "ROLE_ANONYMOUS";
 
+    /** Make sure the anonymous DB-User has this magic id */
+    public static final String ANONYMOUS_ID = "af432487-a1b1-4f99-96d4-3b8e9796c95a";
+
     /**
      * The one anonymous AutomatonAuthentication instance
      */
@@ -32,7 +35,7 @@ public class AutomatonAuthentication
         ANONYMOUS_AUTH = new AutomatonAuthentication(
             ANONYMOUS,
             Collections.singleton(ROLE_ANONYMOUS),
-            null
+            ANONYMOUS_ID
         );
     }
 

@@ -1,4 +1,4 @@
-package de.quinscape.automaton.runtime.controller;
+package de.quinscape.automaton.runtime.config;
 
 import org.jooq.Table;
 

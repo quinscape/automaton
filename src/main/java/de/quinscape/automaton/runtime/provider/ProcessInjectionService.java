@@ -5,5 +5,10 @@ import java.util.Map;
 
 public interface ProcessInjectionService
 {
-    Map<String,Object> getProcessInjections(String appName, String processName, Object input) throws IOException;
+    Map<String, Map<String, Object>> getProcessInjections(
+        String appName,
+        String processName,
+        Object input
+    ) throws IOException;
 }
+

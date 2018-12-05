@@ -3,7 +3,7 @@ package de.quinscape.automaton.runtime.provider;
 import com.google.common.collect.Maps;
 import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
 import de.quinscape.automaton.runtime.config.ClientCrsfToken;
-import de.quinscape.automaton.runtime.controller.ScopeTableConfig;
+import de.quinscape.automaton.runtime.config.ScopeTableConfig;
 import de.quinscape.automaton.runtime.i18n.TranslationService;
 import de.quinscape.automaton.runtime.util.Base32;
 import de.quinscape.automaton.runtime.util.LocaleUtil;
@@ -72,7 +72,6 @@ public final class AutomatonJsViewProvider
     private static final String CSRF_TOKEN = "csrfToken";
 
     private static final String VALUE_PROP = "_value";
-
 
     private final ProcessInjectionService processInjectionService;
 
@@ -219,7 +218,7 @@ public final class AutomatonJsViewProvider
 
         final String appName = context.getJsView().getEntryPoint();
 
-        final Map<String, Object> injections = processInjectionService.getProcessInjections(appName, processName, inputFromParams(context.getRequest().getParameterMap()));
+        final Map<String, Map<String, Object>> injections = processInjectionService.getProcessInjections(appName, processName, inputFromParams(context.getRequest().getParameterMap()));
 
         final String locale = LocaleUtil.localeCode(context.getRequest().getLocale());
         context.provideViewData(INJECTIONS, injections);
