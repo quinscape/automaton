@@ -1,27 +1,32 @@
 package de.quinscape.automaton.model.data;
 
 import de.quinscape.automaton.runtime.InvalidSortOrderException;
-import org.svenson.JSONParameter;
+import org.jooq.SelectField;
+import org.jooq.SortField;
+import org.svenson.JSONProperty;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static org.jooq.impl.DSL.*;
+
 public class SortOrder
 {
-    public static final SortOrder DEFAULT = new SortOrder(Collections.emptyList());
-
     final static Pattern ORDER_BY_RE = Pattern.compile("^!?[a-zA-Z_][a-zA-Z0-9_]*$");
 
-    private final List<String> fields;
+    private List<String> fields;
 
-
-    public SortOrder(
-        @JSONParameter("fields")
-        List<String> fields
-    )
+    public SortOrder()
     {
-        this.fields = validateSortOrder(fields);
+        this(null);
+    }
+
+    public SortOrder(List<String> fields)
+    {
+        setFields(fields);
     }
 
 
@@ -40,8 +45,35 @@ public class SortOrder
     }
 
 
+    public void setFields(List<String> fields)
+    {
+        this.fields = validateSortOrder(fields);
+    }
+
+
     public List<String> getFields()
     {
         return fields;
     }
+
+
+    @JSONProperty(ignore = true)
+    public Collection<? extends SortField<?>> getJooqFields()
+    {
+        Collection<SortField<Object>> list = new ArrayList<>();
+        for (String fieldName : fields)
+        {
+            if (fieldName.startsWith("!"))
+            {
+                list.add(field(fieldName.substring(1)).desc());
+            }
+            else
+            {
+                list.add(field(fieldName).asc());
+            }
+        }
+        return list;
+    }
+
+
 }

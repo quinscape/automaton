@@ -5,42 +5,30 @@ import org.svenson.JSONParameter;
 import java.util.function.Supplier;
 
 /**
- * Encapsulates the current configuration a user-controllable data-source including current filters, current page and current
+ * Encapsulates the current configuration a user-controllable data-source including current filters, current page and
+ * current
  * sorting.
  */
 public final class QueryConfig
 {
-    private final FilterDefinition filter;
+    private FilterDefinition filter = null;
 
-    private final int currentPage;
+    private int currentPage = 0;
 
-    private final int pageSize;
+    private int pageSize = 10;
 
-    private final SortOrder sortOrder;
-
-    public QueryConfig(
-        @JSONParameter("filter") FilterDefinition filter,
-        @JSONParameter("currentPage") int currentPage,
-        @JSONParameter("pageSize") int pageSize,
-        @JSONParameter("sortOrder") SortOrder sortOrder
-    )
-    {
-        this.filter = filter;
-        this.currentPage = currentPage;
-        this.pageSize = pageSize;
-        this.sortOrder = sortOrder;
-    }
-
-    //@ObjectFactory
-    public static QueryConfig create()
-    {
-        return new QueryConfig(FilterDefinition.EMPTY, 0, 10, SortOrder.DEFAULT);
-    }
+    private SortOrder sortOrder = null;
 
 
     public FilterDefinition getFilter()
     {
         return filter;
+    }
+
+
+    public void setFilter(FilterDefinition filter)
+    {
+        this.filter = filter;
     }
 
 
@@ -50,9 +38,21 @@ public final class QueryConfig
     }
 
 
+    public void setCurrentPage(int currentPage)
+    {
+        this.currentPage = currentPage;
+    }
+
+
     public int getPageSize()
     {
         return pageSize;
+    }
+
+
+    public void setPageSize(int pageSize)
+    {
+        this.pageSize = pageSize;
     }
 
 
@@ -61,13 +61,10 @@ public final class QueryConfig
         return sortOrder;
     }
 
-    public static class Provider implements Supplier<QueryConfig>
+
+    public void setSortOrder(SortOrder sortOrder)
     {
-        @Override
-        public QueryConfig get()
-        {
-            return new QueryConfig(FilterDefinition.EMPTY, 0, 10, SortOrder.DEFAULT);
-        }
+        this.sortOrder = sortOrder;
     }
 }
 

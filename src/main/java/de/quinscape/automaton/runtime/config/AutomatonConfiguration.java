@@ -4,6 +4,10 @@ import de.quinscape.automaton.model.js.StaticFunctionReferences;
 import de.quinscape.automaton.runtime.controller.GraphQLController;
 import de.quinscape.automaton.runtime.controller.ProcessController;
 import de.quinscape.automaton.runtime.controller.ScopeSyncController;
+import de.quinscape.automaton.runtime.data.DefaultFilterTransformer;
+import de.quinscape.automaton.runtime.data.FilterConverter;
+import de.quinscape.automaton.runtime.data.FilterTransformer;
+import de.quinscape.automaton.runtime.data.FilterTransformationService;
 import de.quinscape.automaton.runtime.logic.AutomatonStandardLogic;
 import de.quinscape.automaton.runtime.provider.DefaultProcessInjectionService;
 import de.quinscape.automaton.runtime.provider.ProcessInjectionService;
@@ -18,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -64,12 +69,17 @@ public class AutomatonConfiguration
     private final static Logger log = LoggerFactory.getLogger(AutomatonConfiguration.class);
 
 
+    private final ApplicationContext applicationContext;
     private final ServletContext servletContext;
 
 
     @Autowired
-    public AutomatonConfiguration(ServletContext servletContext)
+    public AutomatonConfiguration(
+        ApplicationContext applicationContext,
+        ServletContext servletContext
+    )
     {
+        this.applicationContext = applicationContext;
         this.servletContext = servletContext;
     }
 
@@ -149,6 +159,21 @@ public class AutomatonConfiguration
             servletContext,
             "/",
             true
+        );
+    }
+
+    @Bean
+    public FilterTransformationService filterTransformationService()
+    {
+        return new FilterTransformationService(
+            applicationContext.getBeansOfType(FilterTransformer.class)
+        );
+    }
+    @Bean(name = DefaultFilterTransformer.BEAN_NAME)
+    public FilterTransformer defaultFilterTransformer()
+    {
+        return new DefaultFilterTransformer(
+            applicationContext.getBeansOfType(FilterConverter.class)
         );
     }
 

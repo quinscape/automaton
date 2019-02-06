@@ -1,5 +1,6 @@
 package de.quinscape.automaton.model.data;
 
+import de.quinscape.automaton.runtime.data.DefaultFilterTransformer;
 import org.svenson.JSONParameter;
 import org.svenson.JSONTypeHint;
 
@@ -12,27 +13,49 @@ import java.util.List;
  */
 public final class FilterDefinition
 {
-    public static final FilterDefinition EMPTY = new FilterDefinition(Collections.emptyList());
+    private String filterTransformer;
 
-    private final List<FieldFilterDefinition> fields;
-
-
-    public FilterDefinition(
-        @JSONParameter("fields")
-        @JSONTypeHint(FieldFilterDefinition.class)
-        List<FieldFilterDefinition> fields
-    )
-    {
-        this.fields = Collections.unmodifiableList(fields);
-    }
+    private List<FieldFilterDefinition> fieldFilters;
 
 
     /**
      * Returns the list of field filters for this filter definition
      * @return
      */
-    public List<FieldFilterDefinition> getFields()
+    public List<FieldFilterDefinition> getFieldFilters()
     {
-        return fields;
+        if(fieldFilters == null)
+        {
+            return Collections.emptyList();
+        }
+            
+        return fieldFilters;
+    }
+
+
+    public void setFieldFilters(List<FieldFilterDefinition> fieldFilters)
+    {
+        this.fieldFilters = fieldFilters;
+    }
+
+
+    /**
+     *
+     * @return
+     */
+    public String getFilterTransformer()
+    {
+        if (filterTransformer == null)
+        {
+            return DefaultFilterTransformer.BEAN_NAME;
+        }
+
+        return filterTransformer;
+    }
+
+
+    public void setFilterTransformer(String filterTransformer)
+    {
+        this.filterTransformer = filterTransformer;
     }
 }
