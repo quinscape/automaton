@@ -10,7 +10,9 @@ import de.quinscape.automaton.runtime.util.LocaleUtil;
 import de.quinscape.automaton.runtime.util.ProcessUtil;
 import de.quinscape.automaton.runtime.ws.AutomatonClientConnectionImpl;
 import de.quinscape.automaton.runtime.ws.AutomatonWebSocketHandler;
+import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.jsonb.JSONB;
+import de.quinscape.domainql.schema.SchemaDataProvider;
 import de.quinscape.spring.jsview.JsViewContext;
 import de.quinscape.spring.jsview.JsViewProvider;
 import org.jooq.DSLContext;
@@ -85,11 +87,13 @@ public final class AutomatonJsViewProvider
 
     private final DSLContext dslContext;
 
+    private final SchemaDataProvider schemaProvider;
+
 
     /**
      * Creates a new AutomatonJsViewProvider instance.
-     *
-     * @param dslContext                        JOOQ DSL context
+     *  @param dslContext                        JOOQ DSL context
+     * @param domainQL
      * @param processInjectionService           project injection service
      * @param translationService                translation service implementation
      * @param automatonTestWebSocketHandler     web socket handler, can be <code>null</code>
@@ -97,6 +101,7 @@ public final class AutomatonJsViewProvider
      */
     public AutomatonJsViewProvider(
         DSLContext dslContext,
+        DomainQL domainQL,
         ProcessInjectionService processInjectionService,
         TranslationService translationService,
         AutomatonWebSocketHandler automatonTestWebSocketHandler,
@@ -119,6 +124,8 @@ public final class AutomatonJsViewProvider
         this.websocketEnabled = automatonTestWebSocketHandler != null;
         this.automatonTestWebSocketHandler = automatonTestWebSocketHandler;
         this.translationService = translationService;
+
+        this.schemaProvider = new SchemaDataProvider(domainQL);
     }
 
 
@@ -140,6 +147,8 @@ public final class AutomatonJsViewProvider
     {
         provideProcessInjections(context);
         provideCommonData(context);
+
+        schemaProvider.provide(context);
     }
 
 
