@@ -21,6 +21,7 @@ public class SortOrderTest
      */
 
 
+
     @Test
     public void testSortOrderCreation()
     {
@@ -34,21 +35,20 @@ public class SortOrderTest
     }
 
 
-    @Test(expected = InvalidSortOrderException.class)
-    public void testError()
+    @Test
+    public void testFieldNameExpressions()
     {
-        new SortOrder(Collections.singletonList("!ab!c"));
+        assertThat(SortOrder.ORDER_BY_RE.matcher("aaa").matches(), is(true));
+        assertThat(SortOrder.ORDER_BY_RE.matcher("!aaa").matches(), is(true));
+        assertThat(SortOrder.ORDER_BY_RE.matcher("aaa.bbb").matches(), is(true));
+        assertThat(SortOrder.ORDER_BY_RE.matcher("!aaa.bbb").matches(), is(true));
+        assertThat(SortOrder.ORDER_BY_RE.matcher("aaa.bbb.ccc").matches(), is(true));
+        assertThat(SortOrder.ORDER_BY_RE.matcher("!aaa.bbb.ccc").matches(), is(true));
+
+        assertThat(SortOrder.ORDER_BY_RE.matcher("aaa.bbb.").matches(), is(false));
+        assertThat(SortOrder.ORDER_BY_RE.matcher("!ab!c").matches(), is(false));
+        assertThat(SortOrder.ORDER_BY_RE.matcher("ö").matches(), is(false));
+        assertThat(SortOrder.ORDER_BY_RE.matcher("-").matches(), is(false));
     }
 
-    @Test(expected = InvalidSortOrderException.class)
-    public void testError2()
-    {
-        new SortOrder(Collections.singletonList("ö"));
-    }
-
-    @Test(expected = InvalidSortOrderException.class)
-    public void testError3()
-    {
-        new SortOrder(Collections.singletonList("-"));
-    }
 }

@@ -1,0 +1,7 @@
+{
+    "schemaPath": "./schema.graphql",
+    "extensions": {
+        "endpoints": {
+        }
+    }
+}

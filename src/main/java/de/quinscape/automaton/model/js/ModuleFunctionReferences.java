@@ -25,7 +25,7 @@ public class ModuleFunctionReferences
 
     private final List<String> requires;
 
-    private final Map<String, List<String>> calls;
+    private final Map<String, List<List<?>>> calls;
 
 
     public ModuleFunctionReferences(
@@ -34,7 +34,7 @@ public class ModuleFunctionReferences
         @JSONParameter("requires")
         List<String> requires,
         @JSONParameter("calls")
-        Map<String, List<String>> calls)
+        Map<String, List<List<?>>> calls)
     {
         this.module = module;
         this.requires = requires;
@@ -74,9 +74,9 @@ public class ModuleFunctionReferences
      * @param name
      * @return
      */
-    public List<String> getCalls(String name)
+    public List<List<?>> getCalls(String name)
     {
-        List<String> calls = this.calls.get(name);
+        List<List<?>> calls = this.calls.get(name);
         if (calls == null)
         {
             return Collections.emptyList();

@@ -112,7 +112,7 @@
         <dependency>
             <groupId>de.quinscape.domainql</groupId>
             <artifactId>domainql</artifactId>
-            <version>0.20</version>
+            <version>0.22-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -228,6 +228,93 @@
                     </compilerArgs>
                 </configuration>
             </plugin>
+
+            <plugin>
+
+                <!-- Specify the maven code generator plugin -->
+                <!-- Use org.jooq            for the Open Source Edition
+                         org.jooq.pro        for commercial editions,
+                         org.jooq.pro-java-6 for commercial editions with Java 6 support,
+                         org.jooq.trial      for the free trial edition
+
+                     Note: Only the Open Source Edition is hosted on Maven Central.
+                           Import the others manually from your distribution -->
+                <groupId>org.jooq</groupId>
+                <artifactId>jooq-codegen-maven</artifactId>
+                <version>3.10.6</version>
+
+                <!--
+                    The generated classes are only used in tests.
+
+                    To update uncomment the <executions>
+                    block below and do a "mvn generate-sources" and then comment the block out again.
+
+                    We don't want to require DB access for the tests to run, we only simulate the db activity in the tests.
+                    It is however nice to have JOOQ generate the correct classes based on a real DB.
+                 -->
+                <!--
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                -->
+
+                <!-- Manage the plugin's dependency. In this example, we'll use a PostgreSQL database -->
+                <dependencies>
+                    <dependency>
+                        <groupId>org.postgresql</groupId>
+                        <artifactId>postgresql</artifactId>
+                        <version>42.1.4</version>
+                    </dependency>
+                </dependencies>
+
+                <!-- Specify the plugin configuration.
+                     The configuration format is the same as for the standalone code generator -->
+                <configuration>
+
+                    <!-- JDBC connection parameters -->
+                    <jdbc>
+                        <driver>org.postgresql.Driver</driver>
+                        <url>jdbc:postgresql://localhost/automaton</url>
+                        <user>automaton</user>
+                        <password>automaton</password>
+                    </jdbc>
+
+                    <!-- Generator parameters -->
+                    <generator>
+                        <database>
+                            <name>org.jooq.util.postgres.PostgresDatabase</name>
+                            <includes>.*</includes>
+                            <excludes />
+                            <!-- In case your database supports catalogs, e.g. SQL Server:
+                            <inputCatalog>public</inputCatalog>
+                              -->
+                            <inputSchema>public</inputSchema>
+                        </database>
+                        <target>
+                            <packageName>de.quinscape.automaton.testdomain</packageName>
+                            <directory>src/test/java</directory>
+                        </target>
+                        <generate>
+                            <pojos>true</pojos>
+                            <records>true</records>
+                            <generatedAnnotation>true</generatedAnnotation>
+                            <validationAnnotations>true</validationAnnotations>
+                            <jpaAnnotations>true</jpaAnnotations>
+                            <springAnnotations>true</springAnnotations>
+                        </generate>
+                        <strategy>
+                            <name>
+                                de.quinscape.domainql.jooq.DomainObjectGeneratorStrategy
+                            </name>
+                        </strategy>
+                    </generator>
+                </configuration>
+            </plugin>
+
 
         </plugins>
     </build>

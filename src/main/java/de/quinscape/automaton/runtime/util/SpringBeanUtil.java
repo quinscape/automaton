@@ -23,15 +23,7 @@ public class SpringBeanUtil
         {
             final String name = e.getKey();
 
-            final String newName;
-            if (name.endsWith(suffix))
-            {
-                newName = name.substring(0, name.length() - suffix.length());
-            }
-            else
-            {
-                newName = name;
-            }
+            final String newName = NameUtil.stripSuffix(name, suffix);
             out.put(newName, e.getValue());
         }
 

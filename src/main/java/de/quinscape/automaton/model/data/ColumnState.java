@@ -43,4 +43,15 @@ public class ColumnState
     {
         this.sortable = sortable;
     }
+
+
+    @Override
+    public String toString()
+    {
+        return super.toString() + ": "
+            + "name = '" + name + '\''
+            + ", enabled = " + enabled
+            + ", sortable = " + sortable
+            ;
+    }
 }

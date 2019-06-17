@@ -7,9 +7,9 @@ import de.quinscape.automaton.model.js.StaticFunctionReferences;
 import de.quinscape.automaton.runtime.util.GraphQLUtil;
 import de.quinscape.automaton.runtime.util.ProcessUtil;
 import de.quinscape.spring.jsview.loader.ResourceHandle;
-import de.quinscape.spring.jsview.util.JSONUtil;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
+import graphql.GraphQLError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,7 +67,7 @@ public class DefaultProcessInjectionService
             )
             {
                 // Maps the original query string to the result object for that query
-                final List<String> calls = e.getValue().getCalls(INJECTION_CALL_NAME);
+                final List<List<?>> calls = e.getValue().getCalls(INJECTION_CALL_NAME);
 
                 return createInjections(calls);
             }
@@ -76,19 +76,24 @@ public class DefaultProcessInjectionService
     }
 
 
-    private Map<String, Map<String, Object>> createInjections(List<String> calls)
+    private Map<String, Map<String, Object>> createInjections(List<List<?>> calls)
     {
         final Map<String, Map<String, Object>> injections = Maps.newHashMapWithExpectedSize(calls.size());
 
-        for (String query : calls)
+        for (List<?> args : calls)
         {
+            final String query = (String) args.get(0);
             Map<String, Object> queryMap = new HashMap<>();
             queryMap.put("query", query);
-            final ExecutionResult result = GraphQLUtil.executeGraphQLQuery(graphQL, queryMap, null);
-            if (result.getErrors().size() != 0)
+            if (args.size() > 1)
             {
-                throw new AutomatonInjectionException("Errors in injection query: " + JSONUtil.formatJSON(
-                    JSONUtil.DEFAULT_GENERATOR.forValue(result.getErrors())));
+                queryMap.put("variables", args.get(1));
+            }
+            final ExecutionResult result = GraphQLUtil.executeGraphQLQuery(graphQL, queryMap, null);
+            final List<GraphQLError> errors = result.getErrors();
+            if (errors.size() != 0)
+            {
+                throw new AutomatonInjectionException("Errors in injection query: " + GraphQLUtil.formatErrors(errors));
             }
 
             final Map<String, Object> data = (Map<String, Object>) result.toSpecification().get("data");
@@ -100,5 +105,4 @@ public class DefaultProcessInjectionService
         }
         return injections;
     }
-
 }

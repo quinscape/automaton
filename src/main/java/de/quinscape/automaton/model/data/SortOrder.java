@@ -1,21 +1,14 @@
 package de.quinscape.automaton.model.data;
 
 import de.quinscape.automaton.runtime.InvalidSortOrderException;
-import org.jooq.SelectField;
-import org.jooq.SortField;
-import org.svenson.JSONProperty;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static org.jooq.impl.DSL.*;
-
 public class SortOrder
 {
-    final static Pattern ORDER_BY_RE = Pattern.compile("^!?[a-zA-Z_][a-zA-Z0-9_]*$");
+    final static Pattern ORDER_BY_RE = Pattern.compile("^!?[a-zA-Z_][a-zA-Z0-9_]*(\\.[a-zA-Z_][a-zA-Z0-9_]*)*$");
 
     private List<String> fields;
 
@@ -53,27 +46,14 @@ public class SortOrder
 
     public List<String> getFields()
     {
+        if (fields == null)
+        {
+            return Collections.emptyList();
+        }
         return fields;
     }
 
 
-    @JSONProperty(ignore = true)
-    public Collection<? extends SortField<?>> getJooqFields()
-    {
-        Collection<SortField<Object>> list = new ArrayList<>();
-        for (String fieldName : fields)
-        {
-            if (fieldName.startsWith("!"))
-            {
-                list.add(field(fieldName.substring(1)).desc());
-            }
-            else
-            {
-                list.add(field(fieldName).asc());
-            }
-        }
-        return list;
-    }
 
 
 }

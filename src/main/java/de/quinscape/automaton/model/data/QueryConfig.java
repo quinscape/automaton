@@ -1,8 +1,6 @@
 package de.quinscape.automaton.model.data;
 
-import org.svenson.JSONParameter;
-
-import java.util.function.Supplier;
+import de.quinscape.automaton.runtime.scalar.ConditionScalar;
 
 /**
  * Encapsulates the current configuration a user-controllable data-source including current filters, current page and
@@ -11,7 +9,7 @@ import java.util.function.Supplier;
  */
 public final class QueryConfig
 {
-    private FilterDefinition filter = null;
+    private ConditionScalar condition = new ConditionScalar();
 
     private int currentPage = 0;
 
@@ -19,16 +17,18 @@ public final class QueryConfig
 
     private SortOrder sortOrder = null;
 
+    private String id;
 
-    public FilterDefinition getFilter()
+
+    public ConditionScalar getCondition()
     {
-        return filter;
+        return condition;
     }
 
 
-    public void setFilter(FilterDefinition filter)
+    public void setCondition(ConditionScalar condition)
     {
-        this.filter = filter;
+        this.condition = condition;
     }
 
 
@@ -65,6 +65,36 @@ public final class QueryConfig
     public void setSortOrder(SortOrder sortOrder)
     {
         this.sortOrder = sortOrder;
+    }
+
+
+    /**
+     * Optional unique query identifier. Useful for server-side query implementations.
+     *
+     * @return
+     */
+    public String getId()
+    {
+        return id;
+    }
+
+
+    public void setId(String id)
+    {
+        this.id = id;
+    }
+
+
+    @Override
+    public String toString()
+    {
+        return super.toString() + ": "
+            + "condition = " + condition
+            + ", currentPage = " + currentPage
+            + ", pageSize = " + pageSize
+            + ", sortOrder = " + sortOrder
+            + ", id = '" + id + '\''
+            ;
     }
 }
 

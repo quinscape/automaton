@@ -4,10 +4,9 @@ import de.quinscape.automaton.model.js.StaticFunctionReferences;
 import de.quinscape.automaton.runtime.controller.GraphQLController;
 import de.quinscape.automaton.runtime.controller.ProcessController;
 import de.quinscape.automaton.runtime.controller.ScopeSyncController;
-import de.quinscape.automaton.runtime.data.DefaultFilterTransformer;
-import de.quinscape.automaton.runtime.data.FilterConverter;
+import de.quinscape.automaton.runtime.data.DefaultInteractiveQueryService;
 import de.quinscape.automaton.runtime.data.FilterTransformer;
-import de.quinscape.automaton.runtime.data.FilterTransformationService;
+import de.quinscape.automaton.runtime.data.InteractiveQueryService;
 import de.quinscape.automaton.runtime.logic.AutomatonStandardLogic;
 import de.quinscape.automaton.runtime.provider.DefaultProcessInjectionService;
 import de.quinscape.automaton.runtime.provider.ProcessInjectionService;
@@ -69,17 +68,14 @@ public class AutomatonConfiguration
     private final static Logger log = LoggerFactory.getLogger(AutomatonConfiguration.class);
 
 
-    private final ApplicationContext applicationContext;
     private final ServletContext servletContext;
 
 
     @Autowired
     public AutomatonConfiguration(
-        ApplicationContext applicationContext,
         ServletContext servletContext
     )
     {
-        this.applicationContext = applicationContext;
         this.servletContext = servletContext;
     }
 
@@ -163,22 +159,26 @@ public class AutomatonConfiguration
     }
 
     @Bean
-    public FilterTransformationService filterTransformationService()
+    public InteractiveQueryService interactiveQueryService(
+        @Lazy DomainQL domainQL,
+        DSLContext dslContext,
+        FilterTransformer defaultFilterTransformer
+    )
     {
-        return new FilterTransformationService(
-            applicationContext.getBeansOfType(FilterTransformer.class)
+        return new DefaultInteractiveQueryService(
+            domainQL, dslContext, defaultFilterTransformer
         );
     }
-    @Bean(name = DefaultFilterTransformer.BEAN_NAME)
-    public FilterTransformer defaultFilterTransformer()
+    
+    @Bean
+    public FilterTransformer filterTransformer()
     {
-        return new DefaultFilterTransformer(
-            applicationContext.getBeansOfType(FilterConverter.class)
-        );
+        return new FilterTransformer();
     }
 
+
     @EventListener(ContextStoppedEvent.class)
-    public void contextRefreshed(ContextStoppedEvent event) throws IOException
+    public void onContextStopped(ContextStoppedEvent event) throws IOException
     {
         final ResourceLoader resourceLoader = resourceLoader();
         resourceLoader.shutDown();

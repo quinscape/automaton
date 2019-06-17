@@ -4,6 +4,7 @@ import de.quinscape.automaton.runtime.util.GraphQLUtil;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
+import graphql.GraphQLError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -54,6 +56,8 @@ public class GraphQLController
         //@RequestParam("cid") String connectionId
     )
     {
+        log.debug("Received query: {}", body);
+
         return executeGraphQLQuery(body, null);
     }
 
@@ -79,13 +83,19 @@ public class GraphQLController
     {
         ExecutionResult executionResult = GraphQLUtil.executeGraphQLQuery(graphQL, queryMap, context);
 
+        final List<GraphQLError> errors = executionResult.getErrors();
+        if (errors.size() > 0)
+        {
+            log.warn("Errors in graphql query: " + GraphQLUtil.formatErrors(errors));
+        }
+
         // result may contain data and/or errors
         Object result = executionResult.toSpecification();
         return new ResponseEntity<String>(
             JSONUtil.DEFAULT_GENERATOR.forValue(
                 result
             ),
-            executionResult.getErrors().size() == 0 ? HttpStatus.OK : HttpStatus.BAD_REQUEST
+            errors.size() == 0 ? HttpStatus.OK : HttpStatus.BAD_REQUEST
         );
     }
 }

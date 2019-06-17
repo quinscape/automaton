@@ -11,6 +11,8 @@ import org.jooq.Record;
 import org.jooq.StoreQuery;
 import org.jooq.Table;
 import org.jooq.UpdateQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.validation.constraints.NotNull;
 
@@ -19,6 +21,9 @@ import static org.jooq.impl.DSL.*;
 @GraphQLLogic
 public class AutomatonStandardLogic
 {
+    private final static Logger log = LoggerFactory.getLogger(AutomatonStandardLogic.class);
+
+
     private final DSLContext dslContext;
     private final DomainQL domainQL;
 
@@ -39,6 +44,8 @@ public class AutomatonStandardLogic
         DomainObject domainObject
     )
     {
+        log.debug("storeDomainObject: {}", domainObject);
+
         return DomainObjectUtil.insertOrUpdate(dslContext, domainQL, domainObject) == 1;
     }
 

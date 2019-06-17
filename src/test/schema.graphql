@@ -1,0 +1,202 @@
+schema {
+  query: QueryType
+  mutation: MutationType
+}
+
+#Generated from public.app_user
+type AppUser {
+  #DB column 'created'
+  created: Timestamp!
+  #DB column 'disabled'
+  disabled: Boolean
+  #Many-to-many objects from 'foo.owner_id'
+  foos: [Foo]!
+  #DB column 'id'
+  id: String!
+  #DB column 'last_login'
+  lastLogin: Timestamp
+  #DB column 'login'
+  login: String!
+  #DB column 'password'
+  password: String!
+  #DB column 'roles'
+  roles: String!
+}
+
+#Generated for ColumnConfig
+type ColumnConfig {
+  #List.columnStates
+  columnStates: [ColumnState]
+  #String.type
+  type: String
+}
+
+#Generated for ColumnState
+type ColumnState {
+  #boolean.enabled
+  enabled: Boolean
+  #String.name
+  name: String
+  #boolean.sortable
+  sortable: Boolean
+}
+
+#Generated from public.foo
+type Foo {
+  #DB column 'created'
+  created: Timestamp!
+  #DB column 'description'
+  description: String
+  #DB column 'flag'
+  flag: Boolean!
+  #DB column 'id'
+  id: String!
+  #DB column 'name'
+  name: String!
+  #DB column 'num'
+  num: Int!
+  #Target of 'owner_id'
+  owner: AppUser!
+  #DB foreign key column 'type'
+  type: String!
+}
+
+#Generated from public.foo_type
+type FooType {
+  #DB column 'name'
+  name: String!
+  #DB column 'ordinal'
+  ordinal: Int!
+}
+
+#Generated for InteractiveQuery<AppUser>
+type InteractiveQueryAppUser {
+  #ColumnConfig.columnConfig
+  columnConfig: ColumnConfig
+  #QueryConfig.queryConfig
+  queryConfig: QueryConfig
+  #int.rowCount
+  rowCount: Int
+  #List.rows
+  rows: [AppUser]
+  #String.type
+  type: String
+}
+
+#Generated for InteractiveQuery<Foo>
+type InteractiveQueryFoo {
+  #ColumnConfig.columnConfig
+  columnConfig: ColumnConfig
+  #QueryConfig.queryConfig
+  queryConfig: QueryConfig
+  #int.rowCount
+  rowCount: Int
+  #List.rows
+  rows: [Foo]
+  #String.type
+  type: String
+}
+
+#Generated for InteractiveQuery<Node>
+type InteractiveQueryNode {
+  #ColumnConfig.columnConfig
+  columnConfig: ColumnConfig
+  #QueryConfig.queryConfig
+  queryConfig: QueryConfig
+  #int.rowCount
+  rowCount: Int
+  #List.rows
+  rows: [Node]
+  #String.type
+  type: String
+}
+
+#Auto-generated from IQueryTestLogic
+type MutationType {
+}
+
+#Generated from public.node
+type Node {
+  #DB column 'id'
+  id: String!
+  #DB column 'name'
+  name: String!
+  #Target of 'parent_id'
+  parent: Node
+}
+
+#Generated for QueryConfig
+type QueryConfig {
+  id: String
+  #ConditionScalar.condition
+  condition: GenericScalar
+  #int.currentPage
+  currentPage: Int
+  #int.pageSize
+  pageSize: Int
+  #SortOrder.sortOrder
+  sortOrder: SortOrder
+}
+
+#Auto-generated from IQueryTestLogic
+type QueryType {
+  iQueryAppUser(config: QueryConfigInput): InteractiveQueryAppUser
+  iQueryFoo(config: QueryConfigInput): InteractiveQueryFoo
+  iQueryNode(config: QueryConfigInput): InteractiveQueryNode
+}
+
+#Generated for SortOrder
+type SortOrder {
+  #List.fields
+  fields: [String]
+}
+
+#Container for generic scalar values
+scalar GenericScalar
+
+#SQL timestamp equivalent
+scalar Timestamp
+
+#Generated for de.quinscape.automaton.testdomain.tables.pojos.AppUser
+input AppUserInput {
+  created: Timestamp!
+  disabled: Boolean
+  id: String!
+  lastLogin: Timestamp
+  login: String!
+  password: String!
+  roles: String!
+}
+
+#Generated for de.quinscape.automaton.testdomain.tables.pojos.Foo
+input FooInput {
+  created: Timestamp!
+  description: String
+  flag: Boolean!
+  id: String!
+  name: String!
+  num: Int!
+  ownerId: String!
+  type: String!
+}
+
+#Generated for de.quinscape.automaton.testdomain.tables.pojos.Node
+input NodeInput {
+  id: String!
+  name: String!
+  parentId: String
+}
+
+#Generated for de.quinscape.automaton.model.data.QueryConfig
+input QueryConfigInput {
+  id: String
+  condition: GenericScalar
+  currentPage: Int
+  pageSize: Int
+  sortOrder: SortOrderInput
+}
+
+#Generated for de.quinscape.automaton.model.data.SortOrder
+input SortOrderInput {
+  fields: [String]
+}
