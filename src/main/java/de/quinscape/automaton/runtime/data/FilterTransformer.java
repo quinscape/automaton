@@ -5,7 +5,6 @@ import de.quinscape.automaton.runtime.AutomatonException;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
 import de.quinscape.automaton.runtime.scalar.ConditionScalar;
 import de.quinscape.automaton.runtime.scalar.NodeType;
-import de.quinscape.automaton.runtime.util.SpringBeanUtil;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -25,8 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * Default filter transformer implementation. Uses a set of named {@link FilterConverter} implementations to
- * convert a list of field filters into a collection of JOOQ conditions.
+ * Transforms the FilterDSL condition nodes / maps into JOOQ conditions.
  */
 public class FilterTransformer
 {
