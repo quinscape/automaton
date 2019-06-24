@@ -35,6 +35,7 @@ import org.jooq.SortField;
 import org.jooq.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.svenson.info.JSONClassInfo;
 
 import java.beans.Introspector;
 import java.lang.reflect.Constructor;
@@ -466,21 +467,10 @@ public final class InteractiveQueryBuilder<T>
             {
                 final String columnName = state.getName().replace('.', '/');
 
-                final Object value;
-                if (state.isEnabled())
-                {
-                    value = record.get(columnIndex++);
-                }
-                else
-                {
-                    final Field<?> field = queryContext.resolveField(columnName);
-                    final Class<?> fieldType = field.getType();
-
-                    value = getNonNullValue(fieldType);
-                }
-
                 boolean isRoot;
                 DomainObject current = (DomainObject) rowObject;
+                JSONClassInfo classInfo = JSONUtil.getClassInfo(current.getClass());
+
                 String parentLocation = columnName;
                 do
                 {
@@ -501,18 +491,31 @@ public final class InteractiveQueryBuilder<T>
                             current.provideFetcherContext(fetcherContext);
                         }
 
-                        final String fieldName = join.getSourceTableField();
-                        current = (DomainObject) fetcherContext.getProperty(fieldName);
+                        final String joinFieldName = join.getSourceTableField();
+                        current = (DomainObject) fetcherContext.getProperty(joinFieldName);
                         if (current == null)
                         {
                             current = (DomainObject) newDomainObjectInstance(join.getPojoType());
-                            fetcherContext.setProperty(fieldName, current);
+                            fetcherContext.setProperty(joinFieldName, current);
                         }
+                        classInfo = JSONUtil.getClassInfo(current.getClass());
                     }
 
                 } while(!isRoot);
 
-                JSONUtil.DEFAULT_UTIL.setProperty(current, getFieldName(columnName), value);
+                final Object value;
+                final String fieldName = getFieldName(columnName);
+                final Class<Object> fieldType = classInfo.getPropertyInfo(fieldName).getType();
+                if (state.isEnabled())
+                {
+                    value = record.get(columnIndex++, fieldType);
+                }
+                else
+                {
+                    value = getNonNullValue(fieldType);
+                }
+
+                JSONUtil.DEFAULT_UTIL.setProperty(current, fieldName, value);
             }
 
             return rowObject;
