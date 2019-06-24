@@ -145,10 +145,23 @@ public final class AutomatonJsViewProvider
     @Override
     public void provide(JsViewContext context) throws Exception
     {
-        provideProcessInjections(context);
+        if (!context.getJsView().getEntryPoint().equals("login"))
+        {
+            provideProcessInjections(context);
+            provideScopes(context);
+            schemaProvider.provide(context);
+        }
         provideCommonData(context);
+    }
 
-        schemaProvider.provide(context);
+
+    private void provideScopes(JsViewContext context)
+    {
+        final AutomatonAuthentication auth = AutomatonAuthentication.current();
+
+        final String appName = context.getJsView().getEntryPoint();
+        context.provideViewData(APP_SCOPE, getAppScope(appName));
+        context.provideViewData(USER_SCOPE, getUserScope(auth.getLogin()));
     }
 
 
