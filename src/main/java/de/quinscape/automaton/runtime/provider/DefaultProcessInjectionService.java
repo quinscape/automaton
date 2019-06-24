@@ -57,6 +57,13 @@ public class DefaultProcessInjectionService
         final Map<String, ModuleFunctionReferences> refsMap = handle.getContent()
             .getModuleFunctionReferences();
 
+        if (refsMap.size() == 0)
+        {
+            throw new ProcessNotFoundException(
+                handle + " contains no ModuleFunctionReferences at all, is babel-plugin-track-usage configured / working correctly?"
+            );
+        }
+
         for (Map.Entry<String, ModuleFunctionReferences> e : refsMap.entrySet())
         {
             final String moduleName = e.getKey();
@@ -72,7 +79,9 @@ public class DefaultProcessInjectionService
                 return createInjections(calls);
             }
         }
-        throw new ProcessNotFoundException("Could not find process '" + processName + "' in app '" + appName + "'");
+        throw new ProcessNotFoundException(
+            "Could not find process injections for process '" + processName + "' in " + handle + "."
+        );
     }
 
 
