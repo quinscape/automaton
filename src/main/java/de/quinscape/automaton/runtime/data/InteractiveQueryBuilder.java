@@ -376,7 +376,7 @@ public final class InteractiveQueryBuilder<T>
 
         Table<?> table = createJoinedTables(joinAliases);
         final List<T> rows = fetchResultRows(table, joinAliases);
-        final int count = fetchRowCount(table);
+        final int count = config.getPageSize() > 0 ? fetchRowCount(table) : rows.size();
 
         return new InteractiveQuery<>(
             type.getSimpleName(),
@@ -450,11 +450,13 @@ public final class InteractiveQueryBuilder<T>
         selectQuery.addOrderBy(orderByFields);
 
         final int pageSize = config.getPageSize();
-        selectQuery.addLimit(
-            config.getCurrentPage() * pageSize,
-            pageSize
-        );
-
+        if (pageSize > 0)
+        {
+            selectQuery.addLimit(
+                config.getCurrentPage() * pageSize,
+                pageSize
+            );
+        }
 
         return selectQuery.fetch( record -> {
             final T rowObject = newDomainObjectInstance(type);
