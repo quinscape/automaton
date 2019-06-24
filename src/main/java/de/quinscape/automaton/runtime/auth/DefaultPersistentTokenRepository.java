@@ -19,16 +19,17 @@ import java.util.List;
 public class DefaultPersistentTokenRepository<T>
     implements PersistentTokenRepository
 {
-
     private final static Logger log = LoggerFactory.getLogger(DefaultPersistentTokenRepository.class);
 
     private static final String USERNAME = "username";
 
-    private static final String TOKEN_VALUE = "tokenValue";
+    private static final String TOKEN_VALUE = "token";
 
     private static final String SERIES = "series";
 
     private static final String LAST_USED = "lastUsed";
+
+    private static final String FIELD_LAST_USED = "last_used";
 
     private final DSLContext dslContext;
 
@@ -51,6 +52,7 @@ public class DefaultPersistentTokenRepository<T>
 
     public void createNewToken(PersistentRememberMeToken token)
     {
+        log.debug("createNewToken: {}", token);
 
         try
         {
@@ -64,7 +66,7 @@ public class DefaultPersistentTokenRepository<T>
                 .set(DSL.field(DSL.name(USERNAME)), token.getUsername())
                 .set(DSL.field(DSL.name(TOKEN_VALUE)), token.getTokenValue())
                 .set(DSL.field(DSL.name(SERIES)), token.getSeries())
-                .set(DSL.field(DSL.name(LAST_USED)), new Timestamp(token.getDate().getTime()))
+                .set(DSL.field(DSL.name(FIELD_LAST_USED)), new Timestamp(token.getDate().getTime()))
                 .execute();
         }
         catch (Exception e)
@@ -76,6 +78,7 @@ public class DefaultPersistentTokenRepository<T>
 
     public void updateToken(String series, String tokenValue, Date lastUsed)
     {
+        log.debug("updateToken: {}, {}, {}", series, tokenValue, lastUsed);
         try
         {
             dslContext.update(
@@ -86,7 +89,7 @@ public class DefaultPersistentTokenRepository<T>
                 )
             )
                 .set(DSL.field(DSL.name(TOKEN_VALUE)), tokenValue)
-                .set(DSL.field(DSL.name(LAST_USED)), new Timestamp(lastUsed.getTime()))
+                .set(DSL.field(DSL.name(FIELD_LAST_USED)), new Timestamp(lastUsed.getTime()))
                 .where(
                     DSL.field(
                         DSL.name(
@@ -141,6 +144,7 @@ public class DefaultPersistentTokenRepository<T>
      */
     public PersistentRememberMeToken getTokenForSeries(String seriesId)
     {
+        log.debug("getTokenForSeries: {}", seriesId);
 
         try
         {
@@ -152,11 +156,16 @@ public class DefaultPersistentTokenRepository<T>
 
             final JSONBeanUtil util = JSONUtil.DEFAULT_UTIL;
 
+            final String usename = (String) util.getProperty(login, USERNAME);
+            final String series = (String) util.getProperty(login, SERIES);
+            final String tokenValue = (String) util.getProperty(login, TOKEN_VALUE);
+            final Timestamp lastUsed = (Timestamp) util.getProperty(login, LAST_USED);
+
             return new PersistentRememberMeToken(
-                (String) util.getProperty(login, USERNAME),
-                (String) util.getProperty(login, SERIES),
-                (String) util.getProperty(login, TOKEN_VALUE),
-                (Timestamp) util.getProperty(login, LAST_USED)
+                usename,
+                series,
+                tokenValue,
+                lastUsed
             );
         }
         catch (Exception e)
@@ -169,6 +178,8 @@ public class DefaultPersistentTokenRepository<T>
 
     public void removeUserTokens(String username)
     {
+        log.debug("removeUserTokens: {}", username);
+
         dslContext.deleteFrom(
             DSL.table(
                 DSL.name(
