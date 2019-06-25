@@ -5,8 +5,6 @@ import java.util.List;
 
 public class ColumnConfig
 {
-    private String type;
-
     private List<ColumnState> columnStates;
 
     public List<ColumnState> getColumnStates()
@@ -24,19 +22,6 @@ public class ColumnConfig
     {
         this.columnStates = columnStates;
     }
-
-
-    public String getType()
-    {
-        return type;
-    }
-
-
-    public void setType(String type)
-    {
-        this.type = type;
-    }
-
 
     @Override
     public String toString()

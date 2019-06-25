@@ -6,11 +6,7 @@ import de.quinscape.domainql.annotation.GraphQLMutation;
 import de.quinscape.domainql.generic.DomainObject;
 import de.quinscape.domainql.util.DomainObjectUtil;
 import org.jooq.DSLContext;
-import org.jooq.InsertQuery;
-import org.jooq.Record;
-import org.jooq.StoreQuery;
 import org.jooq.Table;
-import org.jooq.UpdateQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,18 +43,6 @@ public class AutomatonStandardLogic
         log.debug("storeDomainObject: {}", domainObject);
 
         return DomainObjectUtil.insertOrUpdate(dslContext, domainQL, domainObject) == 1;
-    }
-
-
-    @GraphQLMutation
-    public boolean merge(
-        @NotNull
-            DomainObject domainObject
-    )
-    {
-
-
-        return true;
     }
 
 
