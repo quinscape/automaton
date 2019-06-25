@@ -315,6 +315,42 @@
                 </configuration>
             </plugin>
 
+            <!-- Update DomainQL type documentation from Java source -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.5.0</version>
+                <executions>
+                    <execution>
+                        <id>update-typedocs</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <phase>generate-resources</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <mainClass>de.quinscape.domainql.docs.DocsExtractor</mainClass>
+                    <arguments>
+
+                        <argument>--sourceRoot</argument>
+                        <argument>${project.basedir}/src/main/java</argument>
+
+                        <!-- Documentation for the standard Automaton logic implementations -->
+                        <argument>--package</argument>
+                        <argument>de.quinscape.automaton.runtime.logic</argument>
+
+                        <!-- Documentation for automaton base models -->
+                        <argument>--package</argument>
+                        <argument>de.quinscape.automaton.model</argument>
+
+                        <argument>--output</argument>
+                        <argument>${project.basedir}/src/main/resources/automaton-typedocs.json</argument>
+
+                    </arguments>
+                </configuration>
+            </plugin>
+
 
         </plugins>
     </build>
