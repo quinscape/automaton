@@ -3,9 +3,7 @@ package de.quinscape.automaton.model.data;
 import de.quinscape.automaton.runtime.scalar.ConditionScalar;
 
 /**
- * Encapsulates the current configuration a user-controllable data-source including current filters, current page and
- * current
- * sorting.
+ * Encapsulates all parameters of an interactive query.
  */
 public final class QueryConfig
 {
@@ -20,6 +18,10 @@ public final class QueryConfig
     private String id;
 
 
+    /**
+     * FilterDSL condition graph or null
+     * @return
+     */
     public ConditionScalar getCondition()
     {
         return condition;
@@ -32,6 +34,11 @@ public final class QueryConfig
     }
 
 
+    /**
+     * Current page within the paginated results
+     *
+     * @return
+     */
     public int getCurrentPage()
     {
         return currentPage;
@@ -44,6 +51,10 @@ public final class QueryConfig
     }
 
 
+    /**
+     * Maximum number of paginated results.,
+     * @return
+     */
     public int getPageSize()
     {
         return pageSize;
@@ -56,6 +67,11 @@ public final class QueryConfig
     }
 
 
+    /**
+     * Current sort order for the query.
+     *
+     * @return
+     */
     public SortOrder getSortOrder()
     {
         return sortOrder;

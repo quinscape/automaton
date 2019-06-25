@@ -34,6 +34,12 @@ public class AutomatonStandardLogic
     }
 
 
+    /**
+     * Stores a any domain object. Note that you might have to manually register an input type.
+     *
+     * @param domainObject  domain object wrapped as DomainObject scalar
+     * @return
+     */
     @GraphQLMutation
     public boolean storeDomainObject(
         @NotNull
@@ -46,6 +52,14 @@ public class AutomatonStandardLogic
     }
 
 
+
+    /**
+     * Deletes the domain object of the given type and with the given id.
+     *
+     * @param type      domain type name
+     * @param id        domain object id to delete
+     * @return
+     */
     @GraphQLMutation
     public boolean deleteDomainObject(
         @NotNull

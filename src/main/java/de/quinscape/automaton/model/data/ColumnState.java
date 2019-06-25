@@ -1,5 +1,8 @@
 package de.quinscape.automaton.model.data;
 
+/**
+ * The state of a column within an interactive query.
+ */
 public class ColumnState
 {
     private String name;
@@ -9,6 +12,9 @@ public class ColumnState
     private boolean sortable = true;
 
 
+    /**
+     * Column name
+     */
     public String getName()
     {
         return name;
@@ -21,6 +27,9 @@ public class ColumnState
     }
 
 
+    /**
+     * True if column is enabled. Server might disabled columns.
+     */
     public boolean isEnabled()
     {
         return enabled;
@@ -33,6 +42,9 @@ public class ColumnState
     }
 
 
+    /**
+     * True if the column is sortable.
+     */
     public boolean isSortable()
     {
         return sortable;

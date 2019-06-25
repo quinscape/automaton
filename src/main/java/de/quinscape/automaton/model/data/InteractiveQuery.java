@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Encapsulates the standard definition of interactive queries
+ * Interactive Query with [T] payload.
  */
 public class InteractiveQuery<T>
 {
@@ -47,7 +47,7 @@ public class InteractiveQuery<T>
 
 
     /**
-     * Domain type contained in the rows.
+     * Name of payload type (always '[T]')
      *
      * @return GraphQL domain type name
      */
@@ -64,7 +64,7 @@ public class InteractiveQuery<T>
 
 
     /**
-     * List with current rows.
+     * List with current rows of [T].
      *
      * @return
      */

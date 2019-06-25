@@ -6,6 +6,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
+/**
+ * Contains the list of field expressions to sort an interactive query by.
+ */
 public class SortOrder
 {
     final static Pattern ORDER_BY_RE = Pattern.compile("^!?[a-zA-Z_][a-zA-Z0-9_]*(\\.[a-zA-Z_][a-zA-Z0-9_]*)*$");
@@ -44,6 +47,11 @@ public class SortOrder
     }
 
 
+    /**
+     * Field expressions. Either a field name or a field name prefixed with '!' for descending sort order.
+     * 
+     * @return
+     */
     public List<String> getFields()
     {
         if (fields == null)
