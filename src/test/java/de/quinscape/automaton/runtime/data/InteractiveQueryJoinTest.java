@@ -49,9 +49,9 @@ public class InteractiveQueryJoinTest
     {
         final DSLContext dslContext = TestProvider.create(ImmutableMap.of(
             "select \"foo\".\"id\", \"foo\".\"name\", \"foo\".\"num\", \"foo\".\"description\", \"foo\".\"created\", " +
-                "\"foo\".\"type\", \"foo\".\"flag\", \"owner\".\"id\", \"owner\".\"login\" from \"public\".\"foo\" as" +
-                " \"foo\" join \"public\".\"app_user\" as \"owner\" on \"owner\".\"id\" = \"foo\".\"owner_id\" order " +
-                "by \"foo\".\"id\" asc limit ?", (dsl, ctx) -> new MockResult[]{
+                "\"foo\".\"type\", \"foo\".\"flag\", \"owner\".\"id\", \"owner\".\"login\", \"foo\".\"owner_id\" from" +
+                " \"public\".\"foo\" as \"foo\" left outer join \"public\".\"app_user\" as \"owner\" on \"owner\"" +
+                ".\"id\" = \"foo\".\"owner_id\" order by \"foo\".\"id\" asc limit ?", (dsl, ctx) -> new MockResult[]{
                     new MockResult(
                         dsl.newRecord(
                             FOO.ID,
@@ -62,7 +62,8 @@ public class InteractiveQueryJoinTest
                             FOO.TYPE,
                             FOO.FLAG,
                             APP_USER.ID,
-                            APP_USER.LOGIN
+                            APP_USER.LOGIN,
+                            FOO.OWNER_ID
                         )
                         .values(
                             "e7a32981-1b86-4020-8b74-701316d417c2",
@@ -75,11 +76,12 @@ public class InteractiveQueryJoinTest
                             "TYPE_A",
                             true,
                             "10db963b-9ecc-4b81-9a2a-edecb540d212",
-                            "TestUser"
+                            "TestUser",
+                            "10db963b-9ecc-4b81-9a2a-edecb540d212"
                         )
                     )
             },
-            "select count(*) from \"public\".\"foo\" as \"foo\" join \"public\".\"app_user\" as \"owner\" on " +
+            "select count(*) from \"public\".\"foo\" as \"foo\" left outer join \"public\".\"app_user\" as \"owner\" on " +
                 "\"owner\".\"id\" = \"foo\".\"owner_id\"", (dsl, ctx) -> new MockResult[]{
                 new MockResult(
                     dsl.newRecord(

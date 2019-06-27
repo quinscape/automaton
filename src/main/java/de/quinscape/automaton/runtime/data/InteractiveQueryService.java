@@ -18,9 +18,9 @@ public interface InteractiveQueryService
      *
      * @param <T> POJO type of the queried domain type
      *
-     * @return a new InteractiveQueryBuilder instance
+     * @return a new RuntimeQuery instance
      */
-    <T> InteractiveQueryBuilder<T> buildInteractiveQuery(
+    <T> RuntimeQuery<T> buildInteractiveQuery(
         Class<T> type,
         DataFetchingEnvironment env,
         QueryConfig config

@@ -2,7 +2,7 @@ package de.quinscape.automaton.runtime.tstimpl;
 
 import de.quinscape.automaton.model.data.QueryConfig;
 import de.quinscape.automaton.runtime.AutomatonException;
-import de.quinscape.automaton.runtime.data.InteractiveQueryBuilder;
+import de.quinscape.automaton.runtime.data.RuntimeQuery;
 import de.quinscape.automaton.runtime.data.InteractiveQueryService;
 import graphql.schema.DataFetchingEnvironment;
 
@@ -16,7 +16,7 @@ public class DelegatingInteractiveQueryService
 
 
     @Override
-    public <T> InteractiveQueryBuilder<T> buildInteractiveQuery(
+    public <T> RuntimeQuery<T> buildInteractiveQuery(
         Class<T> type, DataFetchingEnvironment env, QueryConfig config
     )
     {

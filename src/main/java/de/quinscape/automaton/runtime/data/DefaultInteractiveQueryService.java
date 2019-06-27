@@ -7,8 +7,6 @@ import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-
 /**
  * Creates conditions based on map of spring beans implementing {@link FilterTransformer}.
  */
@@ -36,12 +34,12 @@ public class DefaultInteractiveQueryService
     }
     
     @Override
-    public <T> InteractiveQueryBuilder<T> buildInteractiveQuery(
+    public <T> RuntimeQuery<T> buildInteractiveQuery(
         Class<T> type,
         DataFetchingEnvironment env,
         QueryConfig config
     )
     {
-        return new InteractiveQueryBuilder<>(domainQL, dslContext, filterTransformer, type, env, config);
+        return new RuntimeQuery<>(domainQL, dslContext, filterTransformer, type, env, config);
     }
 }

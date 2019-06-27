@@ -9,7 +9,6 @@ import de.quinscape.automaton.runtime.AutomatonException;
 import de.quinscape.automaton.runtime.scalar.ConditionScalar;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.DomainQLException;
-import de.quinscape.domainql.fetcher.BackReferenceFetcher;
 import de.quinscape.domainql.fetcher.FetcherContext;
 import de.quinscape.domainql.fetcher.FieldFetcher;
 import de.quinscape.domainql.fetcher.ReferenceFetcher;
@@ -17,8 +16,6 @@ import de.quinscape.domainql.generic.DomainObject;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLTypeUtil;
 import graphql.schema.SelectedField;
 import org.apache.commons.beanutils.ConstructorUtils;
@@ -36,6 +33,7 @@ import org.jooq.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.svenson.info.JSONClassInfo;
+import org.svenson.info.JSONPropertyInfo;
 
 import java.beans.Introspector;
 import java.lang.reflect.Constructor;
@@ -48,8 +46,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.jooq.impl.DSL.*;
 
@@ -58,9 +59,9 @@ import static org.jooq.impl.DSL.*;
  *
  * @param <T>
  */
-public final class InteractiveQueryBuilder<T>
+public final class RuntimeQuery<T>
 {
-    private final static Logger log = LoggerFactory.getLogger(InteractiveQueryBuilder.class);
+    private final static Logger log = LoggerFactory.getLogger(RuntimeQuery.class);
 
     // Join Alias location used for the root type
     private final static String ROOT_LOCATION = "";
@@ -89,7 +90,7 @@ public final class InteractiveQueryBuilder<T>
     private ColumnConfig columnConfig;
 
 
-    public InteractiveQueryBuilder(
+    public RuntimeQuery(
         DomainQL domainQL,
         DSLContext dslContext,
         FilterTransformer filterTransformer,
@@ -216,7 +217,7 @@ public final class InteractiveQueryBuilder<T>
 
     private Map<String, QueryJoin> determineJoinTableAliases()
     {
-        final Map<String, QueryJoin> joinAliases = new HashMap<>();
+        final Map<String, QueryJoin> joinAliases = new LinkedHashMap<>();
 
 
         joinAliases.put(
@@ -230,6 +231,7 @@ public final class InteractiveQueryBuilder<T>
                 Introspector.decapitalize(type.getSimpleName())
             ));
 
+        int fkCount = 0;
         for (ColumnState columnState : columnConfig.getColumnStates())
         {
 
@@ -238,8 +240,6 @@ public final class InteractiveQueryBuilder<T>
             {
                 final SelectedField parentField = env.getSelectionSet()
                     .getField("rows/" + parentLocation);
-
-                final String typeName = GraphQLTypeUtil.unwrapAll(parentField.getFieldDefinition().getType()).getName();
 
                 final DataFetcher dataFetcher = parentField.getFieldDefinition().getDataFetcher();
 
@@ -268,6 +268,8 @@ public final class InteractiveQueryBuilder<T>
                             sourceJoinEntry.getAlias(),
                             parentField.getName(),
                             domainQL.lookupField( grandParentType, referenceFetcher.getIdFieldName()).getName(),
+                            "fk" + (fkCount++),
+                            referenceFetcher.getTargetDBField(),
                             columnState.isEnabled()
                         )
                     );
@@ -332,7 +334,7 @@ public final class InteractiveQueryBuilder<T>
     }
 
     /**
-     * Configures this InteractiveQueryBuilder to use the given column config instead of the default column config.
+     * Configures this RuntimeQuery to use the given column config instead of the default column config.
      *
      * @see #getQueryContext() 
      * 
@@ -340,7 +342,7 @@ public final class InteractiveQueryBuilder<T>
      *
      * @return the builder itself
      */
-    public InteractiveQueryBuilder<T> withColumnConfig(ColumnConfig columnConfig)
+    public RuntimeQuery<T> withColumnConfig(ColumnConfig columnConfig)
     {
         this.columnConfig = columnConfig;
         this.queryContext = new QueryContext(
@@ -375,8 +377,9 @@ public final class InteractiveQueryBuilder<T>
 
         final Map<String, QueryJoin> joinAliases = queryContext.getJoinAliases();
 
-        Table<?> table = createJoinedTables(joinAliases);
-        final List<T> rows = fetchResultRows(table, joinAliases);
+        final TableAndFkFields tableAndFkFields = createJoinedTables(joinAliases);
+        Table<?> table = tableAndFkFields.getTable();
+        final List<T> rows = fetchResultRows(tableAndFkFields, joinAliases);
         final int count = config.getPageSize() > 0 ? fetchRowCount(table) : rows.size();
 
         return new InteractiveQuery<>(
@@ -396,52 +399,62 @@ public final class InteractiveQueryBuilder<T>
      *
      * @return joined JOOQ tables
      */
-    private Table<?> createJoinedTables(Map<String, QueryJoin> joinAliases)
+    private TableAndFkFields createJoinedTables(Map<String, QueryJoin> joinAliases)
     {
         final QueryJoin root = joinAliases.get(ROOT_LOCATION);
         final String rootAlias = root.getAlias();
         Table<?> table = root.getTable().as(rootAlias);
 
+        Set<Field<?>> fkFields = new HashSet<>();
+
         for (QueryJoin join : joinAliases.values())
         {
             if (!join.getAlias().equals(rootAlias) && join.isEnabled())
             {
+
                 final Field<Object> idField = field(
                     name(
-                        join.getAlias(), "id"
+                        join.getAlias(), join.getTargetDBField()
                     )
                 );
 
-                table = table.join(
+                final Field<Object> fkField = field(
+                    name(
+                        join.getSourceTableAlias(), join.getSourceTableDBField()
+                    )
+                );
+
+                table = table.leftJoin(
                     join.getTable().as(join.getAlias())
                 ).on(
                     idField.eq(
-                        field(
-                            name(
-                                join.getSourceTableAlias(), join.getSourceTableDBField()
-                            )
-                        )
+                        fkField
                     )
                 );
+
+                fkFields.add(fkField.as(join.getFkAlias()));
+
             }
         }
-        return table;
+        return new TableAndFkFields(table, fkFields);
     }
 
 
     /**
      * Fetches the result rows for the given table and join aliases
      *
-     * @param table             joined jooq tables
-     * @param joinAliases       join aliases
      *
      * @return paged result rows
      */
-    private List<T> fetchResultRows(Table<?> table, Map<String, QueryJoin> joinAliases)
+    private List<T> fetchResultRows(
+        TableAndFkFields tableAndFkFields,
+        Map<String, QueryJoin> joinAliases
+    )
     {
+        final Table<?> table = tableAndFkFields.getTable();
         final SelectQuery<?> selectQuery = dslContext.selectQuery(table);
 
-        final Collection<? extends SelectField<?>> jooqFields = createSelectFields();
+        final Collection<? extends SelectField<?>> jooqFields = createSelectFields(tableAndFkFields.getFkFields());
         selectQuery.addSelect(jooqFields);
 
         if (conditions != null)
@@ -462,36 +475,54 @@ public final class InteractiveQueryBuilder<T>
         return selectQuery.fetch( record -> {
             final T rowObject = newDomainObjectInstance(type);
 
+
             int columnIndex = 0;
+
             for (ColumnState state : columnConfig.getColumnStates())
             {
                 final String columnName = state.getName().replace('.', '/');
 
-                boolean isRoot;
                 DomainObject current = (DomainObject) rowObject;
                 JSONClassInfo classInfo = JSONUtil.getClassInfo(current.getClass());
 
-                String parentLocation = columnName;
+                FetcherContext fetcherContext = null;
+                String joinFieldName = null;
+                int prevPos = 0;
+                int pos = 0;
+                boolean skipColumn = false;
                 do
                 {
-                    parentLocation = QueryContext.getParent(parentLocation);
-                    isRoot = parentLocation.isEmpty();
-                    if (!isRoot)
+                    pos = columnName.indexOf("/", prevPos);
+                    if (pos >= 0)
                     {
-                        final QueryJoin join = joinAliases.get(parentLocation);
-                        if (join == null)
-                        {
-                            throw new IllegalStateException("No join entry for '" + parentLocation + "'");
-                        }
+                        final String ancestorLocation = columnName.substring(0, pos);
 
-                        FetcherContext fetcherContext = current.lookupFetcherContext();
+                        fetcherContext = current.lookupFetcherContext();
                         if (fetcherContext == null)
                         {
                             fetcherContext = new FetcherContext();
                             current.provideFetcherContext(fetcherContext);
                         }
 
-                        final String joinFieldName = join.getSourceTableField();
+                        final QueryJoin join = joinAliases.get(ancestorLocation);
+                        if (join == null)
+                        {
+                            throw new IllegalStateException("No join field for " + ancestorLocation);
+                        }
+
+                        joinFieldName = join.getSourceTableField();
+
+                        if (join.isEnabled())
+                        {
+                            Object fkValue = record.get(join.getFkAlias());
+                            if (fkValue == null)
+                            {
+                                // foreign key value is null => object does not exist, skip column
+                                skipColumn = true;
+                                break;
+                            }
+                        }
+
                         current = (DomainObject) fetcherContext.getProperty(joinFieldName);
                         if (current == null)
                         {
@@ -499,13 +530,24 @@ public final class InteractiveQueryBuilder<T>
                             fetcherContext.setProperty(joinFieldName, current);
                         }
                         classInfo = JSONUtil.getClassInfo(current.getClass());
+
+                        prevPos = pos + 1;
                     }
+                }  while (pos >= 0);
 
-                } while(!isRoot);
+                // column is part of a null joined object
+                if (skipColumn)
+                {
+                    columnIndex++;
+                    continue;
+                }
 
-                final Object value;
-                final String fieldName = getFieldName(columnName);
-                final Class<Object> fieldType = classInfo.getPropertyInfo(fieldName).getType();
+                // remaining part is the field name
+                final String fieldName = columnName.substring(prevPos);
+                final JSONPropertyInfo propertyInfo = classInfo.getPropertyInfo(fieldName);
+                final Class<Object> fieldType = propertyInfo.getType();
+
+                Object value;
                 if (state.isEnabled())
                 {
                     value = record.get(columnIndex++, fieldType);
@@ -514,7 +556,6 @@ public final class InteractiveQueryBuilder<T>
                 {
                     value = getNonNullValue(fieldType);
                 }
-
                 JSONUtil.DEFAULT_UTIL.setProperty(current, fieldName, value);
             }
 
@@ -635,7 +676,7 @@ public final class InteractiveQueryBuilder<T>
      *
      * @return the builder itself
      */
-    public InteractiveQueryBuilder<T> withColumnsFromQuery()
+    public RuntimeQuery<T> withColumnsFromQuery()
     {
         withColumnConfig(InteractiveQuery.configFromEnv(env, type));
         return this;
@@ -647,7 +688,7 @@ public final class InteractiveQueryBuilder<T>
      *
      * @return the builder itself
      */
-    private InteractiveQueryBuilder<T> prepare()
+    private RuntimeQuery<T> prepare()
     {
         if (columnConfig == null)
         {
@@ -671,9 +712,10 @@ public final class InteractiveQueryBuilder<T>
     /**
      * Creates JOOQ select fields for the given parameters.
      *
+     * @param fkFields  set of Foreign Key fields
      * @return collection of JOOQ select fields.
      */
-    private Collection<? extends SelectField<?>> createSelectFields()
+    private Collection<? extends SelectField<?>> createSelectFields(Set<Field<?>> fkFields)
     {
         final List<SelectField<?>> selectedDBFields = new ArrayList<>();
 
@@ -715,6 +757,17 @@ public final class InteractiveQueryBuilder<T>
                 throw new IllegalStateException("Expected data fetcher for " + field + " to be an instance of " + FieldFetcher.class);
             }
         }
+
+        for (Field<?> fkField : fkFields)
+        {
+            if (!selectedDBFields.contains(fkField))
+            {
+                selectedDBFields.add(fkField);
+            }
+        }
+
+        // add foreign key fields to selection if they're not already present
+
 
         log.debug("selected fields: {}", selectedDBFields);
         

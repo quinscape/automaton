@@ -20,6 +20,7 @@ import graphql.ExecutionResult;
 import graphql.GraphQL;
 import org.jooq.DSLContext;
 import org.jooq.Record5;
+import org.jooq.Record6;
 import org.jooq.Result;
 import org.jooq.impl.DSL;
 import org.jooq.tools.jdbc.MockResult;
@@ -49,16 +50,17 @@ public class InteractiveQuerySortTest
     public void testSortQuery() throws IOException
     {
         final DSLContext dslContext = TestProvider.create(ImmutableMap.of(
-        "select \"foo\".\"id\", \"foo\".\"name\", \"foo\".\"created\", \"owner\".\"id\", \"owner\".\"login\" from " +
-            "\"public\".\"foo\" as \"foo\" join \"public\".\"app_user\" as \"owner\" on \"owner\".\"id\" = \"foo\"" +
-            ".\"owner_id\" order by \"owner\".\"login\" desc, \"foo\".\"name\" asc limit ?", (dsl, ctx) -> {
+        "select \"foo\".\"id\", \"foo\".\"name\", \"foo\".\"created\", \"owner\".\"id\", \"owner\".\"login\", \"foo\"" +
+            ".\"owner_id\" from \"public\".\"foo\" as \"foo\" left outer join \"public\".\"app_user\" as \"owner\" on" +
+            " \"owner\".\"id\" = \"foo\".\"owner_id\" order by \"owner\".\"login\" desc, \"foo\".\"name\" asc limit ?", (dsl, ctx) -> {
 
-                final Result<Record5<String, String, Timestamp, String, String>> result = dsl.newResult(
+                final Result<Record6<String, String, Timestamp, String, String, String>> result = dsl.newResult(
                     FOO.ID,
                     FOO.NAME,
                     FOO.CREATED,
                     APP_USER.ID,
-                    APP_USER.LOGIN
+                    APP_USER.LOGIN,
+                    FOO.OWNER_ID
                 );
 
                 result.add(
@@ -67,7 +69,8 @@ public class InteractiveQuerySortTest
                             FOO.NAME,
                             FOO.CREATED,
                             APP_USER.ID,
-                            APP_USER.LOGIN
+                            APP_USER.LOGIN,
+                            FOO.OWNER_ID
                         )
                         .values(
                             "fd457b7d-c8c2-44dd-abb6-0f15717ab05c",
@@ -76,7 +79,8 @@ public class InteractiveQuerySortTest
                                 Instant.parse("2018-11-16T20:58:59Z")
                             ),
                             "10db963b-9ecc-4b81-9a2a-edecb540d212",
-                            "TestUser"
+                            "TestUser",
+                            "10db963b-9ecc-4b81-9a2a-edecb540d212"
                         )
                 );
 
@@ -86,7 +90,8 @@ public class InteractiveQuerySortTest
                         FOO.NAME,
                         FOO.CREATED,
                         APP_USER.ID,
-                        APP_USER.LOGIN
+                        APP_USER.LOGIN,
+                        FOO.OWNER_ID
                         )
                         .values(
                             "36ece7aa-955e-4ff8-8850-bf4f0e527fc5",
@@ -95,7 +100,8 @@ public class InteractiveQuerySortTest
                                 Instant.parse("2018-09-16T10:12:22Z")
                             ),
                             "10db963b-9ecc-4b81-9a2a-edecb540d212",
-                            "TestUser"
+                            "TestUser",
+                            "10db963b-9ecc-4b81-9a2a-edecb540d212"
                         )
                 );
 
@@ -105,7 +111,8 @@ public class InteractiveQuerySortTest
                         FOO.NAME,
                         FOO.CREATED,
                         APP_USER.ID,
-                        APP_USER.LOGIN
+                        APP_USER.LOGIN,
+                        FOO.OWNER_ID
                         )
                         .values(
                             "1af4c169-526a-4c1c-982b-5574e3ed9016",
@@ -114,7 +121,8 @@ public class InteractiveQuerySortTest
                                 Instant.parse("2018-10-16T04:32:19Z")
                             ),
                             "2e893530-5a84-4dc5-aadf-639239cc3f51",
-                            "OtherUser"
+                            "OtherUser",
+                            "2e893530-5a84-4dc5-aadf-639239cc3f51"
                         )
                 );
 
@@ -125,7 +133,7 @@ public class InteractiveQuerySortTest
                         )
                 };
             },
-            "select count(*) from \"public\".\"foo\" as \"foo\" join \"public\".\"app_user\" as \"owner\" on " +
+            "select count(*) from \"public\".\"foo\" as \"foo\" left outer join \"public\".\"app_user\" as \"owner\" on " +
                 "\"owner\".\"id\" = \"foo\".\"owner_id\"", (dsl, ctx) -> new MockResult[]{
                 new MockResult(
                     dsl.newRecord(

@@ -1,6 +1,8 @@
 package de.quinscape.automaton.runtime.data;
 
+import org.jooq.Field;
 import org.jooq.Table;
+import org.jooq.TableField;
 
 /**
  * Encapsulates information about one usage of a table within an interactive query.
@@ -25,7 +27,12 @@ final class QueryJoin
      */
     private final String sourceTableDBField;
 
+
+    private final String targetDBField;
+
     private final boolean enabled;
+
+    private final String fkAlias;
 
 
     public QueryJoin(
@@ -35,6 +42,8 @@ final class QueryJoin
         String sourceTableAlias,
         String sourceTableField,
         String sourceTableDBField,
+        String fkAlias,
+        String targetDBField,
         boolean enabled
     )
     {
@@ -44,8 +53,11 @@ final class QueryJoin
         this.sourceTableField = sourceTableField;
         this.alias = alias;
         this.sourceTableDBField = sourceTableDBField;
+        this.fkAlias = fkAlias;
+        this.targetDBField = targetDBField;
         this.enabled = enabled;
     }
+
 
 
     /**
@@ -56,7 +68,7 @@ final class QueryJoin
      */
     public QueryJoin(Table<?> table, Class<?> pojoType, String alias)
     {
-        this(table, pojoType, alias, null,  null, null, true);
+        this(table, pojoType, alias, null,  null, null, null, null, true);
     }
 
 
@@ -124,11 +136,21 @@ final class QueryJoin
     }
 
 
+    public String getFkAlias()
+    {
+        return fkAlias;
+    }
+
+
+    public String getTargetDBField()
+    {
+        return targetDBField;
+    }
+
     public boolean isEnabled()
     {
         return enabled;
     }
-
 
     @Override
     public String toString()
