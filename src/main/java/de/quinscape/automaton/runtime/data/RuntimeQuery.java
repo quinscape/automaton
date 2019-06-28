@@ -204,6 +204,7 @@ public final class RuntimeQuery<T>
     private Map<String, QueryJoin> determineJoinTableAliases()
     {
         final Map<String, QueryJoin> joinAliases = new LinkedHashMap<>();
+        final Set<String> namesUsed = new HashSet<>();
 
 
         joinAliases.put(
@@ -229,7 +230,7 @@ public final class RuntimeQuery<T>
 
                 final DataFetcher dataFetcher = parentField.getFieldDefinition().getDataFetcher();
 
-                final String alias = getUniqueName(joinAliases.values(), parentField.getName());
+                final String alias = getUniqueName(namesUsed, parentField.getName());
 
                 final String grandParentLocation = QueryContext.getParent(parentLocation);
                 final SelectedField grandParentField = queryContext.getParentField(grandParentLocation);
@@ -294,31 +295,21 @@ public final class RuntimeQuery<T>
         return queryContext;
     }
 
-    private String getUniqueName(Collection<QueryJoin> joins, String name)
+    private String getUniqueName(Set<String> usedNames, String name)
     {
         int count = 2;
         String tableAlias = name;
 
-        while (containsName(joins, tableAlias))
+        while (usedNames.contains(tableAlias))
         {
             tableAlias = name + count++;
         }
+
+        usedNames.add(tableAlias);
+        
         return tableAlias;
     }
-
-
-    private boolean containsName(Collection<QueryJoin> joins, String tableAlias)
-    {
-        for (QueryJoin join : joins)
-        {
-            if (join.getAlias().equals(tableAlias))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
+    
 
     /**
      * Configures this RuntimeQuery to use the given column config instead of the default column config.
@@ -752,6 +743,7 @@ public final class RuntimeQuery<T>
                 selectedDBFields.add(fkField);
             }
         }
+
 
         // add foreign key fields to selection if they're not already present
 
