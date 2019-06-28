@@ -4,10 +4,13 @@ import com.esotericsoftware.reflectasm.MethodAccess;
 import de.quinscape.automaton.runtime.AutomatonException;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
 import de.quinscape.automaton.runtime.scalar.ConditionScalar;
+import de.quinscape.automaton.runtime.scalar.FieldExpressionScalar;
 import de.quinscape.automaton.runtime.scalar.NodeType;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.jooq.Condition;
 import org.jooq.Field;
+import org.jooq.OrderField;
+import org.jooq.SortField;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,22 +40,31 @@ public class FilterTransformer
     private static JSON JSON_GEN = JSONUtil.DEFAULT_GENERATOR;
 
 
-    public Collection<? extends Condition> transform(
+    public Condition transform(
         QueryContext queryContext, ConditionScalar conditionScalar
     )
     {
-        final Map<String, Object> condition = conditionScalar.getRoot();
-
-        final Object transformed = transformRecursive(queryContext, condition);
+        final Object transformed = transformRecursive(queryContext, conditionScalar.getRoot());
 
         if (!(transformed instanceof Condition))
         {
             throw new AutomatonException("Transformed condition scalar returns no condition: " + transformed);
         }
 
-        return Collections.singletonList(
-            (Condition) transformed
-        );
+        return (Condition) transformed;
+    }
+
+    public OrderField<?> transform(
+        QueryContext queryContext, FieldExpressionScalar fieldExpressionScalar
+    )
+    {
+        final Object transformed = transformRecursive(queryContext, fieldExpressionScalar.getRoot());
+
+        if (!(transformed instanceof OrderField))
+        {
+            throw new AutomatonException("Transformed condition scalar returns no field: " + transformed);
+        }
+        return (OrderField<?>) transformed;
     }
 
 

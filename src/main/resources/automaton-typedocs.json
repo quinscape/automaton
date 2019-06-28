@@ -197,15 +197,15 @@
         ]
       },
       {
-        "name":"sortOrder",
-        "description":"Current sort order for the query.",
+        "name":"pageSize",
+        "description":"Maximum number of paginated results.,",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"pageSize",
-        "description":"Maximum number of paginated results.,",
+        "name":"sortFields",
+        "description":"Current sort order for the query.",
         "paramDocs":[
           
         ]
@@ -220,19 +220,6 @@
       {
         "name":"currentPage",
         "description":"Current page within the paginated results",
-        "paramDocs":[
-          
-        ]
-      }
-    ]
-  },
-  {
-    "name":"SortOrder",
-    "description":"Contains the list of field expressions to sort an interactive query by.",
-    "fieldDocs":[
-      {
-        "name":"fields",
-        "description":"Field expressions. Either a field name or a field name prefixed with '!' for descending sort order.",
         "paramDocs":[
           
         ]

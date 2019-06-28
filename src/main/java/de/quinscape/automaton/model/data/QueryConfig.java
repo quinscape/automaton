@@ -1,6 +1,9 @@
 package de.quinscape.automaton.model.data;
 
 import de.quinscape.automaton.runtime.scalar.ConditionScalar;
+import de.quinscape.automaton.runtime.scalar.FieldExpressionScalar;
+
+import java.util.List;
 
 /**
  * Encapsulates all parameters of an interactive query.
@@ -13,7 +16,7 @@ public final class QueryConfig
 
     private int pageSize = 10;
 
-    private SortOrder sortOrder = null;
+    private List<FieldExpressionScalar> sortFields = null;
 
     private String id;
 
@@ -72,15 +75,15 @@ public final class QueryConfig
      *
      * @return
      */
-    public SortOrder getSortOrder()
+    public List<FieldExpressionScalar> getSortFields()
     {
-        return sortOrder;
+        return sortFields;
     }
 
 
-    public void setSortOrder(SortOrder sortOrder)
+    public void setSortFields(List<FieldExpressionScalar> sortFields)
     {
-        this.sortOrder = sortOrder;
+        this.sortFields = sortFields;
     }
 
 
@@ -108,7 +111,7 @@ public final class QueryConfig
             + "condition = " + condition
             + ", currentPage = " + currentPage
             + ", pageSize = " + pageSize
-            + ", sortOrder = " + sortOrder
+            + ", sortFields = " + sortFields
             + ", id = '" + id + '\''
             ;
     }

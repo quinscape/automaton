@@ -33,4 +33,10 @@ abstract class DomainQLAwareCoercing<I, O>
         }
         return (GraphQLScalarType) type;
     }
+
+
+    protected DomainQL getDomainQL()
+    {
+        return domainQL;
+    }
 }

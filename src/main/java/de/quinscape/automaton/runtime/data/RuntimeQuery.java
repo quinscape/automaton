@@ -4,9 +4,9 @@ import de.quinscape.automaton.model.data.ColumnConfig;
 import de.quinscape.automaton.model.data.ColumnState;
 import de.quinscape.automaton.model.data.InteractiveQuery;
 import de.quinscape.automaton.model.data.QueryConfig;
-import de.quinscape.automaton.model.data.SortOrder;
 import de.quinscape.automaton.runtime.AutomatonException;
 import de.quinscape.automaton.runtime.scalar.ConditionScalar;
+import de.quinscape.automaton.runtime.scalar.FieldExpressionScalar;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.DomainQLException;
 import de.quinscape.domainql.fetcher.FetcherContext;
@@ -144,19 +144,19 @@ public final class RuntimeQuery<T>
         QueryConfig config
     )
     {
-        final SortOrder sortOrder = config.getSortOrder();
-        if (sortOrder == null)
+        final List<FieldExpressionScalar> sortFields = config.getSortFields();
+        if (sortFields == null)
         {
-            final SortOrder defaultSortOrder = getDefaultSortOrder(columnConfig);
-            config.setSortOrder(defaultSortOrder);
-            return resolveSortOrder(defaultSortOrder);
-        }
+            final List<FieldExpressionScalar> defaultSortFields = getDefaultSortOrder(columnStates);
+            config.setSortFields(defaultSortFields);
 
-        return resolveSortOrder(sortOrder);
+            return resolveSortOrder(defaultSortFields);
+        }
+        return resolveSortOrder(sortFields);
     }
 
 
-    private SortOrder getDefaultSortOrder(ColumnConfig columnConfig)
+    private List<FieldExpressionScalar> getDefaultSortOrder(ColumnConfig columnConfig)
     {
         final List<ColumnState> columnStates = columnConfig.getColumnStates();
         for (ColumnState state : columnStates)
@@ -164,37 +164,26 @@ public final class RuntimeQuery<T>
             // sort by first sortable field
             if (state.isEnabled() && state.isSortable())
             {
-                final SortOrder defaultOrder = new SortOrder();
-                defaultOrder.setFields(Collections.singletonList(state.getName()));
-                return defaultOrder;
+                return Collections.singletonList(FieldExpressionScalar.forFieldExpression(state.getName()));
             }
         }
         // no sorting..
-        return new SortOrder();
+        return Collections.emptyList();
     }
 
 
-    private Collection<? extends SortField<?>> resolveSortOrder(SortOrder sortOrder)
+    private Collection<? extends OrderField<?>> resolveSortOrder(List<FieldExpressionScalar> sortFields)
     {
-        Collection<SortField<?>> list = new ArrayList<>();
+        Collection<OrderField<?>> list = new ArrayList<>();
 
-        for (String fieldName : sortOrder.getFields())
+        for (FieldExpressionScalar sortField : sortFields)
         {
-            boolean ascending = true;
-            if (fieldName.startsWith("!"))
-            {
-                fieldName = fieldName.substring(1);
-                ascending = false;
-            }
-
-
-            Field<?> sortField = queryContext.resolveField(fieldName);
-
 
             list.add(
-                ascending ?
-                    sortField.asc() :
-                    sortField.desc()
+                filterTransformer.transform(
+                    queryContext,
+                    sortField
+                )
             );
         }
         return list;
@@ -210,8 +199,7 @@ public final class RuntimeQuery<T>
         {
             return null;
         }
-
-        return filterTransformer.transform(queryContext, condition);
+        return Collections.singleton(filterTransformer.transform(queryContext, condition));
     }
 
 
