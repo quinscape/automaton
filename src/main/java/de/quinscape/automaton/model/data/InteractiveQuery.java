@@ -25,7 +25,7 @@ public class InteractiveQuery<T>
 
     private QueryConfig queryConfig;
 
-    private ColumnConfig columnConfig;
+    private List<ColumnState> columnStates;
 
     private int rowCount;
 
@@ -36,11 +36,11 @@ public class InteractiveQuery<T>
     }
 
 
-    public InteractiveQuery(String type, QueryConfig config, ColumnConfig columnConfig, List<T> rows, int count)
+    public InteractiveQuery(String type, QueryConfig config, List<ColumnState> columnStates, List<T> rows, int count)
     {
         this.type = type;
         this.queryConfig = config;
-        this.columnConfig = columnConfig;
+        this.columnStates = columnStates;
         this.rows = rows;
         this.rowCount = count;
     }
@@ -98,21 +98,20 @@ public class InteractiveQuery<T>
 
 
     /**
-     * Column configuration for the current result.
+     * Column states for the current result.
      *
      * @return
      */
-    public ColumnConfig getColumnConfig()
+    public List<ColumnState> getColumnStates()
     {
-        return columnConfig;
+        return columnStates;
     }
 
 
-    public void setColumnConfig(ColumnConfig columnConfig)
+    public void setColumnStates(List<ColumnState> columnStates)
     {
-        this.columnConfig = columnConfig;
+        this.columnStates = columnStates;
     }
-
 
     /**
      * Total row count available.
@@ -145,7 +144,7 @@ public class InteractiveQuery<T>
      *
      * @return default column config
      */
-    public static ColumnConfig configFromEnv(DataFetchingEnvironment env, Class<?> type)
+    public static List<ColumnState> configFromEnv(DataFetchingEnvironment env, Class<?> type)
     {
         final List<Field> endPoints = env.getFields();
 
@@ -154,7 +153,6 @@ public class InteractiveQuery<T>
             throw new IllegalStateException("Query Document should access only one end point, but it accesses " + endPoints);
         }
 
-        final ColumnConfig columnConfig = new ColumnConfig();
         final List<SelectedField> fields = env.getSelectionSet()
             .getField("rows")
             .getSelectionSet()
@@ -172,7 +170,6 @@ public class InteractiveQuery<T>
                 columnStates.add(state);
             }
         }
-        columnConfig.setColumnStates(columnStates);
-        return columnConfig;
+        return columnStates;
     }
 }

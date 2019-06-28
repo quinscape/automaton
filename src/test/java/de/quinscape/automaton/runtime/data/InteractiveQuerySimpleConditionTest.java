@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableMap;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
 import de.quinscape.automaton.runtime.scalar.ConditionScalar;
 import de.quinscape.automaton.runtime.scalar.ConditionType;
+import de.quinscape.automaton.runtime.scalar.FieldExpressionScalar;
+import de.quinscape.automaton.runtime.scalar.FieldExpressionType;
 import de.quinscape.automaton.runtime.tstimpl.DelegatingInteractiveQueryService;
 import de.quinscape.automaton.runtime.tstimpl.IQueryTestLogic;
 import de.quinscape.automaton.runtime.tstimpl.TestProvider;
@@ -50,9 +52,9 @@ public class InteractiveQuerySimpleConditionTest
         final DSLContext dslContext = TestProvider.create(ImmutableMap.of(
                 "select \"foo\".\"id\", \"foo\".\"name\", \"foo\".\"num\", \"foo\".\"description\", \"foo\"" +
                     ".\"created\", \"foo\".\"type\", \"foo\".\"flag\", \"owner\".\"id\", \"owner\".\"login\", \"foo\"" +
-                    ".\"owner_id\" from \"public\".\"foo\" as \"foo\" left outer join \"public\".\"app_user\" as " +
-                    "\"owner\" on \"owner\".\"id\" = \"foo\".\"owner_id\" where \"foo\".\"name\" = ? order by \"foo\"" +
-                    ".\"id\" asc limit ?", (dsl, ctx) -> new MockResult[]{
+                    ".\"owner_id\" as \"fk0\" from \"public\".\"foo\" as \"foo\" left outer join \"public\"" +
+                    ".\"app_user\" as \"owner\" on \"owner\".\"id\" = \"foo\".\"owner_id\" where \"foo\".\"name\" = ?" +
+                    " order by \"foo\".\"id\" limit ?", (dsl, ctx) -> new MockResult[]{
                 new MockResult(
                     dsl.newRecord(
                         FOO.ID,
@@ -111,6 +113,7 @@ public class InteractiveQuerySimpleConditionTest
 
 
             .withAdditionalScalar( ConditionScalar.class, ConditionType.newConditionType())
+            .withAdditionalScalar(FieldExpressionScalar.class, FieldExpressionType.newFieldExpressionType())
 
             .withAdditionalInputTypes(
                 Foo.class, Node.class, AppUser.class
@@ -147,9 +150,7 @@ public class InteractiveQuerySimpleConditionTest
                 "            condition\n" +
                 "            currentPage\n" +
                 "            pageSize\n" +
-                "            sortOrder{\n" +
-                "                fields\n" +
-                "            }\n" +
+                "            sortFields\n" +
                 "        }\n" +
                 "        rows{\n" +
                 "            id\n" +
@@ -217,11 +218,9 @@ public class InteractiveQuerySimpleConditionTest
                     "      },\n" +
                     "      \"currentPage\":0,\n" +
                     "      \"pageSize\":10,\n" +
-                    "      \"sortOrder\":{\n" +
-                    "        \"fields\":[\n" +
-                    "          \"id\"\n" +
-                    "        ]\n" +
-                    "      }\n" +
+                    "      \"sortFields\":[\n" +
+                    "        \"id\"\n" +
+                    "      ]\n" +
                     "    },\n" +
                     "    \"rows\":[\n" +
                     "      {\n" +

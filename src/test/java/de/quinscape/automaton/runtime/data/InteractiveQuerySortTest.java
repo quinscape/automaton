@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableMap;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
 import de.quinscape.automaton.runtime.scalar.ConditionScalar;
 import de.quinscape.automaton.runtime.scalar.ConditionType;
+import de.quinscape.automaton.runtime.scalar.FieldExpressionScalar;
+import de.quinscape.automaton.runtime.scalar.FieldExpressionType;
 import de.quinscape.automaton.runtime.tstimpl.DelegatingInteractiveQueryService;
 import de.quinscape.automaton.runtime.tstimpl.IQueryTestLogic;
 import de.quinscape.automaton.runtime.tstimpl.TestProvider;
@@ -51,8 +53,9 @@ public class InteractiveQuerySortTest
     {
         final DSLContext dslContext = TestProvider.create(ImmutableMap.of(
         "select \"foo\".\"id\", \"foo\".\"name\", \"foo\".\"created\", \"owner\".\"id\", \"owner\".\"login\", \"foo\"" +
-            ".\"owner_id\" from \"public\".\"foo\" as \"foo\" left outer join \"public\".\"app_user\" as \"owner\" on" +
-            " \"owner\".\"id\" = \"foo\".\"owner_id\" order by \"owner\".\"login\" desc, \"foo\".\"name\" asc limit ?", (dsl, ctx) -> {
+            ".\"owner_id\" as \"fk0\" from \"public\".\"foo\" as \"foo\" left outer join \"public\".\"app_user\" as " +
+            "\"owner\" on \"owner\".\"id\" = \"foo\".\"owner_id\" order by \"owner\".\"login\" desc, \"foo\".\"name\"" +
+            " limit ?", (dsl, ctx) -> {
 
                 final Result<Record6<String, String, Timestamp, String, String, String>> result = dsl.newResult(
                     FOO.ID,
@@ -162,6 +165,7 @@ public class InteractiveQuerySortTest
 
 
             .withAdditionalScalar( ConditionScalar.class, ConditionType.newConditionType())
+            .withAdditionalScalar(FieldExpressionScalar.class, FieldExpressionType.newFieldExpressionType())
 
             .withAdditionalInputTypes(
                 Foo.class, Node.class, AppUser.class
@@ -199,9 +203,7 @@ public class InteractiveQuerySortTest
                 "            condition\n" +
                 "            currentPage\n" +
                 "            pageSize\n" +
-                "            sortOrder{\n" +
-                "                fields\n" +
-                "            }\n" +
+                "            sortFields\n" +
                 "        }\n" +
                 "        rows{\n" +
                 "            id\n" +
@@ -217,12 +219,10 @@ public class InteractiveQuerySortTest
                 "    }\n" +
                 "}")
             .variables(ImmutableMap.of("config", JSONUtil.DEFAULT_PARSER.parse("{\n" +
-                "    \"sortOrder\" : {\n" +
-                "        \"fields\" : [\n" +
+                "    \"sortFields\" : [\n" +
                 "            \"!owner.login\",\n" +
                 "            \"name\"\n" +
                 "        ]\n" +
-                "    }\n" +
                 "}")))
             .build();
 
@@ -240,12 +240,10 @@ public class InteractiveQuerySortTest
                     "      \"condition\":null,\n" +
                     "      \"currentPage\":0,\n" +
                     "      \"pageSize\":10,\n" +
-                    "      \"sortOrder\":{\n" +
-                    "        \"fields\":[\n" +
-                    "          \"!owner.login\",\n" +
-                    "          \"name\"\n" +
-                    "        ]\n" +
-                    "      }\n" +
+                    "      \"sortFields\":[\n" +
+                    "        \"!owner.login\",\n" +
+                    "        \"name\"\n" +
+                    "      ]\n" +
                     "    },\n" +
                     "    \"rows\":[\n" +
                     "      {\n" +

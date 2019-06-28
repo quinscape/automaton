@@ -71,8 +71,7 @@ type FooType {
 
 #Generated for InteractiveQuery<AppUser>
 type InteractiveQueryAppUser {
-  #ColumnConfig.columnConfig
-  columnConfig: ColumnConfig
+  columnStates: [ColumnState]
   #QueryConfig.queryConfig
   queryConfig: QueryConfig
   #int.rowCount
@@ -85,8 +84,7 @@ type InteractiveQueryAppUser {
 
 #Generated for InteractiveQuery<Foo>
 type InteractiveQueryFoo {
-  #ColumnConfig.columnConfig
-  columnConfig: ColumnConfig
+  columnStates: [ColumnState]
   #QueryConfig.queryConfig
   queryConfig: QueryConfig
   #int.rowCount
@@ -99,8 +97,7 @@ type InteractiveQueryFoo {
 
 #Generated for InteractiveQuery<Node>
 type InteractiveQueryNode {
-  #ColumnConfig.columnConfig
-  columnConfig: ColumnConfig
+  columnStates: [ColumnState]
   #QueryConfig.queryConfig
   queryConfig: QueryConfig
   #int.rowCount
@@ -125,17 +122,18 @@ type Node {
   parent: Node
 }
 
-#Generated for QueryConfig
+# Encapsulates all parameters of an interactive query.
 type QueryConfig {
-  id: String
-  #ConditionScalar.condition
-  condition: GenericScalar
-  #int.currentPage
+  # FilterDSL condition graph or null
+  condition: Condition
+  # Current page within the paginated results
   currentPage: Int
-  #int.pageSize
+  # Optional unique query identifier. Useful for server-side query implementations.
+  id: String
+  # Maximum number of paginated results.
   pageSize: Int
-  #SortOrder.sortOrder
-  sortOrder: SortOrder
+  # Current sort order for the query.
+  sortFields: [FieldExpression]
 }
 
 #Auto-generated from IQueryTestLogic
@@ -200,3 +198,10 @@ input QueryConfigInput {
 input SortOrderInput {
   fields: [String]
 }
+
+# Map graph representing a JOOQ field expression
+scalar FieldExpression
+
+# Map graph representing JOOQ conditions
+scalar Condition
+

@@ -1,6 +1,5 @@
 package de.quinscape.automaton.runtime.data;
 
-import de.quinscape.automaton.model.data.ColumnConfig;
 import de.quinscape.automaton.model.data.ColumnState;
 import de.quinscape.automaton.model.data.InteractiveQuery;
 import de.quinscape.automaton.model.data.QueryConfig;
@@ -87,7 +86,7 @@ public final class RuntimeQuery<T>
 
     private QueryContext queryContext;
 
-    private ColumnConfig columnConfig;
+    private List<ColumnState> columnStates;
 
 
     public RuntimeQuery(
@@ -134,13 +133,13 @@ public final class RuntimeQuery<T>
     /**
      * Returns a list of JOOQ order fields for a automaton query config.
      *
-     * @param columnConfig column config
-     * @param config       query config containing sort order
+     * @param columnStates      column states
+     * @param config            query config containing sort order
      *
      * @return order fields
      */
     private Collection<? extends OrderField<?>> getOrderByFields(
-        ColumnConfig columnConfig,
+        List<ColumnState> columnStates,
         QueryConfig config
     )
     {
@@ -156,9 +155,8 @@ public final class RuntimeQuery<T>
     }
 
 
-    private List<FieldExpressionScalar> getDefaultSortOrder(ColumnConfig columnConfig)
+    private List<FieldExpressionScalar> getDefaultSortOrder(List<ColumnState> columnStates)
     {
-        final List<ColumnState> columnStates = columnConfig.getColumnStates();
         for (ColumnState state : columnStates)
         {
             // sort by first sortable field
@@ -220,7 +218,7 @@ public final class RuntimeQuery<T>
             ));
 
         int fkCount = 0;
-        for (ColumnState columnState : columnConfig.getColumnStates())
+        for (ColumnState columnState : columnStates)
         {
 
             final String parentLocation = QueryContext.getParent(columnState.getName().replace('.', '/'));
@@ -285,7 +283,8 @@ public final class RuntimeQuery<T>
     }
 
 
-    public Collection<? extends OrderField<?>> getOrderByFields()
+    public Collection<? extends OrderField<?>> getOrderByFields(
+    )
     {
         return orderByFields;
     }
@@ -326,13 +325,13 @@ public final class RuntimeQuery<T>
      *
      * @see #getQueryContext() 
      * 
-     * @param columnConfig      column config
+     * @param columnStates      column states
      *
      * @return the builder itself
      */
-    public RuntimeQuery<T> withColumnConfig(ColumnConfig columnConfig)
+    public RuntimeQuery<T> withColumnStates(List<ColumnState> columnStates)
     {
-        this.columnConfig = columnConfig;
+        this.columnStates = columnStates;
         this.queryContext = new QueryContext(
             env,
             domainQL,
@@ -343,13 +342,13 @@ public final class RuntimeQuery<T>
 
 
     /**
-     * Returns the current column config for this builder
+     * Returns the current column states for this runtime query.
      *
      * @return current column config
      */
-    public ColumnConfig getColumnConfig()
+    public List<ColumnState> getColumnStates()
     {
-        return columnConfig;
+        return columnStates;
     }
 
 
@@ -373,7 +372,7 @@ public final class RuntimeQuery<T>
         return new InteractiveQuery<>(
             type.getSimpleName(),
             config,
-            columnConfig,
+            columnStates,
             rows,
             count
         );
@@ -466,7 +465,7 @@ public final class RuntimeQuery<T>
 
             int columnIndex = 0;
 
-            for (ColumnState state : columnConfig.getColumnStates())
+            for (ColumnState state : columnStates)
             {
                 final String columnName = state.getName().replace('.', '/');
 
@@ -666,7 +665,7 @@ public final class RuntimeQuery<T>
      */
     public RuntimeQuery<T> withColumnsFromQuery()
     {
-        withColumnConfig(InteractiveQuery.configFromEnv(env, type));
+        withColumnStates(InteractiveQuery.configFromEnv(env, type));
         return this;
     }
 
@@ -678,7 +677,7 @@ public final class RuntimeQuery<T>
      */
     private RuntimeQuery<T> prepare()
     {
-        if (columnConfig == null)
+        if (columnStates == null)
         {
             withColumnsFromQuery();
         }
@@ -691,7 +690,7 @@ public final class RuntimeQuery<T>
         );
 
         conditions = createConditions();
-        orderByFields = getOrderByFields(columnConfig, config);
+        orderByFields = getOrderByFields(columnStates, config);
 
         return this;
     }
@@ -707,7 +706,7 @@ public final class RuntimeQuery<T>
     {
         final List<SelectField<?>> selectedDBFields = new ArrayList<>();
 
-        for (ColumnState columnState : columnConfig.getColumnStates())
+        for (ColumnState columnState : columnStates)
         {
             if (!columnState.isEnabled())
             {

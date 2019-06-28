@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableMap;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
 import de.quinscape.automaton.runtime.scalar.ConditionScalar;
 import de.quinscape.automaton.runtime.scalar.ConditionType;
+import de.quinscape.automaton.runtime.scalar.FieldExpressionScalar;
+import de.quinscape.automaton.runtime.scalar.FieldExpressionType;
 import de.quinscape.automaton.runtime.tstimpl.DelegatingInteractiveQueryService;
 import de.quinscape.automaton.runtime.tstimpl.IQueryTestLogic;
 import de.quinscape.automaton.runtime.tstimpl.TestProvider;
@@ -49,9 +51,9 @@ public class InteractiveQueryJoinTest
     {
         final DSLContext dslContext = TestProvider.create(ImmutableMap.of(
             "select \"foo\".\"id\", \"foo\".\"name\", \"foo\".\"num\", \"foo\".\"description\", \"foo\".\"created\", " +
-                "\"foo\".\"type\", \"foo\".\"flag\", \"owner\".\"id\", \"owner\".\"login\", \"foo\".\"owner_id\" from" +
-                " \"public\".\"foo\" as \"foo\" left outer join \"public\".\"app_user\" as \"owner\" on \"owner\"" +
-                ".\"id\" = \"foo\".\"owner_id\" order by \"foo\".\"id\" asc limit ?", (dsl, ctx) -> new MockResult[]{
+                "\"foo\".\"type\", \"foo\".\"flag\", \"owner\".\"id\", \"owner\".\"login\", \"foo\".\"owner_id\" as " +
+                "\"fk0\" from \"public\".\"foo\" as \"foo\" left outer join \"public\".\"app_user\" as \"owner\" on " +
+                "\"owner\".\"id\" = \"foo\".\"owner_id\" order by \"foo\".\"id\" limit ?", (dsl, ctx) -> new MockResult[]{
                     new MockResult(
                         dsl.newRecord(
                             FOO.ID,
@@ -110,6 +112,7 @@ public class InteractiveQueryJoinTest
 
 
             .withAdditionalScalar( ConditionScalar.class, ConditionType.newConditionType())
+            .withAdditionalScalar(FieldExpressionScalar.class, FieldExpressionType.newFieldExpressionType())
 
             .withAdditionalInputTypes(
                 Foo.class, Node.class, AppUser.class
@@ -141,21 +144,17 @@ public class InteractiveQueryJoinTest
                 "    iQueryFoo(config: $config)\n" +
                 "    {\n" +
                 "        type\n" +
-                "        columnConfig{\n" +
                 "            columnStates{\n" +
                 "                name\n" +
                 "                enabled\n" +
                 "                sortable\n" +
                 "            }\n" +
-                "        }\n" +
                 "        queryConfig{\n" +
                 "            id\n" +
                 "            condition\n" +
                 "            currentPage\n" +
                 "            pageSize\n" +
-                "            sortOrder{\n" +
-                "                fields\n" +
-                "            }\n" +
+                "            sortFields\n" +
                 "        }\n" +
                 "        rows{\n" +
                 "            id\n" +
@@ -182,86 +181,83 @@ public class InteractiveQueryJoinTest
         assertThat(
             JSONUtil.DEFAULT_GENERATOR.dumpObjectFormatted(executionResult.getData()),
             is(
-                "{\n" +
-                    "  \"iQueryFoo\":{\n" +
-                    "    \"type\":\"Foo\",\n" +
-                    "    \"columnConfig\":{\n" +
-                    "      \"columnStates\":[\n" +
-                    "        {\n" +
-                    "          \"name\":\"id\",\n" +
-                    "          \"enabled\":true,\n" +
-                    "          \"sortable\":true\n" +
-                    "        },\n" +
-                    "        {\n" +
-                    "          \"name\":\"name\",\n" +
-                    "          \"enabled\":true,\n" +
-                    "          \"sortable\":true\n" +
-                    "        },\n" +
-                    "        {\n" +
-                    "          \"name\":\"num\",\n" +
-                    "          \"enabled\":true,\n" +
-                    "          \"sortable\":true\n" +
-                    "        },\n" +
-                    "        {\n" +
-                    "          \"name\":\"description\",\n" +
-                    "          \"enabled\":true,\n" +
-                    "          \"sortable\":true\n" +
-                    "        },\n" +
-                    "        {\n" +
-                    "          \"name\":\"created\",\n" +
-                    "          \"enabled\":true,\n" +
-                    "          \"sortable\":true\n" +
-                    "        },\n" +
-                    "        {\n" +
-                    "          \"name\":\"type\",\n" +
-                    "          \"enabled\":true,\n" +
-                    "          \"sortable\":true\n" +
-                    "        },\n" +
-                    "        {\n" +
-                    "          \"name\":\"flag\",\n" +
-                    "          \"enabled\":true,\n" +
-                    "          \"sortable\":true\n" +
-                    "        },\n" +
-                    "        {\n" +
-                    "          \"name\":\"owner.id\",\n" +
-                    "          \"enabled\":true,\n" +
-                    "          \"sortable\":true\n" +
-                    "        },\n" +
-                    "        {\n" +
-                    "          \"name\":\"owner.login\",\n" +
-                    "          \"enabled\":true,\n" +
-                    "          \"sortable\":true\n" +
-                    "        }\n" +
-                    "      ]\n" +
-                    "    },\n" +
-                    "    \"queryConfig\":{\n" +
-                    "      \"id\":null,\n" +
-                    "      \"condition\":null,\n" +
-                    "      \"currentPage\":0,\n" +
-                    "      \"pageSize\":10,\n" +
-                    "      \"sortOrder\":{\n" +
-                    "        \"fields\":[\n" +
-                    "          \"id\"\n" +
-                    "        ]\n" +
-                    "      }\n" +
-                    "    },\n" +
-                    "    \"rows\":[\n" +
-                    "      {\n" +
-                    "        \"id\":\"e7a32981-1b86-4020-8b74-701316d417c2\",\n" +
-                    "        \"name\":\"Test Foo\",\n" +
-                    "        \"num\":1123,\n" +
-                    "        \"description\":\"\",\n" +
-                    "        \"created\":\"2018-11-16T20:58:59.000Z\",\n" +
-                    "        \"type\":\"TYPE_A\",\n" +
-                    "        \"flag\":true,\n" +
-                    "        \"owner\":{\n" +
-                    "          \"id\":\"10db963b-9ecc-4b81-9a2a-edecb540d212\",\n" +
-                    "          \"login\":\"TestUser\"\n" +
-                    "        }\n" +
-                    "      }\n" +
-                    "    ]\n" +
-                    "  }\n" +
-                    "}")
+            "{\n" +
+                "  \"iQueryFoo\":{\n" +
+                "    \"type\":\"Foo\",\n" +
+                "    \"columnStates\":[\n" +
+                "      {\n" +
+                "        \"name\":\"id\",\n" +
+                "        \"enabled\":true,\n" +
+                "        \"sortable\":true\n" +
+                "      },\n" +
+                "      {\n" +
+                "        \"name\":\"name\",\n" +
+                "        \"enabled\":true,\n" +
+                "        \"sortable\":true\n" +
+                "      },\n" +
+                "      {\n" +
+                "        \"name\":\"num\",\n" +
+                "        \"enabled\":true,\n" +
+                "        \"sortable\":true\n" +
+                "      },\n" +
+                "      {\n" +
+                "        \"name\":\"description\",\n" +
+                "        \"enabled\":true,\n" +
+                "        \"sortable\":true\n" +
+                "      },\n" +
+                "      {\n" +
+                "        \"name\":\"created\",\n" +
+                "        \"enabled\":true,\n" +
+                "        \"sortable\":true\n" +
+                "      },\n" +
+                "      {\n" +
+                "        \"name\":\"type\",\n" +
+                "        \"enabled\":true,\n" +
+                "        \"sortable\":true\n" +
+                "      },\n" +
+                "      {\n" +
+                "        \"name\":\"flag\",\n" +
+                "        \"enabled\":true,\n" +
+                "        \"sortable\":true\n" +
+                "      },\n" +
+                "      {\n" +
+                "        \"name\":\"owner.id\",\n" +
+                "        \"enabled\":true,\n" +
+                "        \"sortable\":true\n" +
+                "      },\n" +
+                "      {\n" +
+                "        \"name\":\"owner.login\",\n" +
+                "        \"enabled\":true,\n" +
+                "        \"sortable\":true\n" +
+                "      }\n" +
+                "    ],\n" +
+                "    \"queryConfig\":{\n" +
+                "      \"id\":null,\n" +
+                "      \"condition\":null,\n" +
+                "      \"currentPage\":0,\n" +
+                "      \"pageSize\":10,\n" +
+                "      \"sortFields\":[\n" +
+                "        \"id\"\n" +
+                "      ]\n" +
+                "    },\n" +
+                "    \"rows\":[\n" +
+                "      {\n" +
+                "        \"id\":\"e7a32981-1b86-4020-8b74-701316d417c2\",\n" +
+                "        \"name\":\"Test Foo\",\n" +
+                "        \"num\":1123,\n" +
+                "        \"description\":\"\",\n" +
+                "        \"created\":\"2018-11-16T20:58:59.000Z\",\n" +
+                "        \"type\":\"TYPE_A\",\n" +
+                "        \"flag\":true,\n" +
+                "        \"owner\":{\n" +
+                "          \"id\":\"10db963b-9ecc-4b81-9a2a-edecb540d212\",\n" +
+                "          \"login\":\"TestUser\"\n" +
+                "        }\n" +
+                "      }\n" +
+                "    ]\n" +
+                "  }\n" +
+                "}"
+            )
         );
 
     }
