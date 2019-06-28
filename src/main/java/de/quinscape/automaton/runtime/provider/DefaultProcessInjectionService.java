@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import static de.quinscape.automaton.model.js.ModuleFunctionReferences.INJECTION_CALL_NAME;
+import static de.quinscape.automaton.model.js.ModuleFunctionReferences.QUERY_CALL_NAME;
 
 /**
  * Provides a property data map for initial process scope property values.
@@ -74,9 +75,9 @@ public class DefaultProcessInjectionService
             )
             {
                 // Maps the original query string to the result object for that query
-                final List<List<?>> calls = e.getValue().getCalls(INJECTION_CALL_NAME);
+                final List<List<?>> injectionCalls = e.getValue().getCalls(INJECTION_CALL_NAME);
 
-                return createInjections(calls);
+                return createInjections(moduleName, injectionCalls, refsMap);
             }
         }
         throw new ProcessNotFoundException(
@@ -85,19 +86,39 @@ public class DefaultProcessInjectionService
     }
 
 
-    private Map<String, Map<String, Object>> createInjections(List<List<?>> calls)
+    private Map<String, Map<String, Object>> createInjections(
+        String moduleName,
+        List<List<?>> injectionCalls,
+        Map<String, ModuleFunctionReferences> refsMap
+    )
     {
-        final Map<String, Map<String, Object>> injections = Maps.newHashMapWithExpectedSize(calls.size());
+        final Map<String, Map<String, Object>> injections = Maps.newHashMapWithExpectedSize(injectionCalls.size());
 
-        for (List<?> args : calls)
+        for (List<?> args : injectionCalls)
         {
-            final String query = (String) args.get(0);
-            Map<String, Object> queryMap = new HashMap<>();
-            queryMap.put("query", query);
-            if (args.size() > 1)
+            final Object firstArg = args.get(0);
+
+            final String query;
+            final Object variables;
+
+            final String identifier;
+            final Map<String, Object> queryMap;
+            if (firstArg instanceof Map && ( identifier = (String) ((Map) firstArg).get("__identifier")) != null)
             {
-                queryMap.put("variables", args.get(1));
+                queryMap = findNamedQuery(moduleName, refsMap, identifier);
             }
+            else
+            {
+                query = (String) firstArg;
+                queryMap = new HashMap<>();
+                queryMap.put("query", query);
+                if (args.size() > 1)
+                {
+                    variables = args.get(1);
+                    queryMap.put("variables", variables);
+                }
+            }
+
             final ExecutionResult result = GraphQLUtil.executeGraphQLQuery(graphQL, queryMap, null);
             final List<GraphQLError> errors = result.getErrors();
             if (errors.size() != 0)
@@ -110,8 +131,63 @@ public class DefaultProcessInjectionService
             {
                 throw new AutomatonInjectionException("Data result must contain exactly one key");
             }
-            injections.put(query, data);
+            injections.put((String) queryMap.get("query"), data);
         }
         return injections;
+    }
+
+
+    private Map<String, Object> findNamedQuery(
+        String parentModule,
+        Map<String, ModuleFunctionReferences> refsMap,
+        String identifier
+    )
+    {
+        final String suffix = "/queries/" + identifier;
+
+        for (String moduleName : refsMap.keySet())
+        {
+            if (moduleName.endsWith(suffix))
+            {
+                final ModuleFunctionReferences references = refsMap.get(moduleName);
+                final List<List<?>> calls = references.getCalls(QUERY_CALL_NAME);
+                if (calls.size() == 0)
+                {
+                    throw new IllegalStateException("No query defined in query module " + moduleName );
+                }
+                if (calls.size() > 1)
+                {
+                    throw new IllegalStateException("More than query defined in query module " + moduleName );
+                }
+
+                Map<String, Object> map = Maps.newHashMapWithExpectedSize(2);
+                final List<?> args = calls.get(0);
+                if (args.size() == 0)
+                {
+                    throw new IllegalStateException("query() must have at least one parameter");
+                }
+
+                final Object query = args.get(0);
+
+                if (!(query instanceof String))
+                {
+                    throw new IllegalStateException("query(query[, variables]): Invalid argument: " + query);
+                }
+
+                map.put("query", query);
+
+                if (args.size() > 1)
+                {
+                    final Object vars = args.get(1);
+                    if (!(vars instanceof Map))
+                    {
+                        throw new IllegalStateException("query(query[, variables]): Invalid variables argument: " + vars);
+                    }
+                    map.put("variables", vars);
+                }
+                return map;
+            }
+        }
+        throw new IllegalStateException(parentModule + " references non-existing query '" + identifier + "'");
     }
 }

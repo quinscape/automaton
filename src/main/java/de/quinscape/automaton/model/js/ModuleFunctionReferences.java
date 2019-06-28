@@ -21,6 +21,8 @@ public class ModuleFunctionReferences
 
     public static final String I18N_CALL_NAME = "i18n";
 
+    public static final String QUERY_CALL_NAME = "query";
+
     private final String module;
 
     private final List<String> requires;
