@@ -37,19 +37,6 @@
     ]
   },
   {
-    "name":"ColumnConfig",
-    "description":"Encapsulates the column configuration for an interactive query.",
-    "fieldDocs":[
-      {
-        "name":"columnStates",
-        "description":"List of column states",
-        "paramDocs":[
-          
-        ]
-      }
-    ]
-  },
-  {
     "name":"ColumnState",
     "description":"The state of a column within an interactive query.",
     "fieldDocs":[
@@ -102,8 +89,8 @@
         ]
       },
       {
-        "name":"columnConfig",
-        "description":"Column configuration for the current result.",
+        "name":"columnStates",
+        "description":"Column states for the current result.",
         "paramDocs":[
           
         ]
