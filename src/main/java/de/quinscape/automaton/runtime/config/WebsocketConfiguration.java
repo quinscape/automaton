@@ -1,34 +1,34 @@
 package de.quinscape.automaton.runtime.config;
 
-import de.quinscape.automaton.runtime.message.GraphQLMessageHandler;
+import de.quinscape.automaton.runtime.message.IncomingMessageHandler;
 import de.quinscape.automaton.runtime.ws.AutomatonWebSocketHandler;
-import graphql.GraphQL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import java.util.Collections;
+import java.util.Collection;
 
 @Configuration
 public class WebsocketConfiguration
     implements WebSocketConfigurer
 {
-    private final GraphQL graphQL;
+    private final static Logger log = LoggerFactory.getLogger(WebsocketConfiguration.class);
 
+    private final ApplicationContext applicationContext;
     private final boolean webSocketEnabled;
 
-
     public WebsocketConfiguration(
-        @Lazy graphql.GraphQL graphQL,
-        @Value("${automatontest.enable-websocket:false}") boolean webSocketEnabled
+        ApplicationContext applicationContext,
+        @Value("${automaton.enable-websocket:false}") boolean webSocketEnabled
     )
     {
-        this.graphQL = graphQL;
+        this.applicationContext = applicationContext;
         this.webSocketEnabled = webSocketEnabled;
     }
 
@@ -44,24 +44,8 @@ public class WebsocketConfiguration
     {
         if (webSocketEnabled)
         {
-            final AutomatonWebSocketHandler webSocketHandler = automatonTestWebSocketHandler();
+            final AutomatonWebSocketHandler webSocketHandler = applicationContext.getBean(AutomatonWebSocketHandler.class);
             registry.addHandler(webSocketHandler, "/automaton-ws");
         }
-    }
-
-    @Bean
-    public AutomatonWebSocketHandler automatonTestWebSocketHandler()
-    {
-        if (!webSocketEnabled)
-        {
-            return null;
-        }
-        return new AutomatonWebSocketHandler(
-            Collections.singletonList(
-                new GraphQLMessageHandler(
-                    graphQL
-                )
-            )
-        );
     }
 }

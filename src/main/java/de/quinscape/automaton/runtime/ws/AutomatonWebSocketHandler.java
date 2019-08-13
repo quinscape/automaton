@@ -2,8 +2,9 @@ package de.quinscape.automaton.runtime.ws;
 
 
 import de.quinscape.automaton.model.message.IncomingMessage;
+import de.quinscape.automaton.runtime.AutomatonException;
 import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
-import de.quinscape.automaton.runtime.message.ConnectionCloseListener;
+import de.quinscape.automaton.runtime.message.ConnectionListener;
 import de.quinscape.automaton.runtime.message.IncomingMessageHandler;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.slf4j.Logger;
@@ -18,7 +19,9 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import org.svenson.JSONParseException;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -36,19 +39,25 @@ public class AutomatonWebSocketHandler
     private static final String CONNECTION_ID = AutomatonWebSocketHandler.class.getName() + ":cid";
 
 
-    private final CopyOnWriteArrayList<ConnectionCloseListener> listeners = new CopyOnWriteArrayList<>();
+    private final CopyOnWriteArrayList<ConnectionListener> listeners = new CopyOnWriteArrayList<>();
     private final ConcurrentMap<String, AutomatonClientConnection> connections = new ConcurrentHashMap<>();
+    private final Collection<AutomatonClientConnection> connectionsRO = Collections.unmodifiableCollection(connections.values());
 
     private final ConcurrentMap<String, IncomingMessageHandler> handlers = new ConcurrentHashMap<>();
 
 
-    public AutomatonWebSocketHandler(List<IncomingMessageHandler> handlers)
+    public AutomatonWebSocketHandler(Collection<IncomingMessageHandler> handlers)
     {
         for (IncomingMessageHandler handler : handlers)
         {
             this.handlers.put(handler.getMessageType(), handler);
         }
-        
+
+        if (this.handlers.size() == 0)
+        {
+            throw new AutomatonException("Could not find anny spring beans implementing " + IncomingMessageHandler.class.getName());
+        }
+
         log.info("Starting AutomatonWebSocketHandler, handlers = {}", this.handlers);
     }
 
@@ -157,6 +166,11 @@ public class AutomatonWebSocketHandler
         connection.initialize(session);
 
         session.getAttributes().put(CONNECTION_ID, cid);
+
+        for (ConnectionListener listener : listeners)
+        {
+            listener.onOpen(this, connection);
+        }
     }
 
 
@@ -172,7 +186,7 @@ public class AutomatonWebSocketHandler
 
             if (conn != null)
             {
-                for (ConnectionCloseListener listener : listeners)
+                for (ConnectionListener listener : listeners)
                 {
                     listener.onClose(this, conn);
                 }
@@ -186,7 +200,7 @@ public class AutomatonWebSocketHandler
      *
      * @param listener      listener
      */
-    public void register(ConnectionCloseListener listener)
+    public void register(ConnectionListener listener)
     {
         listeners.add(listener);
     }
@@ -202,6 +216,17 @@ public class AutomatonWebSocketHandler
     public void register(AutomatonClientConnection AutomatonClientConnection)
     {
         connections.put(AutomatonClientConnection.getConnectionId(), AutomatonClientConnection);
+    }
+
+
+    /**
+     * Returns the currently connection client connections
+     *
+     * @return read-only collection of all connections
+     */
+    public Collection<AutomatonClientConnection> getConnections()
+    {
+        return connectionsRO;
     }
 
 

@@ -2,6 +2,7 @@ package de.quinscape.automaton.runtime.message;
 
 import de.quinscape.automaton.model.message.IncomingMessage;
 import de.quinscape.automaton.runtime.ws.AutomatonClientConnection;
+import de.quinscape.domainql.DomainQL;
 import graphql.ExecutionInput;
 import graphql.GraphQL;
 
@@ -16,12 +17,17 @@ public class GraphQLMessageHandler
 {
     public static final String TYPE = "GRAPHQL";
 
+    private final DomainQL domainQL;
+
     private final GraphQL graphQL;
 
 
-    public GraphQLMessageHandler(GraphQL graphQL)
+    public GraphQLMessageHandler(DomainQL domainQL)
     {
-        this.graphQL = graphQL;
+        this.domainQL = domainQL;
+        this.graphQL = GraphQL.newGraphQL(
+            domainQL.getGraphQLSchema()
+        ).build();
     }
 
 

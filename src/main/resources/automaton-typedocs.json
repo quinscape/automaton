@@ -147,7 +147,7 @@
   },
   {
     "name":"OutgoingMessage",
-    "description":"Container for incoming messages.",
+    "description":"Container for outgoing messages.",
     "fieldDocs":[
       
     ]

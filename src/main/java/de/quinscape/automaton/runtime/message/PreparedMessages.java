@@ -8,6 +8,12 @@ import de.quinscape.automaton.runtime.ws.AutomatonWebSocketHandler;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Collections of prepared messages that can be created inside a synchronized block and then sent later outside
+ * of that block.
+ *
+ * Thread-safety is achieved by early JSONification
+ */
 public class PreparedMessages
 {
     private final List<PreparedMessage> preparedMessages = new ArrayList<>();
@@ -41,7 +47,7 @@ public class PreparedMessages
             final AutomatonClientConnection connection = automatonTestWebSocketHandler.getClientConnection(preparedMessage.getConnectionId());
             if (connection != null)
             {
-                connection.send(preparedMessage);
+                connection.send(preparedMessage.getOutgoingMessage());
             }
         }
     }

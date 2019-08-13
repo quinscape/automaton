@@ -10,7 +10,6 @@ import org.svenson.JSONable;
  * communication within that block.
  */
 public final class PreparedMessage
-    extends OutgoingMessage
     implements JSONable
 {
 
@@ -23,7 +22,6 @@ public final class PreparedMessage
 
     public PreparedMessage(String connectionId, OutgoingMessage outgoingMessage)
     {
-        super(outgoingMessage.getType(), outgoingMessage.getPayload(), outgoingMessage.getError());
         this.connectionId = connectionId;
         this.json = JSONUtil.DEFAULT_GENERATOR.forValue(outgoingMessage);
         this.outgoingMessage = outgoingMessage;
@@ -40,18 +38,7 @@ public final class PreparedMessage
     {
         return outgoingMessage;
     }
-
-
-    public static OutgoingMessage unwrap(OutgoingMessage outgoingMessage)
-    {
-        if (outgoingMessage instanceof PreparedMessage)
-        {
-            return ((PreparedMessage) outgoingMessage).getOutgoingMessage();
-        }
-
-        return outgoingMessage;
-    }
-
+    
     @Override
     public String toJSON()
     {

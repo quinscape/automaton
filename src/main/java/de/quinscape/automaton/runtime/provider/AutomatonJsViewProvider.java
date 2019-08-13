@@ -79,7 +79,7 @@ public final class AutomatonJsViewProvider
 
     private final boolean websocketEnabled;
 
-    private final AutomatonWebSocketHandler automatonTestWebSocketHandler;
+    private final AutomatonWebSocketHandler automatonWebSocketHandler;
 
     private final TranslationService translationService;
 
@@ -96,7 +96,7 @@ public final class AutomatonJsViewProvider
      * @param domainQL
      * @param processInjectionService           project injection service
      * @param translationService                translation service implementation
-     * @param automatonTestWebSocketHandler     web socket handler, can be <code>null</code>
+     * @param automatonWebSocketHandler     web socket handler, can be <code>null</code>
      * @param scopeTableConfig                  scope table config
      */
     public AutomatonJsViewProvider(
@@ -104,7 +104,7 @@ public final class AutomatonJsViewProvider
         DomainQL domainQL,
         ProcessInjectionService processInjectionService,
         TranslationService translationService,
-        AutomatonWebSocketHandler automatonTestWebSocketHandler,
+        AutomatonWebSocketHandler automatonWebSocketHandler,
         ScopeTableConfig scopeTableConfig
     )
     {
@@ -121,8 +121,8 @@ public final class AutomatonJsViewProvider
         }
 
         this.processInjectionService = processInjectionService;
-        this.websocketEnabled = automatonTestWebSocketHandler != null;
-        this.automatonTestWebSocketHandler = automatonTestWebSocketHandler;
+        this.websocketEnabled = automatonWebSocketHandler != null;
+        this.automatonWebSocketHandler = automatonWebSocketHandler;
         this.translationService = translationService;
 
         this.schemaProvider = new SchemaDataProvider(domainQL);
@@ -184,7 +184,7 @@ public final class AutomatonJsViewProvider
             final String connectionId = Base32.uuid();
             context.provideViewData("connectionId", connectionId);
 
-            automatonTestWebSocketHandler.register(
+            automatonWebSocketHandler.register(
                 new AutomatonClientConnectionImpl(
                     connectionId,
                     auth

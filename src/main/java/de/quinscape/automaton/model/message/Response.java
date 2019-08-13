@@ -1,22 +1,44 @@
 package de.quinscape.automaton.model.message;
 
+
+import de.quinscape.automaton.runtime.AutomatonException;
+
 public final class Response
-    extends OutgoingMessage
 {
     private final String responseTo;
 
+    private final Object reply;
 
-    public Response(String responseTo, Object payload, Object error)
+    private final Object error;
+
+    public Response(String responseTo, Object reply, Object error)
     {
-        super(OutgoingMessageType.RESPONSE, payload, error);
         this.responseTo = responseTo;
+        this.reply = reply;
+        this.error = error;
     }
 
 
-    @Override
-    public String getType()
+    public static OutgoingMessage create(String messageId, Object payload, String error)
     {
-        return OutgoingMessageType.RESPONSE;
+        if (payload == null && error == null)
+        {
+            throw new AutomatonException("Need either payload or error");
+        }
+
+        if (payload != null && error != null)
+        {
+            throw new AutomatonException("Reponses can have either a payload or an error, not both.");
+        }
+
+        return new OutgoingMessage(
+            OutgoingMessageType.RESPONSE,
+            new Response(
+                messageId,
+                payload,
+                error
+            )
+        );
     }
 
 
@@ -26,10 +48,15 @@ public final class Response
     }
 
 
-    @Override
+    public Object getReply()
+    {
+        return reply;
+    }
+
+
     public Object getError()
     {
-        return super.getError();
+        return error;
     }
 }
 

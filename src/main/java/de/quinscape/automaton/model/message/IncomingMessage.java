@@ -9,10 +9,10 @@ import org.svenson.JSONParameter;
  */
 public final class IncomingMessage
 {
+    private final String type;
+    private final Object payload;
     private final String connectionId;
     private final String messageId;
-    private final Object payload;
-    private final String type;
 
     public IncomingMessage(
         @JSONParameter("connectionId")
@@ -55,6 +55,18 @@ public final class IncomingMessage
     public String getType()
     {
         return type;
+    }
+
+
+    @Override
+    public String toString()
+    {
+        return super.toString() + ": "
+            + "type = '" + type + '\''
+            + ", payload = " + payload
+            + ", connectionId = '" + connectionId + '\''
+            + ", messageId = '" + messageId + '\''
+            ;
     }
 }
 

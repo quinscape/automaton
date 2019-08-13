@@ -12,7 +12,7 @@ import java.util.Set;
  * Limited view on the app user details for client consumption.
  * 
  */
-public class AutomatonAuthentication
+public final class AutomatonAuthentication
 {
     /**
      * Login name for the anonymous account.

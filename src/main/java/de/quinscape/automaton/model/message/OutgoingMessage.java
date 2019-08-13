@@ -1,43 +1,25 @@
 package de.quinscape.automaton.model.message;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
- * Container for incoming messages.
+ * Container for outgoing messages.
  */
-public class OutgoingMessage
+public final class OutgoingMessage
 {
-    private final static Logger log = LoggerFactory.getLogger(OutgoingMessage.class);
-
-
     private final Object payload;
-
-    private final Object error;
 
     private final String type;
 
 
-
-    public OutgoingMessage(String type, Object payload, Object error)
+    public OutgoingMessage(String type, Object payload)
     {
         this.type = type;
         this.payload = payload;
-        this.error = error;
-
-        log.debug("Creating OutgoingMessage: type = {}, payload = {}, error = {}, id = {}", type, payload, error);
     }
 
 
     public Object getPayload()
     {
         return payload;
-    }
-
-
-    public Object getError()
-    {
-        return error;
     }
 
 
@@ -49,7 +31,7 @@ public class OutgoingMessage
 
     public static OutgoingMessage error(Object error)
     {
-        return new OutgoingMessage(OutgoingMessageType.ERROR, null, error);
+        return new OutgoingMessage(OutgoingMessageType.ERROR, error);
     }
 
 }

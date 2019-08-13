@@ -86,10 +86,8 @@ public class AutomatonClientConnectionImpl
     @Override
     public void respond(String messageId, Object payload, String error)
     {
-        final Response response = new Response(messageId, payload, error);
-
         send(
-            response
+            Response.create(messageId, payload, error)
         );
     }
 
