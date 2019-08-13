@@ -5,6 +5,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -47,6 +48,21 @@ public class AutomatonAuthentication
 
     private AutomatonAuthentication(String login, Set<String> roles, String id)
     {
+        if (login == null)
+        {
+            throw new IllegalArgumentException("login can't be null");
+        }
+
+        if (roles == null)
+        {
+            throw new IllegalArgumentException("roles can't be null");
+        }
+
+        if (id == null)
+        {
+            throw new IllegalArgumentException("id can't be null");
+        }
+
         this.login = login;
         this.roles = roles;
         this.id = id;
@@ -93,6 +109,31 @@ public class AutomatonAuthentication
     public String getId()
     {
         return id;
+    }
+
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (o instanceof AutomatonAuthentication)
+        {
+            AutomatonAuthentication that = (AutomatonAuthentication) o;
+            return login.equals(that.login) &&
+                roles.equals(that.roles) &&
+                id.equals(that.id);
+        }
+        return false;
+    }
+
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(login, roles, id);
     }
 
 
