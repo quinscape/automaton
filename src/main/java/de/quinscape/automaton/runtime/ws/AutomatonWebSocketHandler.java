@@ -1,6 +1,7 @@
 package de.quinscape.automaton.runtime.ws;
 
 import de.quinscape.automaton.model.message.OutgoingMessage;
+import de.quinscape.automaton.runtime.message.ConnectionListener;
 import de.quinscape.spring.jsview.JsViewContext;
 import org.springframework.web.socket.WebSocketHandler;
 
@@ -33,6 +34,15 @@ public interface AutomatonWebSocketHandler
      * @see de.quinscape.automaton.runtime.provider.AutomatonJsViewProvider#provideCommonData(JsViewContext) 
      */
     void register(AutomatonClientConnection AutomatonClientConnection);
+
+
+    /**
+     * Registers the given ConnectionListener to be notified of every opened and closed connection.
+     *
+     * @param listener      listener
+     */
+    void register(ConnectionListener listener);
+
 
     /**
      * Returns the currently connection client connections
