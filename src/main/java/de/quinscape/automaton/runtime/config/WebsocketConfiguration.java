@@ -1,18 +1,15 @@
 package de.quinscape.automaton.runtime.config;
 
-import de.quinscape.automaton.runtime.message.IncomingMessageHandler;
 import de.quinscape.automaton.runtime.ws.AutomatonWebSocketHandler;
+import de.quinscape.automaton.runtime.ws.AutomatonWebSocketHandlerImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
-
-import java.util.Collection;
 
 @Configuration
 public class WebsocketConfiguration
@@ -44,7 +41,7 @@ public class WebsocketConfiguration
     {
         if (webSocketEnabled)
         {
-            final AutomatonWebSocketHandler webSocketHandler = applicationContext.getBean(AutomatonWebSocketHandler.class);
+            final AutomatonWebSocketHandler webSocketHandler = applicationContext.getBean(AutomatonWebSocketHandlerImpl.class);
             registry.addHandler(webSocketHandler, "/automaton-ws");
         }
     }
