@@ -4,7 +4,7 @@
 
     <groupId>de.quinscape.domainql</groupId>
     <artifactId>automaton</artifactId>
-    <version>0.1.4</version>
+    <version>0.1.5-SNAPSHOT</version>
 
     <name>Automaton</name>
     <description>Opinionated convention-over-configuration / model-based application framework based on DomainQL</description>
@@ -138,7 +138,7 @@
         <connection>scm:git:https://github.com/quinscape/automaton.git</connection>
         <developerConnection>scm:git:git@github.com:quinscape/automaton.git</developerConnection>
         <url>https://github.com/quinscape/automaton/</url>
-        <tag>automaton-0.1.4</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <build>
