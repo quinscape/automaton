@@ -20,6 +20,8 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import org.svenson.JSONParseException;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,16 +41,36 @@ public class AutomatonWebSocketHandlerImpl
 
     private static final String CONNECTION_ID = AutomatonWebSocketHandlerImpl.class.getName() + ":cid";
 
+    private static final String CLEANUP_THREAD_NAME = "Websocket-Cleanup";
+
 
     private final CopyOnWriteArrayList<ConnectionListener> listeners = new CopyOnWriteArrayList<>();
     private final ConcurrentMap<String, AutomatonClientConnection> connections = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, AutomatonClientConnection> preparedConnections = new ConcurrentHashMap<>();
     private final Collection<AutomatonClientConnection> connectionsRO = Collections.unmodifiableCollection(connections.values());
 
     private final ConcurrentMap<String, IncomingMessageHandler> handlers = new ConcurrentHashMap<>();
 
+    private final WebSocketHandlerOptions options;
+
+    private final Thread cleanupThread;
+
+    private volatile Instant lastCleanup;
+
+    private volatile boolean running = true;
+
 
     public AutomatonWebSocketHandlerImpl(Collection<IncomingMessageHandler> handlers)
     {
+        this(handlers, WebSocketHandlerOptions.DEFAULT);
+    }
+    
+    public AutomatonWebSocketHandlerImpl(
+        Collection<IncomingMessageHandler> handlers,
+        WebSocketHandlerOptions options
+    )
+    {
+        this.options = options;
         for (IncomingMessageHandler handler : handlers)
         {
             this.handlers.put(handler.getMessageType(), handler);
@@ -60,11 +82,45 @@ public class AutomatonWebSocketHandlerImpl
         }
 
         log.info("Starting AutomatonWebSocketHandler, handlers = {}", this.handlers);
+
+        this.cleanupThread = new Thread(() -> {
+            try
+            {
+                while(running)
+                {
+                    Thread.sleep(options.getCleanupInterval());
+                    final Instant now = Instant.now();
+
+                    if (Duration.between(lastCleanup, now).toMillis() > options.getCleanupInterval())
+                    {
+
+                        lastCleanup = Instant.now();
+
+                        final int before = preparedConnections.size();
+
+                        preparedConnections.values()
+                            .removeIf(
+                                connection -> Duration.between(connection.getCreated(), now).toMillis() > options.getPreparedLifetime()
+                            );
+
+                        log.debug("Cleaned up stale websocket connections: {} connections removed", before - preparedConnections.size());
+                    }
+                }
+            }
+            catch (InterruptedException e)
+            {
+                log.info("Interrupted: ", e);
+            }
+        });
+        lastCleanup = Instant.now();
+        cleanupThread.setDaemon(true);
+        cleanupThread.setName(CLEANUP_THREAD_NAME);
+        cleanupThread.start();
     }
 
 
     @Override
-    public AutomatonClientConnection getClientConnection(String connectionId)
+    public AutomatonClientConnection getConnection(String connectionId)
     {
         return connections.get(connectionId);
     }
@@ -145,10 +201,10 @@ public class AutomatonWebSocketHandlerImpl
     }
 
 
-
     @Override
     public void afterConnectionEstablished(WebSocketSession session)
     {
+
         final String query = session.getUri().getQuery();
 
         if (!query.startsWith("cid=") && query.lastIndexOf('=') != 3)
@@ -160,12 +216,13 @@ public class AutomatonWebSocketHandlerImpl
 
         log.debug("afterConnectionEstablished: session = {}, cid = '{}'", session, cid);
 
-        final AutomatonClientConnection connection = connections.get(cid);
+        final AutomatonClientConnection connection = preparedConnections.remove(cid);
         if (connection == null)
         {
             throw new IllegalStateException("Connection '" + cid + "' not preregistered with auth.");
         }
         connection.initialize(session);
+        connections.put(cid, connection);
 
         session.getAttributes().put(CONNECTION_ID, cid);
 
@@ -174,7 +231,6 @@ public class AutomatonWebSocketHandlerImpl
             listener.onOpen(this, connection);
         }
     }
-
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) 
@@ -218,7 +274,7 @@ public class AutomatonWebSocketHandlerImpl
     @Override
     public void register(AutomatonClientConnection AutomatonClientConnection)
     {
-        connections.put(AutomatonClientConnection.getConnectionId(), AutomatonClientConnection);
+        preparedConnections.put(AutomatonClientConnection.getConnectionId(), AutomatonClientConnection);
     }
 
 
@@ -262,6 +318,9 @@ public class AutomatonWebSocketHandlerImpl
     @Override
     public void broadcast(OutgoingMessage message, String excludedConnectionId)
     {
+
+        log.debug("broadcast {}, {}", message, excludedConnectionId);
+
         for (AutomatonClientConnection curr : getConnections())
         {
             if (excludedConnectionId == null || !curr.getConnectionId().equals(excludedConnectionId))
@@ -270,5 +329,14 @@ public class AutomatonWebSocketHandlerImpl
                     message);
             }
         }
+    }
+
+
+    @Override
+    public void shutDown()
+    {
+        log.debug("Shutdown");
+        running = false;
+        cleanupThread.interrupt();
     }
 }

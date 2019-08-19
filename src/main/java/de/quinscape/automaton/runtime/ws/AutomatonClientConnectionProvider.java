@@ -27,7 +27,7 @@ public final class AutomatonClientConnectionProvider
             throw new IllegalStateException("No connection id found in data fetching environment context.'");
         }
 
-        final AutomatonClientConnection clientConnection = AutomatonTestWebSocketHandler.getClientConnection(connectionId);
+        final AutomatonClientConnection clientConnection = AutomatonTestWebSocketHandler.getConnection(connectionId);
         if (clientConnection == null)
         {
             throw new IllegalStateException("No client connection for id '" + connectionId + "' from data fetching environment context.");

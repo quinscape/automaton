@@ -21,7 +21,7 @@ public interface AutomatonWebSocketHandler
      *
      * @return  client connection
      */
-    AutomatonClientConnection getClientConnection(String connectionId);
+    AutomatonClientConnection getConnection(String connectionId);
 
     /**
      * Preregisters the given connection id to be associated with the given authentication.
@@ -73,4 +73,9 @@ public interface AutomatonWebSocketHandler
      * @see AutomatonClientConnection#respond(String, Object, String)
      */
     void broadcast(OutgoingMessage message, String excludedConnectionId);
+
+    /**
+     * Shuts down the websocket handler
+     */
+    void shutDown();
 }

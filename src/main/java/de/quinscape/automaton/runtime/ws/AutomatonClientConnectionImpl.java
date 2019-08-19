@@ -12,6 +12,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.svenson.JSONProperty;
 
 import java.io.IOException;
+import java.time.Instant;
 
 public class AutomatonClientConnectionImpl
     implements AutomatonClientConnection
@@ -25,6 +26,8 @@ public class AutomatonClientConnectionImpl
 
     private final AutomatonAuthentication auth;
 
+    private final Instant created;
+
 
     public AutomatonClientConnectionImpl(String connectionId, AutomatonAuthentication auth)
     {
@@ -32,10 +35,22 @@ public class AutomatonClientConnectionImpl
 
         this.connectionId = connectionId;
         this.auth = auth;
+
+        this.created = Instant.now();
     }
 
+
+    /**
+     * Returns the instant in which the prepared session was created. 
+     */
+    public Instant getCreated()
+    {
+        return created;
+    }
+
+
     @Override
-    public void initialize(WebSocketSession session)
+    public synchronized void initialize(WebSocketSession session)
     {
         this.session = session;
     }
@@ -66,6 +81,17 @@ public class AutomatonClientConnectionImpl
     @Override
     public void send(OutgoingMessage message)
     {
+        if (session == null)
+        {
+            synchronized (this)
+            {
+                if (session == null)
+                {
+                    throw new IllegalStateException("No session");
+                }
+            }
+        }
+
         try
         {
             session.sendMessage(

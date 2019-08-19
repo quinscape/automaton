@@ -44,7 +44,7 @@ public class PreparedMessages
     {
         for (PreparedMessage preparedMessage : preparedMessages)
         {
-            final AutomatonClientConnection connection = automatonTestWebSocketHandler.getClientConnection(preparedMessage.getConnectionId());
+            final AutomatonClientConnection connection = automatonTestWebSocketHandler.getConnection(preparedMessage.getConnectionId());
             if (connection != null)
             {
                 connection.send(preparedMessage.getOutgoingMessage());
