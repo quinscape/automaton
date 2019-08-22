@@ -138,7 +138,7 @@ public class DefaultAutomatonWebSocketHandler
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message)
     {
-        log.debug("handleTextMessage: {}, session = {}  ", message, session);
+        log.debug("handleTextMessage: {}, session = {}  ", message.getPayload(), session);
 
         final String cid = getCid(session);
         if (cid == null)
@@ -372,6 +372,8 @@ public class DefaultAutomatonWebSocketHandler
     @Override
     public void registerTopic(AutomatonClientConnection connection, String topic)
     {
+        log.debug("register {} for topic '{}'", connection.getConnectionId(), topic);
+
         Topic t = new Topic();
         final Topic existing = topics.putIfAbsent(topic, t);
         if (existing != null)
@@ -385,6 +387,8 @@ public class DefaultAutomatonWebSocketHandler
     @Override
     public void deregisterTopic(AutomatonClientConnection connection, String topic)
     {
+        log.debug("deregister {} from topic '{}'", connection.getConnectionId(), topic);
+
         final Topic t = topics.get(topic);
         if (t != null)
         {
@@ -396,6 +400,8 @@ public class DefaultAutomatonWebSocketHandler
     @Override
     public void sendUpdateForTopic(String topic, OutgoingMessage outgoingMessage)
     {
+        log.debug("update for topic '{}': {}", topic, outgoingMessage);
+
         final Topic t = topics.get(topic);
         if (t != null)
         {
