@@ -196,13 +196,13 @@ public class ComponentTest
 
     private Component component(String name)
     {
-        return component(name, null, null);
+        return component(name, null, (Component[]) null);
     }
 
 
     public static Component component(String name, Map<String, Object> attrs)
     {
-        return component(name, attrs, null);
+        return component(name, attrs, (Component[]) null);
     }
 
 
