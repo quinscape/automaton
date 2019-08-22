@@ -2,6 +2,7 @@ package de.quinscape.automaton.runtime.ws;
 
 import de.quinscape.automaton.model.message.OutgoingMessage;
 import de.quinscape.automaton.runtime.message.ConnectionListener;
+import de.quinscape.automaton.runtime.message.OutgoingMessageFactory;
 import de.quinscape.spring.jsview.JsViewContext;
 import org.springframework.web.socket.WebSocketHandler;
 
@@ -57,8 +58,8 @@ public interface AutomatonWebSocketHandler
       * @param message  message sent to all connections
      *                 
      * @see AutomatonClientConnection#send(OutgoingMessage) 
-     * @see AutomatonClientConnection#respond(String, Object)  
-     * @see AutomatonClientConnection#respond(String, Object, String)   
+     * @see AutomatonClientConnection#respond(String, Object)
+     * @see AutomatonClientConnection#respondWithError(String, Object)
      */
     void broadcast(OutgoingMessage message);
 
@@ -70,9 +71,69 @@ public interface AutomatonWebSocketHandler
      *
      * @see AutomatonClientConnection#send(OutgoingMessage)
      * @see AutomatonClientConnection#respond(String, Object)
-     * @see AutomatonClientConnection#respond(String, Object, String)
+     * @see AutomatonClientConnection#respondWithError(String, Object)
      */
     void broadcast(OutgoingMessage message, String excludedConnectionId);
+
+
+    /**
+     * Sends a new message created by given message factory to all active websocket connections.
+     *
+     * @param factory  message factory
+     *
+     * @see AutomatonClientConnection#send(OutgoingMessage)
+     * @see AutomatonClientConnection#respond(String, Object)
+     * @see AutomatonClientConnection#respondWithError(String, Object)
+     */
+    void broadcast(OutgoingMessageFactory factory);
+
+    /**
+     * Sends a new message created by given message factory to all active websocket connections but one
+     *
+     * @param factory                   message factory
+     * @param excludedConnectionId      connection id to exclude from the broadcast
+     *
+     * @see AutomatonClientConnection#send(OutgoingMessage)
+     * @see AutomatonClientConnection#respond(String, Object)
+     * @see AutomatonClientConnection#respondWithError(String, Object) 
+     */
+    void broadcast(OutgoingMessageFactory factory, String excludedConnectionId);
+
+    /**
+     * Dynamically registers the given connection to receive updates relating to the topic with the given name.
+     *
+     * @param connection        connection
+     * @param topic             topic
+     */
+    void registerTopic(AutomatonClientConnection connection, String topic);
+
+    /**
+     * Dynamically deregisters the given connection from receiving updates relating to the topic with the given name.
+     *
+     * @param connection        connection
+     * @param topic             topic
+     */
+    void deregisterTopic(AutomatonClientConnection connection, String topic);
+
+    /**
+     * Broadcasts the given message to all connections registered to the given topic.
+     *
+     * @param topic                 topic
+     * @param outgoingMessage       message
+     *                              
+     * @see de.quinscape.automaton.runtime.message.TopicMessageHandler
+     */
+    void sendUpdateForTopic(String topic, OutgoingMessage outgoingMessage);
+
+    /**
+     * Broadcasts a message created by  given message factory to all connections registered to the given topic.
+     *
+     * @param topic             topic
+     * @param messageFactory    message factory
+     *
+     * @see de.quinscape.automaton.runtime.message.TopicMessageHandler
+     */
+    void sendUpdateForTopic(String topic, OutgoingMessageFactory messageFactory);
 
     /**
      * Shuts down the websocket handler

@@ -23,7 +23,7 @@ public final class AutomatonConnectionProviderFactory
     {
         if (parameterClass.equals(AutomatonClientConnection.class))
         {
-            return new AutomatonClientConnectionProvider(applicationContext.getBean(AutomatonWebSocketHandlerImpl.class));
+            return new AutomatonClientConnectionProvider(applicationContext.getBean(DefaultAutomatonWebSocketHandler.class));
         }
         return null;
     }

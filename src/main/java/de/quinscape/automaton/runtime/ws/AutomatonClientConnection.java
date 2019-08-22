@@ -2,6 +2,7 @@ package de.quinscape.automaton.runtime.ws;
 
 import de.quinscape.automaton.model.message.OutgoingMessage;
 import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
+import de.quinscape.automaton.runtime.message.OutgoingMessageFactory;
 import org.springframework.web.socket.WebSocketSession;
 import org.svenson.JSONProperty;
 
@@ -18,11 +19,52 @@ public interface AutomatonClientConnection
 
     AutomatonAuthentication getAuth();
 
+    /**
+     * Sends raw JSON data.
+     *
+     * Note that the JSON data still needs to conform to the OutgoingMessage JSON format. This method is mostly useful
+     * when sending a message to multiple recipients.
+     * 
+     * @param json      JSON data conforming to the outgoing message format.
+     */
+    void send(String json);
+
+    /**
+     * Sends the given outgoing message as JSON.
+     *
+     * @param message   outgoing message
+     */
     void send(OutgoingMessage message);
 
-    void respond(String messageId, Object payload, String error);
+    /**
+     * Creates an outgoing message with the given outgoing message factory and sends it as JSON.
+     *
+     * @param factory
+     */
+    void send(OutgoingMessageFactory factory);
 
+    /**
+     * Responds to a request/responsed paired request.
+     *
+     * One of payload or error must be null, but not both.
+     *
+     * @param messageId     message id of the original request message
+     * @param error         error
+     */
+    void respondWithError(String messageId, Object error);
+
+    /**
+     *
+     * @param messageId
+     * @param result
+     */
     void respond(String messageId, Object result);
 
+    /**
+     * Returns the instant in which the connection was initially prepared for the client. This is *before* the instant
+     * the connection was established.
+     *
+     * @return instant of creation / preparation
+     */
     Instant getCreated();
 }

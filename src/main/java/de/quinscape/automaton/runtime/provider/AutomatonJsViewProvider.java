@@ -8,7 +8,7 @@ import de.quinscape.automaton.runtime.i18n.TranslationService;
 import de.quinscape.automaton.runtime.util.Base32;
 import de.quinscape.automaton.runtime.util.LocaleUtil;
 import de.quinscape.automaton.runtime.util.ProcessUtil;
-import de.quinscape.automaton.runtime.ws.AutomatonClientConnectionImpl;
+import de.quinscape.automaton.runtime.ws.DefaultAutomatonClientConnection;
 import de.quinscape.automaton.runtime.ws.AutomatonWebSocketHandler;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.jsonb.JSONB;
@@ -185,7 +185,7 @@ public final class AutomatonJsViewProvider
             context.provideViewData("connectionId", connectionId);
 
             automatonWebSocketHandler.register(
-                new AutomatonClientConnectionImpl(
+                new DefaultAutomatonClientConnection(
                     connectionId,
                     auth
                 )

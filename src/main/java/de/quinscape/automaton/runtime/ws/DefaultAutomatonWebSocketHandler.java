@@ -5,8 +5,10 @@ import de.quinscape.automaton.model.message.IncomingMessage;
 import de.quinscape.automaton.model.message.OutgoingMessage;
 import de.quinscape.automaton.runtime.AutomatonException;
 import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
+import de.quinscape.automaton.runtime.message.AutomatonWebSocketHandlerAware;
 import de.quinscape.automaton.runtime.message.ConnectionListener;
 import de.quinscape.automaton.runtime.message.IncomingMessageHandler;
+import de.quinscape.automaton.runtime.message.OutgoingMessageFactory;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,13 +35,13 @@ import java.util.stream.Collectors;
  * Handles websockets. It is an extension of Spring's TextWebSocketHandler to handle the application websocket traffic
  * without Socket.io/STOMP.
  */
-public class AutomatonWebSocketHandlerImpl
+public class DefaultAutomatonWebSocketHandler
     extends TextWebSocketHandler
     implements AutomatonWebSocketHandler
 {
-    private final static Logger log = LoggerFactory.getLogger(AutomatonWebSocketHandlerImpl.class);
+    private final static Logger log = LoggerFactory.getLogger(DefaultAutomatonWebSocketHandler.class);
 
-    private static final String CONNECTION_ID = AutomatonWebSocketHandlerImpl.class.getName() + ":cid";
+    private static final String CONNECTION_ID = DefaultAutomatonWebSocketHandler.class.getName() + ":cid";
 
     private static final String CLEANUP_THREAD_NAME = "Websocket-Cleanup";
 
@@ -51,6 +53,8 @@ public class AutomatonWebSocketHandlerImpl
 
     private final ConcurrentMap<String, IncomingMessageHandler> handlers = new ConcurrentHashMap<>();
 
+    private final ConcurrentMap<String, Topic> topics = new ConcurrentHashMap<>();
+
     private final WebSocketHandlerOptions options;
 
     private final Thread cleanupThread;
@@ -60,12 +64,14 @@ public class AutomatonWebSocketHandlerImpl
     private volatile boolean running = true;
 
 
-    public AutomatonWebSocketHandlerImpl(Collection<IncomingMessageHandler> handlers)
+    public DefaultAutomatonWebSocketHandler(
+        Collection<IncomingMessageHandler> handlers
+    )
     {
         this(handlers, WebSocketHandlerOptions.DEFAULT);
     }
-    
-    public AutomatonWebSocketHandlerImpl(
+
+    public DefaultAutomatonWebSocketHandler(
         Collection<IncomingMessageHandler> handlers,
         WebSocketHandlerOptions options
     )
@@ -80,6 +86,10 @@ public class AutomatonWebSocketHandlerImpl
         {
             throw new AutomatonException("Could not find anny spring beans implementing " + IncomingMessageHandler.class.getName());
         }
+
+        this.handlers.values().stream()
+            .filter( h -> h instanceof AutomatonWebSocketHandlerAware)
+            .forEach( h -> ((AutomatonWebSocketHandlerAware) h).setAutomatonWebSocketHandler(this) );
 
         log.info("Starting AutomatonWebSocketHandler, handlers = {}", this.handlers);
 
@@ -159,7 +169,11 @@ public class AutomatonWebSocketHandlerImpl
         }
         catch (JSONParseException e)
         {
-            log.error("Error parsing '" + message.getPayload() + "'.", e);
+            log.error("Error parsing '" + message.getPayload() + "':", e);
+        }
+        catch (Exception e)
+        {
+            log.error("Error handling '" + message.getPayload() + "':", e);
         }
     }
 
@@ -233,7 +247,7 @@ public class AutomatonWebSocketHandlerImpl
     }
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) 
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status)
     {
         log.debug("afterConnectionClosed: session = {}, status = {}", session, status);
 
@@ -241,12 +255,16 @@ public class AutomatonWebSocketHandlerImpl
         if (cid != null)
         {
             final AutomatonClientConnection conn = connections.remove(cid);
-
             if (conn != null)
             {
                 for (ConnectionListener listener : listeners)
                 {
                     listener.onClose(this, conn);
+                }
+
+                for (Topic topic : topics.values())
+                {
+                    topic.deregister(conn);
                 }
             }
         }
@@ -261,6 +279,11 @@ public class AutomatonWebSocketHandlerImpl
     public void register(ConnectionListener listener)
     {
         listeners.add(listener);
+
+        if (listener instanceof AutomatonWebSocketHandlerAware)
+        {
+            ((AutomatonWebSocketHandlerAware) listener).setAutomatonWebSocketHandler(this);
+        }
     }
 
 
@@ -321,14 +344,74 @@ public class AutomatonWebSocketHandlerImpl
 
         log.debug("broadcast {}, {}", message, excludedConnectionId);
 
+        final String json = JSONUtil.DEFAULT_GENERATOR.forValue(message);
         for (AutomatonClientConnection curr : getConnections())
         {
             if (excludedConnectionId == null || !curr.getConnectionId().equals(excludedConnectionId))
             {
-                curr.send(
-                    message);
+                curr.send(json);
             }
         }
+    }
+
+
+    @Override
+    public void broadcast(OutgoingMessageFactory factory)
+    {
+        broadcast(factory.createMessage(), null);
+    }
+
+
+    @Override
+    public void broadcast(OutgoingMessageFactory factory, String excludedConnectionId)
+    {
+        broadcast(factory.createMessage(), excludedConnectionId);
+    }
+
+
+    @Override
+    public void registerTopic(AutomatonClientConnection connection, String topic)
+    {
+        Topic t = new Topic();
+        final Topic existing = topics.putIfAbsent(topic, t);
+        if (existing != null)
+        {
+            t = existing;
+        }
+
+        t.register(connection);
+    }
+
+    @Override
+    public void deregisterTopic(AutomatonClientConnection connection, String topic)
+    {
+        final Topic t = topics.get(topic);
+        if (t != null)
+        {
+            t.deregister(connection);
+        }
+    }
+
+
+    @Override
+    public void sendUpdateForTopic(String topic, OutgoingMessage outgoingMessage)
+    {
+        final Topic t = topics.get(topic);
+        if (t != null)
+        {
+            final String json = JSONUtil.DEFAULT_GENERATOR.forValue(outgoingMessage);
+            for (AutomatonClientConnection connection : t.getConnections())
+            {
+                connection.send(json);
+            }
+        }
+    }
+
+
+    @Override
+    public void sendUpdateForTopic(String topic, OutgoingMessageFactory messageFactory)
+    {
+        sendUpdateForTopic(topic, messageFactory.createMessage());
     }
 
 

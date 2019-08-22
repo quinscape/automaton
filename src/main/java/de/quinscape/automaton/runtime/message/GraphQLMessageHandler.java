@@ -59,7 +59,7 @@ public class GraphQLMessageHandler
         final List errors = (List) result.get("errors");
         if (errors != null && errors.size() > 0)
         {
-            connection.respond(msg.getMessageId(), result, "GraphQL Error");
+            connection.respondWithError(msg.getMessageId(), errors);
         }
         else
         {

@@ -1,5 +1,9 @@
 package de.quinscape.automaton.model.message;
 
+/**
+ * Encapsulates the outgoing message types used internally in automaton. You can use any unique type for your application
+ * if your server and client side agree on it.
+ */
 public final class OutgoingMessageType
 {
     private OutgoingMessageType()

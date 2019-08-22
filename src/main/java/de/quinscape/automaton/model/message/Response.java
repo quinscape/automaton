@@ -19,7 +19,7 @@ public final class Response
     }
 
 
-    public static OutgoingMessage create(String messageId, Object payload, String error)
+    public static OutgoingMessage create(String messageId, Object payload, Object error)
     {
         if (payload == null && error == null)
         {
