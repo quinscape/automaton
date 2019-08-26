@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static de.quinscape.automaton.model.js.ModuleFunctionReferences.INJECTION_CALL_NAME;
 import static de.quinscape.automaton.model.js.ModuleFunctionReferences.QUERY_CALL_NAME;
@@ -27,12 +28,17 @@ import static de.quinscape.automaton.model.js.ModuleFunctionReferences.QUERY_CAL
 public class DefaultProcessInjectionService
     implements ProcessInjectionService
 {
+
     private final static Logger log = LoggerFactory.getLogger(DefaultProcessInjectionService.class);
+
+    public static final String QUERIES_INFIX = "/queries/";
 
 
     private final ResourceHandle<StaticFunctionReferences> handle;
 
     private final GraphQL graphQL;
+
+    private volatile StaticFunctionReferences prevRefs;
 
 
     public DefaultProcessInjectionService(
@@ -52,11 +58,20 @@ public class DefaultProcessInjectionService
         Object input
     ) throws IOException
     {
+
+
         final String processSegment = "/" + processName;
 
         // handle may be hot-reloading, so we can't cache this
-        final Map<String, ModuleFunctionReferences> refsMap = handle.getContent()
+        final StaticFunctionReferences currentRefs = handle.getContent();
+        if (prevRefs != currentRefs)
+        {
+            ensureUniqueQueries(currentRefs);
+            prevRefs = currentRefs;
+        }
+        final Map<String, ModuleFunctionReferences> refsMap = currentRefs
             .getModuleFunctionReferences();
+
 
         if (refsMap.size() == 0)
         {
@@ -83,6 +98,35 @@ public class DefaultProcessInjectionService
         throw new ProcessNotFoundException(
             "Could not find process injections for process '" + processName + "' in " + handle + "."
         );
+    }
+
+
+    /**
+     * Due to the many process-local locations, there can be naming conflicts in the query namespace of an application.
+     *
+     * This method throws if it detects more than one query with the same name.
+     *
+     * @param refs
+     */
+    private void ensureUniqueQueries(StaticFunctionReferences refs)
+    {
+        final Map<String, ModuleFunctionReferences> refsMap = refs.getModuleFunctionReferences();
+        final Map<String,String> names = new HashMap<>();
+
+        for (String moduleName : refsMap.keySet())
+        {
+            final int pos = moduleName.lastIndexOf(QUERIES_INFIX);
+            if (pos >= 0)
+            {
+                String name = moduleName.substring(pos + QUERIES_INFIX.length());
+
+                final String existing = names.put(name, moduleName);
+                if (existing != null)
+                {
+                    throw new IllegalStateException("The query modules '" + moduleName + "' and '" + existing + "' have the same query name");
+                }
+            }
+        }
     }
 
 
