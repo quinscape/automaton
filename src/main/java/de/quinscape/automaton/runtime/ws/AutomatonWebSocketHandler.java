@@ -105,7 +105,7 @@ public interface AutomatonWebSocketHandler
      * @param connection        connection
      * @param topic             topic
      */
-    void registerTopic(AutomatonClientConnection connection, String topic);
+    void subscribe(AutomatonClientConnection connection, String topic);
 
     /**
      * Dynamically deregisters the given connection from receiving updates relating to the topic with the given name.
@@ -113,7 +113,7 @@ public interface AutomatonWebSocketHandler
      * @param connection        connection
      * @param topic             topic
      */
-    void deregisterTopic(AutomatonClientConnection connection, String topic);
+    void unsubscribe(AutomatonClientConnection connection, String topic);
 
     /**
      * Broadcasts the given message to all connections registered to the given topic.

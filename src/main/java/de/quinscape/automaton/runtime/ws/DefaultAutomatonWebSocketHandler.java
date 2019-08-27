@@ -264,7 +264,7 @@ public class DefaultAutomatonWebSocketHandler
 
                 for (Topic topic : topics.values())
                 {
-                    topic.deregister(conn);
+                    topic.unsubscribe(conn);
                 }
             }
         }
@@ -370,7 +370,7 @@ public class DefaultAutomatonWebSocketHandler
 
 
     @Override
-    public void registerTopic(AutomatonClientConnection connection, String topic)
+    public void subscribe(AutomatonClientConnection connection, String topic)
     {
         log.debug("register {} for topic '{}'", connection.getConnectionId(), topic);
 
@@ -381,18 +381,18 @@ public class DefaultAutomatonWebSocketHandler
             t = existing;
         }
 
-        t.register(connection);
+        t.subscribe(connection);
     }
 
     @Override
-    public void deregisterTopic(AutomatonClientConnection connection, String topic)
+    public void unsubscribe(AutomatonClientConnection connection, String topic)
     {
-        log.debug("deregister {} from topic '{}'", connection.getConnectionId(), topic);
+        log.debug("unsubscribe {} from topic '{}'", connection.getConnectionId(), topic);
 
         final Topic t = topics.get(topic);
         if (t != null)
         {
-            t.deregister(connection);
+            t.unsubscribe(connection);
         }
     }
 
