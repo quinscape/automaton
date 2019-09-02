@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.svenson.JSON;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -99,6 +100,8 @@ public final class ConditionCoercing
                 output = ConditionBuilder.field( ConditionBuilder.getName(input));
                 break;
             case VALUE:
+            {
+
                 final String scalarTypeName = ConditionBuilder.getScalarType(input);
                 final Object value = ConditionBuilder.getValue(input);
                 final GraphQLScalarType graphQLType = getScalarType(scalarTypeName);
@@ -115,6 +118,35 @@ public final class ConditionCoercing
 
                 output = ConditionBuilder.value(scalarTypeName, converted);
                 break;
+            }
+            case VALUES:
+            {
+
+                final String scalarTypeName = ConditionBuilder.getScalarType(input);
+                final Collection<?> values = ConditionBuilder.getValues(input);
+                final GraphQLScalarType graphQLType = getScalarType(scalarTypeName);
+
+                List<Object> convertedValues = new ArrayList<>(values.size());
+
+                for (Object value : values)
+                {
+                    final Object converted;
+                    if (serialize)
+                    {
+                        converted = graphQLType.getCoercing().serialize(value);
+                    }
+                    else
+                    {
+                        converted = graphQLType.getCoercing().parseValue(value);
+                    }
+
+                    convertedValues.add(converted);
+                }
+
+
+                output = ConditionBuilder.value(scalarTypeName, convertedValues);
+                break;
+            }
             case CONDITION:
             {
                 List<Map<String, Object>> operands = convertOperands(input, serialize);

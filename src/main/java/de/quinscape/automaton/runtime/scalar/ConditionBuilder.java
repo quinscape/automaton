@@ -3,6 +3,7 @@ package de.quinscape.automaton.runtime.scalar;
 import de.quinscape.automaton.runtime.AutomatonException;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,13 +34,17 @@ public class ConditionBuilder
      */
     private static String OPERANDS_FIELD = "operands";
     /**
-     * In value
+     * In Value
      */
     private static final String SCALAR_TYPE_FIELD = "scalarType";
     /**
-     * In value
+     * In Value
      */
     private static final String VALUE_FIELD = "value";
+    /**
+     * In Values
+     */
+    private static final String VALUES_FIELD = "values";
 
     private static Class<? extends Map> mapImpl = HashMap.class;
 
@@ -64,7 +69,7 @@ public class ConditionBuilder
 
     public static String getScalarType(Map<String,Object> node)
     {
-        assertType(node, NodeType.VALUE);
+        assertType(node, NodeType.VALUE, NodeType.VALUES);
 
         return (String) node.get(SCALAR_TYPE_FIELD);
     }
@@ -75,6 +80,13 @@ public class ConditionBuilder
         assertType(node, NodeType.VALUE);
 
         return node.get(VALUE_FIELD);
+    }
+
+    public static Collection<?> getValues(Map<String,Object> node)
+    {
+        assertType(node, NodeType.VALUES);
+
+        return (Collection<?>) node.get(VALUES_FIELD);
     }
 
     public static String getId(Map<String, Object> node)
@@ -111,7 +123,7 @@ public class ConditionBuilder
 
     public static void setScalarType(Map<String,Object> node, String scalarType)
     {
-        assertType(node, NodeType.VALUE);
+        assertType(node, NodeType.VALUE, NodeType.VALUES);
 
         node.put(SCALAR_TYPE_FIELD, scalarType);
     }
@@ -122,6 +134,13 @@ public class ConditionBuilder
         assertType(node, NodeType.VALUE);
 
         node.put(VALUE_FIELD, value);
+    }
+
+    public static void setValues(Map<String,Object> node, Collection<?> values)
+    {
+        assertType(node, NodeType.VALUES);
+
+        node.put(VALUES_FIELD, values);
     }
 
     public static void setId(Map<String, Object> node, String id)
@@ -296,6 +315,23 @@ public class ConditionBuilder
         setScalarType(out, scalarType);
         setName(out, name);
         setValue(out, value);
+        return out;
+    }
+
+    /**
+     * Create a values node encapsulating a scalar value
+     *
+     * @param scalarType    scalar type name
+     * @param values        values
+     *
+     * @return value type node
+     */
+    public static Map<String, Object> value(String scalarType, Collection<?> values)
+    {
+        final Map<String, Object> out = createMap();
+        setType(out, NodeType.VALUES.getName());
+        setScalarType(out, scalarType);
+        setValues(out, values);
         return out;
     }
 

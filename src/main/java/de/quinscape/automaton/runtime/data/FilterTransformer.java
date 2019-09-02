@@ -121,6 +121,16 @@ public class FilterTransformer
             {
                 return DSL.val(ConditionBuilder.getValue(condition));
             }
+            case VALUES:
+            {
+                final Collection<?> values = ConditionBuilder.getValues(condition);
+                final List<Object> vals = new ArrayList<>(values.size());
+                for (Object value : values)
+                {
+                    vals.add(DSL.val(value));
+                }
+                return vals;
+            }
             case OPERATION:
             {
                 return invokeFieldMethod(queryContext, condition);
@@ -250,7 +260,7 @@ public class FilterTransformer
                 {
                     final Class<?>[] parameterTypes = method.getParameterTypes();
                     if (parameterTypes.length == numArgs && Arrays.stream(parameterTypes)
-                        .allMatch(t -> Field.class.isAssignableFrom(t)))
+                        .allMatch(t -> Field.class.isAssignableFrom(t) || t.equals(Collection.class)))
                     {
                         return fieldAccess.getIndex(name, method.getParameterTypes());
                     }

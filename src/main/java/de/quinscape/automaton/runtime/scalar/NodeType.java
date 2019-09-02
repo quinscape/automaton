@@ -5,6 +5,7 @@ public enum NodeType
     CONDITION("Condition"),
     FIELD("Field"),
     VALUE("Value"),
+    VALUES("Values"),
     OPERATION("Operation"),
     COMPONENT("Component");
 
