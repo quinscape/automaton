@@ -8,8 +8,8 @@ import de.quinscape.automaton.runtime.i18n.TranslationService;
 import de.quinscape.automaton.runtime.util.Base32;
 import de.quinscape.automaton.runtime.util.LocaleUtil;
 import de.quinscape.automaton.runtime.util.ProcessUtil;
-import de.quinscape.automaton.runtime.ws.DefaultAutomatonClientConnection;
 import de.quinscape.automaton.runtime.ws.AutomatonWebSocketHandler;
+import de.quinscape.automaton.runtime.ws.DefaultAutomatonClientConnection;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.jsonb.JSONB;
 import de.quinscape.domainql.schema.SchemaDataProvider;
@@ -88,7 +88,6 @@ public final class AutomatonJsViewProvider
     private final DSLContext dslContext;
 
     private final SchemaDataProvider schemaProvider;
-
 
     /**
      * Creates a new AutomatonJsViewProvider instance.

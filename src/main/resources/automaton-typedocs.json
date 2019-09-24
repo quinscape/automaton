@@ -18,12 +18,54 @@
         ]
       },
       {
+        "name":"generateDomainObjectId",
+        "description":"Generate a new domain object id using the application specific IdGenerator implementation.",
+        "paramDocs":[
+          {
+            "name":"domainType",
+            "description":"Domain type to generate an id for."
+          }
+        ]
+      },
+      {
         "name":"storeDomainObject",
-        "description":"Stores a any domain object. Note that you might have to manually register an input type.",
+        "description":"Stores a single domain object of any type. Note that you might have to manually register an input type.",
         "paramDocs":[
           {
             "name":"domainObject",
             "description":"domain object wrapped as DomainObject scalar"
+          }
+        ]
+      },
+      {
+        "name":"storeDomainObjects",
+        "description":"Stores a list of domain object of any type. Note that you might have to manually register an input type.",
+        "paramDocs":[
+          {
+            "name":"domainObjects",
+            "description":"list of domain object wrapped as DomainObject scalar"
+          }
+        ]
+      },
+      {
+        "name":"updateAssociations",
+        "description":"Updates the associations of one source domain over a many-to-many connection / an associative entity",
+        "paramDocs":[
+          {
+            "name":"domainType",
+            "description":"associative domain type"
+          },
+          {
+            "name":"sourceFieldName",
+            "description":"name of the source-side field"
+          },
+          {
+            "name":"sourceId",
+            "description":"Id-value of the current source object (all source fields must contains this value)"
+          },
+          {
+            "name":"domainObjects",
+            "description":"Current list of instances that might contain place holder ids."
           }
         ]
       }

@@ -22,6 +22,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import org.svenson.JSONParseException;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
@@ -44,6 +45,8 @@ public class DefaultAutomatonWebSocketHandler
     private static final String CONNECTION_ID = DefaultAutomatonWebSocketHandler.class.getName() + ":cid";
 
     private static final String CLEANUP_THREAD_NAME = "Websocket-Cleanup";
+
+    private static final CloseStatus NOT_REGISTERED = new CloseStatus(4100, "Connection id not registered.");
 
 
     private final CopyOnWriteArrayList<ConnectionListener> listeners = new CopyOnWriteArrayList<>();
@@ -216,7 +219,7 @@ public class DefaultAutomatonWebSocketHandler
 
 
     @Override
-    public void afterConnectionEstablished(WebSocketSession session)
+    public void afterConnectionEstablished(WebSocketSession session) throws IOException
     {
 
         final String query = session.getUri().getQuery();
@@ -233,7 +236,9 @@ public class DefaultAutomatonWebSocketHandler
         final AutomatonClientConnection connection = preparedConnections.remove(cid);
         if (connection == null)
         {
-            throw new IllegalStateException("Connection '" + cid + "' not preregistered with auth.");
+            log.debug("Connection '{}' not preregistered with auth.", cid);
+            session.close( NOT_REGISTERED );
+            return;
         }
         connection.initialize(session);
         connections.put(cid, connection);

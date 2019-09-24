@@ -7,6 +7,12 @@ import de.quinscape.automaton.runtime.controller.ScopeSyncController;
 import de.quinscape.automaton.runtime.data.DefaultInteractiveQueryService;
 import de.quinscape.automaton.runtime.data.FilterTransformer;
 import de.quinscape.automaton.runtime.data.InteractiveQueryService;
+import de.quinscape.automaton.runtime.domain.IdGenerator;
+import de.quinscape.automaton.runtime.domain.UUIDGenerator;
+import de.quinscape.automaton.runtime.domain.op.BatchStoreOperation;
+import de.quinscape.automaton.runtime.domain.op.DefaultBatchStoreOperation;
+import de.quinscape.automaton.runtime.domain.op.DefaultStoreOperation;
+import de.quinscape.automaton.runtime.domain.op.StoreOperation;
 import de.quinscape.automaton.runtime.logic.AutomatonStandardLogic;
 import de.quinscape.automaton.runtime.provider.DefaultProcessInjectionService;
 import de.quinscape.automaton.runtime.provider.ProcessInjectionService;
@@ -21,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -62,7 +68,9 @@ import java.io.IOException;
  */
 @Configuration
 @EnableWebSocket
-@Import(WebsocketConfiguration.class)
+@Import({
+    WebsocketConfiguration.class
+})
 public class AutomatonConfiguration
 {
     private final static Logger log = LoggerFactory.getLogger(AutomatonConfiguration.class);
@@ -83,10 +91,13 @@ public class AutomatonConfiguration
     @Bean
     public AutomatonStandardLogic automatonStandardLogic(
         DSLContext dslContext,
-        @Lazy DomainQL domainQL
+        @Lazy DomainQL domainQL,
+        IdGenerator idGenerator,
+        StoreOperation storeOperation,
+        BatchStoreOperation batchStoreOperation
     )
     {
-        return new AutomatonStandardLogic(dslContext, domainQL);
+        return new AutomatonStandardLogic(dslContext, domainQL, idGenerator, storeOperation, batchStoreOperation);
     }
 
     @Bean
@@ -183,4 +194,5 @@ public class AutomatonConfiguration
         final ResourceLoader resourceLoader = resourceLoader();
         resourceLoader.shutDown();
     }
+
 }

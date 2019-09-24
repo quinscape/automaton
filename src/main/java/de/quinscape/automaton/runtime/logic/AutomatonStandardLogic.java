@@ -1,25 +1,33 @@
 package de.quinscape.automaton.runtime.logic;
 
+import com.google.common.collect.Maps;
+import de.quinscape.automaton.runtime.domain.IdGenerator;
+import de.quinscape.automaton.runtime.domain.op.BatchStoreOperation;
+import de.quinscape.automaton.runtime.domain.op.StoreOperation;
+import de.quinscape.automaton.runtime.util.GraphQLUtil;
 import de.quinscape.domainql.DomainQL;
+import de.quinscape.domainql.TypeRegistry;
+import de.quinscape.domainql.annotation.GraphQLField;
 import de.quinscape.domainql.annotation.GraphQLLogic;
 import de.quinscape.domainql.annotation.GraphQLMutation;
+import de.quinscape.domainql.config.RelationModel;
 import de.quinscape.domainql.generic.DomainObject;
 import de.quinscape.domainql.generic.GenericScalar;
-import de.quinscape.domainql.util.DomainObjectUtil;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
-import org.jooq.Record1;
-import org.jooq.Result;
 import org.jooq.Table;
+import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.validation.constraints.NotNull;
-
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.jooq.impl.DSL.*;
@@ -32,35 +40,153 @@ public class AutomatonStandardLogic
 
     private final DSLContext dslContext;
     private final DomainQL domainQL;
+    private final IdGenerator idGenerator;
+    private final StoreOperation storeOperation;
+    private final BatchStoreOperation batchStoreOperation;
 
 
     public AutomatonStandardLogic(
         DSLContext dslContext,
-        DomainQL domainQL
+        DomainQL domainQL,
+        IdGenerator idGenerator,
+        StoreOperation storeOperation,
+        BatchStoreOperation batchStoreOperation
     )
     {
         this.dslContext = dslContext;
         this.domainQL = domainQL;
+        this.idGenerator = idGenerator;
+        this.storeOperation = storeOperation;
+        this.batchStoreOperation = batchStoreOperation;
     }
 
 
     /**
-     * Stores a any domain object. Note that you might have to manually register an input type.
+     * Stores a single domain object of any type. Note that you might have to manually register an input type.
      *
      * @param domainObject  domain object wrapped as DomainObject scalar
      * @return
      */
     @GraphQLMutation
-    public boolean storeDomainObject(
+    public GenericScalar storeDomainObject(
         @NotNull
         DomainObject domainObject
     )
     {
         log.debug("storeDomainObject: {}", domainObject);
 
-        return DomainObjectUtil.insertOrUpdate(dslContext, domainQL, domainObject) == 1;
+        provideId(domainObject);
+        storeOperation.execute(domainObject);
+
+        final Object idResult = domainObject.getProperty("id");
+        final String scalarTypeName = domainQL.getTypeRegistry().getGraphQLScalarFor(idResult.getClass(), null).getName();
+        return new GenericScalar(
+            scalarTypeName,
+            idResult
+        );
     }
 
+    /**
+     * Stores a list of domain object of any type. Note that you might have to manually register an input type.
+     *
+     * @param domainObjects list of domain object wrapped as DomainObject scalar
+     * @return
+     */
+    @GraphQLMutation
+    public List<GenericScalar> storeDomainObjects(
+        @NotNull
+        List<DomainObject> domainObjects
+    )
+    {
+        if (domainObjects.size() == 0)
+        {
+            throw new IllegalStateException("Invalid batch operation for 0 elements");
+        }
+
+        log.debug("storeDomainObjects: {}", domainObjects);
+
+        Map<String, List<DomainObject>> map = mapObjects(domainObjects);
+
+        for (List<DomainObject> list : map.values())
+        {
+            if (list.size() == 1)
+            {
+                final DomainObject domainObject = list.get(0);
+
+                provideId(domainObject);
+                storeDomainObject(
+                    domainObject
+                );
+            }
+            else
+            {
+                final String domainType = domainObjects.get(0).getDomainType();
+                final int newIdsNeeded = (int) domainObjects
+                    .stream()
+                    .filter(id -> Objects.equals(id, idGenerator.getPlaceholderId(domainType)))
+                    .count();
+
+                final List<Object> ids = idGenerator.generate(domainType, newIdsNeeded);
+                final Iterator<Object> iterator = ids.iterator();
+                for (DomainObject domainObject : list)
+                {
+                    final Object id = domainObject.getProperty(DomainObject.ID);
+
+                    if (Objects.equals(id, idGenerator.getPlaceholderId(domainType)))
+                    {
+                        final Object newId = iterator.next();
+                        domainObject.setProperty(DomainObject.ID, newId);
+                    }
+                }
+                batchStoreOperation.execute(list);
+            }
+        }
+
+        final TypeRegistry typeRegistry = domainQL.getTypeRegistry();
+        
+        return domainObjects.stream()
+            .map(domainObject -> {
+
+                final Object id = domainObject.getProperty("id");
+                final String scalarTypeName = typeRegistry.getGraphQLScalarFor(id.getClass(), null).getName();
+
+                return new GenericScalar(
+                    scalarTypeName,
+                    id
+                );
+            })
+            .collect(
+                Collectors.toList()
+            );
+    }
+
+
+
+    private void provideId(DomainObject domainObject)
+    {
+        final Object id = domainObject.getProperty(DomainObject.ID);
+
+        @NotNull final String domainType = domainObject.getDomainType();
+        if (Objects.equals(id, idGenerator.getPlaceholderId(domainType)))
+        {
+            final List<Object> newId = idGenerator.generate(domainType, 1);
+            domainObject.setProperty(DomainObject.ID, newId.get(0));
+        }
+    }
+
+
+    private Map<String, List<DomainObject>> mapObjects(List<DomainObject> domainObjects)
+    {
+        Map<String, List<DomainObject>> map = Maps.newHashMapWithExpectedSize(domainObjects.size());
+
+        for (DomainObject object : domainObjects)
+        {
+            @NotNull final String domainType = object.getDomainType();
+            final List<DomainObject> list = map.computeIfAbsent(domainType, k -> new ArrayList<>());
+            list.add(object);
+        }
+        return map;
+    }
 
 
     /**
@@ -92,93 +218,120 @@ public class AutomatonStandardLogic
     }
 
 
+    /**
+     * Updates the associations of one source domain object over a many-to-many connection / an associative entity
+     *
+     * @param domainType            associative domain type / link table
+     * @param leftSideRelation      The relation over which the source domain type is connected with the associative
+     *                              domain type / link table
+     * @param sourceIds             Id-values of the current source object (all source id fields must contains this value)
+     * @param domainObjects         Current list of instances that might contain place holder ids.
+     *
+     * @return  array with id values as {@link GenericScalar}.
+     */
     @GraphQLMutation
-    public boolean updateAssociations(
-        @NotNull
-        String type,
-        @NotNull
-        String sourceFieldName,
-        @NotNull
-        String targetFieldName,
-        @NotNull
-        GenericScalar sourceId,
-        @NotNull
-        List<GenericScalar> connected
+    public List<GenericScalar> updateAssociations(
+        @NotNull String domainType,
+        @NotNull String leftSideRelation,
+        @NotNull List<GenericScalar> sourceIds,
+        @NotNull List<DomainObject> domainObjects
     )
     {
-        final Table<?> jooqTable = domainQL.getJooqTable(type);
-        final Field idField = domainQL.lookupField(type, "id");
-        final Field sourceField = domainQL.lookupField(type, sourceFieldName);
-        final Field targetField = domainQL.lookupField(type, targetFieldName);
+        final String outputType = GraphQLUtil.getOutputTypeName(domainType);
 
 
-        final List<Object> connectedIds = connected.stream().map(GenericScalar::getValue).collect(Collectors.toList());
+        final Table<?> linkTable = domainQL.getJooqTable(outputType);
+        final Field<?> idField = domainQL.lookupField(outputType, DomainObject.ID);
 
+        final RelationModel relationModel = domainQL.getRelationModel(leftSideRelation);
 
-        if (connected.size() == 0)
+        final List<String> sourceFields = relationModel.getSourceFields();
+
+        final Condition sourceCondition;
+        if (sourceFields.size() == 1)
         {
-            dslContext.deleteFrom(jooqTable)
-                .where(
-                    sourceField.eq(sourceId.getValue())
-                )
-                .execute();
+            final Field<Object> sourceField = (Field<Object>) domainQL.lookupField(outputType, sourceFields.get(0));
+            sourceCondition = sourceField.eq(sourceIds.get(0).getValue());
         }
         else
         {
+            List<Condition> conditions = new ArrayList<>();
 
-            final Set<Object> ids = mapToSet(
-                targetField,
-                dslContext.select(targetField).from(jooqTable)
-                    .where(
-                        and(
-                            sourceField.eq(sourceId.getValue()),
-                            targetField.in(connectedIds)
-                        )
-                    )
-                    .fetch()
-            );
-
-
-            for (Object currentId : connectedIds)
+            for (int i = 0; i < sourceFields.size(); i++)
             {
-                if (!ids.contains(currentId))
-                {
-                    final String newId = UUID.randomUUID().toString();
+                final String sourceFieldName = sourceFields.get(i);
+                final GenericScalar sourceId = sourceIds.get(i);
+                final Field<Object> sourceField = (Field<Object>) domainQL.lookupField(outputType, sourceFieldName);
 
-                    log.debug("INSERT {}: {}, {}, {}", type, newId, sourceId, currentId);
-
-                    dslContext.insertInto(jooqTable)
-                        .set(idField, newId)
-                        .set(sourceField, sourceId.getValue())
-                        .set(targetField, currentId)
-                        .execute();
-                }
+                conditions.add(
+                    sourceField.eq(sourceId.getValue())
+                );
             }
 
-            dslContext.deleteFrom(jooqTable)
-                .where(
-                    and(
-                        sourceField.eq(sourceId.getValue()),
-                        not(
-                            targetField.in(connectedIds)
+            sourceCondition = DSL.and(conditions);
+        }
+
+        // find all non-placeholder link object ids for the current connected objects
+        final List<Object> ids = domainObjects.stream()
+            .map(domainObject -> domainObject.getProperty(DomainObject.ID))
+            .filter(id -> !Objects.equals(id, idGenerator.getPlaceholderId(outputType)))
+            .collect(Collectors.toList());
+
+        // delete all link table rows that do not contain any of those ids.
+        dslContext.deleteFrom(linkTable)
+            .where(
+                and(
+                    sourceCondition,
+                    not(
+                        idField.in(
+                            ids
                         )
                     )
                 )
-                .execute();
+            )
+            .execute();
 
+        if (domainObjects.size() == 0)
+        {
+            return Collections.emptyList();
         }
-
-        return true;
+        
+        return storeDomainObjects(domainObjects);
     }
 
 
-    private Set<Object> mapToSet(Field<?> field, Result<? extends Record1<?>> records)
+    /**
+     * Generate a new domain object id using the application specific {@link IdGenerator} implementation.
+     *
+     * @param domainType    Domain type to generate an id for.
+     *
+     * @param count
+     * @return new id as generic scalar.
+     */
+    @GraphQLMutation
+    public List<GenericScalar> generateDomainObjectId(
+        @NotNull String domainType,
+        @GraphQLField(defaultValue = "1") Integer count
+    )
     {
-        final Set<Object> ids = new HashSet<>();
-        for (Record1<?> record : records)
-        {
-            ids.add(record.getValue(field));
-        }
+        final TypeRegistry typeRegistry = domainQL.getTypeRegistry();
+
+
+        final Object placeholderId = idGenerator.getPlaceholderId(domainType);
+        final String scalarTypeName = typeRegistry.getGraphQLScalarFor(placeholderId.getClass(), null).getName();
+        final List<GenericScalar> ids = idGenerator.generate(domainType, count)
+            .stream()
+            .map(
+                newId -> new GenericScalar(
+                    scalarTypeName,
+                    newId
+                )
+            )
+            .collect(
+                Collectors.toList()
+            );
+
+        log.debug("generateDomainObjectId: {}", ids);
 
         return ids;
     }

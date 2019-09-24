@@ -1,5 +1,6 @@
 package de.quinscape.automaton.runtime.util;
 
+import de.quinscape.domainql.DomainQL;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import graphql.ExecutionInput;
 import graphql.ExecutionResult;
@@ -44,6 +45,18 @@ public final class GraphQLUtil
             .map( e -> e.getErrorType() + ": " + e.getMessage() + " ( path = " + e.getPath() + ", locations = " + e.getLocations() + ")" )
             .collect(Collectors.toList())
         );
+    }
+
+    public static String getOutputTypeName(String inputTypeName)
+    {
+        if (inputTypeName.endsWith(DomainQL.INPUT_SUFFIX))
+        {
+            return inputTypeName.substring(0, inputTypeName.length() - DomainQL.INPUT_SUFFIX.length());
+        }
+        else
+        {
+            return inputTypeName;
+        }
     }
 
 }
