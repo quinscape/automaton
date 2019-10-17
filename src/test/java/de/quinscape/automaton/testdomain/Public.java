@@ -5,6 +5,9 @@ package de.quinscape.automaton.testdomain;
 
 
 import de.quinscape.automaton.testdomain.tables.AppUser;
+import de.quinscape.automaton.testdomain.tables.Baz;
+import de.quinscape.automaton.testdomain.tables.BazLink;
+import de.quinscape.automaton.testdomain.tables.BazValue;
 import de.quinscape.automaton.testdomain.tables.Foo;
 import de.quinscape.automaton.testdomain.tables.FooType;
 import de.quinscape.automaton.testdomain.tables.Node;
@@ -33,7 +36,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Public extends SchemaImpl {
 
-    private static final long serialVersionUID = -1142916990;
+    private static final long serialVersionUID = -1044773296;
 
     /**
      * The reference instance of <code>public</code>
@@ -44,6 +47,21 @@ public class Public extends SchemaImpl {
      * The table <code>public.app_user</code>.
      */
     public final AppUser APP_USER = de.quinscape.automaton.testdomain.tables.AppUser.APP_USER;
+
+    /**
+     * The table <code>public.baz</code>.
+     */
+    public final Baz BAZ = de.quinscape.automaton.testdomain.tables.Baz.BAZ;
+
+    /**
+     * The table <code>public.baz_link</code>.
+     */
+    public final BazLink BAZ_LINK = de.quinscape.automaton.testdomain.tables.BazLink.BAZ_LINK;
+
+    /**
+     * The table <code>public.baz_value</code>.
+     */
+    public final BazValue BAZ_VALUE = de.quinscape.automaton.testdomain.tables.BazValue.BAZ_VALUE;
 
     /**
      * The table <code>public.foo</code>.
@@ -86,6 +104,9 @@ public class Public extends SchemaImpl {
     private final List<Table<?>> getTables0() {
         return Arrays.<Table<?>>asList(
             AppUser.APP_USER,
+            Baz.BAZ,
+            BazLink.BAZ_LINK,
+            BazValue.BAZ_VALUE,
             Foo.FOO,
             FooType.FOO_TYPE,
             Node.NODE);

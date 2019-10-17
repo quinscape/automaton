@@ -5,6 +5,9 @@ package de.quinscape.automaton.testdomain;
 
 
 import de.quinscape.automaton.testdomain.tables.AppUser;
+import de.quinscape.automaton.testdomain.tables.Baz;
+import de.quinscape.automaton.testdomain.tables.BazLink;
+import de.quinscape.automaton.testdomain.tables.BazValue;
 import de.quinscape.automaton.testdomain.tables.Foo;
 import de.quinscape.automaton.testdomain.tables.FooType;
 import de.quinscape.automaton.testdomain.tables.Node;
@@ -29,6 +32,21 @@ public class Tables {
      * The table <code>public.app_user</code>.
      */
     public static final AppUser APP_USER = de.quinscape.automaton.testdomain.tables.AppUser.APP_USER;
+
+    /**
+     * The table <code>public.baz</code>.
+     */
+    public static final Baz BAZ = de.quinscape.automaton.testdomain.tables.Baz.BAZ;
+
+    /**
+     * The table <code>public.baz_link</code>.
+     */
+    public static final BazLink BAZ_LINK = de.quinscape.automaton.testdomain.tables.BazLink.BAZ_LINK;
+
+    /**
+     * The table <code>public.baz_value</code>.
+     */
+    public static final BazValue BAZ_VALUE = de.quinscape.automaton.testdomain.tables.BazValue.BAZ_VALUE;
 
     /**
      * The table <code>public.foo</code>.

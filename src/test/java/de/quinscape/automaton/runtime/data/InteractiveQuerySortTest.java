@@ -35,7 +35,6 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-
 import static de.quinscape.automaton.testdomain.Tables.*;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
@@ -53,9 +52,8 @@ public class InteractiveQuerySortTest
     {
         final DSLContext dslContext = TestProvider.create(ImmutableMap.of(
         "select \"foo\".\"id\", \"foo\".\"name\", \"foo\".\"created\", \"owner\".\"id\", \"owner\".\"login\", \"foo\"" +
-            ".\"owner_id\" as \"fk0\" from \"public\".\"foo\" as \"foo\" left outer join \"public\".\"app_user\" as " +
-            "\"owner\" on \"owner\".\"id\" = \"foo\".\"owner_id\" order by \"owner\".\"login\" desc, \"foo\".\"name\"" +
-            " limit ?", (dsl, ctx) -> {
+            ".\"owner_id\" from \"public\".\"foo\" as \"foo\" left outer join \"public\".\"app_user\" as \"owner\" on" +
+            " \"owner\".\"id\" = \"foo\".\"owner_id\" order by \"owner\".\"login\" desc, \"foo\".\"name\" limit ?", (dsl, ctx) -> {
 
                 final Result<Record6<String, String, Timestamp, String, String, String>> result = dsl.newResult(
                     FOO.ID,

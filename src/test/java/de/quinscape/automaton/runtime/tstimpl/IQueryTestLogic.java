@@ -4,6 +4,9 @@ import de.quinscape.automaton.model.data.InteractiveQuery;
 import de.quinscape.automaton.model.data.QueryConfig;
 import de.quinscape.automaton.runtime.data.InteractiveQueryService;
 import de.quinscape.automaton.testdomain.tables.pojos.AppUser;
+import de.quinscape.automaton.testdomain.tables.pojos.Baz;
+import de.quinscape.automaton.testdomain.tables.pojos.BazLink;
+import de.quinscape.automaton.testdomain.tables.pojos.BazValue;
 import de.quinscape.automaton.testdomain.tables.pojos.Foo;
 import de.quinscape.automaton.testdomain.tables.pojos.Node;
 import de.quinscape.domainql.annotation.GraphQLLogic;
@@ -39,7 +42,14 @@ public class IQueryTestLogic
 
     @GraphQLQuery
     public <T> InteractiveQuery<T> iQuery(
-        @GraphQLTypeParam(types = { Foo.class, Node.class, AppUser.class}) Class<T> type,
+        @GraphQLTypeParam(types = {
+            Foo.class,
+            Node.class,
+            AppUser.class,
+            Baz.class,
+            BazLink.class,
+            BazValue.class
+        }) Class<T> type,
         DataFetchingEnvironment env,
         QueryConfig config
     )

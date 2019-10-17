@@ -1,112 +1,91 @@
 package de.quinscape.automaton.runtime.data;
 
-import org.jooq.Field;
+import de.quinscape.domainql.config.RelationModel;
 import org.jooq.Table;
-import org.jooq.TableField;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Encapsulates information about one usage of a table within an interactive query.
  */
 final class QueryJoin
 {
-    private final Class<?> pojoType;
+    private final QueryExecution queryExecution;
 
-    private final String sourceTableAlias;
+    private final Class<?> pojoType;
 
     private final Table<?> table;
 
-    /**
-     * Field name as it is in GraphQL
-     */
-    private final String sourceTableField;
-
     private final String alias;
 
-    /**
-     * Field name as it is in the database
-     */
-    private final String sourceTableDBField;
-
-
-    private final String targetDBField;
+    private final RelationModel relationModel;
 
     private final boolean enabled;
 
-    private final String fkAlias;
-
+    private final QueryJoin parentJoin;
 
     public QueryJoin(
+        QueryExecution queryExecution,
         Table<?> table,
         Class<?> pojoType,
         String alias,
-        String sourceTableAlias,
-        String sourceTableField,
-        String sourceTableDBField,
-        String fkAlias,
-        String targetDBField,
+        QueryJoin parentJoin,
+        RelationModel relationModel,
         boolean enabled
     )
     {
+        this.queryExecution = queryExecution;
         this.pojoType = pojoType;
-        this.sourceTableAlias = sourceTableAlias;
         this.table = table;
-        this.sourceTableField = sourceTableField;
         this.alias = alias;
-        this.sourceTableDBField = sourceTableDBField;
-        this.fkAlias = fkAlias;
-        this.targetDBField = targetDBField;
+        this.parentJoin = parentJoin;
+        this.relationModel = relationModel;
         this.enabled = enabled;
     }
-
 
 
     /**
      * Creates a pseudo join entry for the root type
      *
-     * @param table     JOOQ table of the root type
-     * @param alias     alias within the current query
+     * @param table JOOQ table of the root type
+     * @param alias alias within the current query
      */
-    public QueryJoin(Table<?> table, Class<?> pojoType, String alias)
+    public QueryJoin(
+        QueryExecution queryExecution,
+        Table<?> table,
+        Class<?> pojoType,
+        String alias
+    )
     {
-        this(table, pojoType, alias, null,  null, null, null, null, true);
+        this(
+            queryExecution,
+            table,
+            pojoType,
+            alias,
+            null,
+            null,
+            true
+        );
     }
 
 
     /**
      * Current alias of the source/referencing table.
      *
-     * @return  source alias
+     * @return source alias
      */
     public String getSourceTableAlias()
     {
-        return sourceTableAlias;
-    }
-
-
-    /**
-     * Returns the GraphQL/JSON name of the referencing field in the source table
-     *
-     * @return GraphQL/JSON name of the referencing field
-     */
-    public String getSourceTableField()
-    {
-        return sourceTableField;
-    }
-
-    /**
-     * Returns the DB name of the referencing field in the source table
-     *
-     * @return DB name of the referencing field
-     */
-    public String getSourceTableDBField()
-    {
-        return sourceTableDBField;
+        return parentJoin.getAlias();
     }
 
 
     /**
      * JOOQ table for the referenced / target side table.
-     * 
+     *
      * @return target JOOQ table
      */
     public Table<?> getTable()
@@ -125,6 +104,7 @@ final class QueryJoin
         return pojoType;
     }
 
+
     /**
      * Current alias for the table involved.
      *
@@ -135,34 +115,96 @@ final class QueryJoin
         return alias;
     }
 
-
-    public String getFkAlias()
-    {
-        return fkAlias;
-    }
-
-
-    public String getTargetDBField()
-    {
-        return targetDBField;
-    }
-
     public boolean isEnabled()
     {
         return enabled;
     }
+
+
+    public RelationModel getRelationModel()
+    {
+        return relationModel;
+    }
+
+
+    public QueryJoin getParentJoin()
+    {
+        return parentJoin;
+    }
+
+
+    /**
+     * Returns the column state name corresponding to the current field within the current join.
+     *
+     * @param field     field name
+     * @return column state name (e.g. "owner.login")
+     */
+    public String getColumnName(String field)
+    {
+        List<String> parts = new ArrayList<>();
+
+        parts.add(field);
+
+        QueryJoin current = this;
+        while(current.getRelationModel() != null)
+        {
+            parts.add(
+                0,
+                current.getRelationModel().getLeftSideObjectName()
+            );
+            current = current.getParentJoin();
+        }
+
+        final String joined = String.join(".", parts);
+
+        if (queryExecution.getFieldRoot().startsWith(RuntimeQuery.ROWS_PREFIX))
+        {
+            return queryExecution.getFieldRoot().substring(RuntimeQuery.ROWS_PREFIX.length()) + "/" + joined;
+        }
+
+        return joined;
+    }
+
+
+    /**
+     * Returns the relative field path to this query join within the current query execution. This does *not*
+     * include fields contained in the query execution's field root.
+     *
+     * @return
+     */
+    public List<String> getRelativeFieldPath()
+    {
+        List<String> parts = new ArrayList<>();
+
+        QueryJoin current = this;
+        while(current.getRelationModel() != null)
+        {
+            parts.add(
+                0,
+                current.getRelationModel().getLeftSideObjectName()
+            );
+            current = current.getParentJoin();
+        }
+        return parts;
+    }
+
+
+    public QueryExecution getQueryExecution()
+    {
+        return queryExecution;
+    }
+
 
     @Override
     public String toString()
     {
         return super.toString() + ": "
             + "pojoType = " + pojoType
-            + ", sourceTableAlias = '" + sourceTableAlias + '\''
             + ", table = " + table
-            + ", sourceTableField = '" + sourceTableField + '\''
             + ", alias = '" + alias + '\''
-            + ", sourceTableDBField = '" + sourceTableDBField + '\''
+            + ", relationModel = " + relationModel
             + ", enabled = " + enabled
+            + ", parentJoin = " + parentJoin
             ;
     }
 }

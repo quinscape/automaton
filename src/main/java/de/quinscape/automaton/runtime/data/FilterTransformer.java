@@ -41,24 +41,29 @@ public class FilterTransformer
 
 
     public Condition transform(
-        QueryContext queryContext, ConditionScalar conditionScalar
+        QueryExecution queryExecution, ConditionScalar conditionScalar
     )
     {
-        final Object transformed = transformRecursive(queryContext, conditionScalar.getRoot());
+        final Object transformed = transformRecursive(queryExecution, conditionScalar.getRoot());
 
-        if (!(transformed instanceof Condition))
-        {
-            throw new AutomatonException("Transformed condition scalar returns no condition: " + transformed);
-        }
+//        if (!(transformed instanceof Condition))
+//        {
+//            throw new AutomatonException("Transformed condition scalar returns no condition: " + transformed);
+//        }
 
         return (Condition) transformed;
     }
 
     public OrderField<?> transform(
-        QueryContext queryContext, FieldExpressionScalar fieldExpressionScalar
+        QueryExecution queryExecution, FieldExpressionScalar fieldExpressionScalar
     )
     {
-        final Object transformed = transformRecursive(queryContext, fieldExpressionScalar.getRoot());
+        final Object transformed = transformRecursive(queryExecution, fieldExpressionScalar.getRoot());
+
+        if (transformed == null)
+        {
+            return null;
+        }
 
         if (!(transformed instanceof OrderField))
         {
@@ -69,7 +74,7 @@ public class FilterTransformer
 
 
     private Object transformRecursive(
-        QueryContext queryContext,
+        QueryExecution queryExecution,
         Map<String, Object> condition
     )
     {
@@ -87,7 +92,7 @@ public class FilterTransformer
             case COMPONENT:
             {
                 final Map<String, Object> kid = ConditionBuilder.getCondition(condition);
-                return transformRecursive(queryContext, kid);
+                return transformRecursive(queryExecution, kid);
             }
             case CONDITION:
             {
@@ -98,24 +103,24 @@ public class FilterTransformer
                 if (name.equals("and"))
                 {
                     return DSL.and(
-                        transformOperands(queryContext, operands)
+                        transformOperands(queryExecution, operands)
                     );
                 }
                 else if (name.equals("or"))
                 {
                     return DSL.or(
-                        transformOperands(queryContext, operands)
+                        transformOperands(queryExecution, operands)
                     );
                 }
                 else
                 {
-                    return invokeFieldMethod(queryContext, condition);
+                    return invokeFieldMethod(queryExecution, condition);
                 }
             }
             case FIELD:
             {
                 final String name = ConditionBuilder.getName(condition);
-                return queryContext.resolveField(name);
+                return queryExecution.resolveField(name);
             }
             case VALUE:
             {
@@ -133,7 +138,7 @@ public class FilterTransformer
             }
             case OPERATION:
             {
-                return invokeFieldMethod(queryContext, condition);
+                return invokeFieldMethod(queryExecution, condition);
             }
             default:
                 throw new AutomatonException("Unhandled node type: " + nodeType);
@@ -142,7 +147,7 @@ public class FilterTransformer
 
 
     private Object invokeFieldMethod(
-        QueryContext queryContext,
+        QueryExecution queryExecution,
         Map<String, Object> condition
     )
     {
@@ -155,9 +160,15 @@ public class FilterTransformer
         }
 
         final Object value = transformRecursive(
-            queryContext,
+            queryExecution,
             operands.get(0)
         );
+
+        // field reference is not part of this query execution, we ignore the whole condition
+        if (value == null)
+        {
+            return null;
+        }
 
         if (!(value instanceof Field))
         {
@@ -173,26 +184,26 @@ public class FilterTransformer
         {
             holder = existing;
         }
-        return holder.invoke(field, transformRestOfOperands(queryContext, operands));
+        return holder.invoke(field, transformRestOfOperands(queryExecution, operands));
     }
 
 
     private Object[] transformRestOfOperands(
-        QueryContext queryContext,
+        QueryExecution queryExecution,
         List<Map<String, Object>> operands
     )
     {
         Object[] array = new Object[operands.size() - 1];
         for (int i = 1; i < operands.size(); i++)
         {
-            array[i - 1] = transformRecursive(queryContext, operands.get(i));
+            array[i - 1] = transformRecursive(queryExecution, operands.get(i));
         }
         return array;
     }
 
 
     private Collection<? extends Condition> transformOperands(
-        QueryContext queryContext,
+        QueryExecution queryExecution,
         List<Map<String, Object>> operands
     )
     {
@@ -201,18 +212,16 @@ public class FilterTransformer
         for (Map<String, Object> operand : operands)
         {
             final Object value = transformRecursive(
-                queryContext,
+                queryExecution,
                 operand
             );
 
-            if (!(value instanceof Condition))
+            if (value != null)
             {
-                throw new AutomatonException("Operand did not transform to condition: " + JSON_GEN.forValue(operand));
+                list.add(
+                    (Condition) value
+                );
             }
-
-            list.add(
-                (Condition) value
-            );
         }
 
         return list;

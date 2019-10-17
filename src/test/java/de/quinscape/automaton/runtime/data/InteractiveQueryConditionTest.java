@@ -50,10 +50,10 @@ public class InteractiveQueryConditionTest
     {
         final DSLContext dslContext = TestProvider.create(ImmutableMap.of(
             "select \"foo\".\"id\", \"foo\".\"name\", \"foo\".\"num\", \"foo\".\"description\", \"foo\".\"created\", " +
-                "\"foo\".\"type\", \"foo\".\"flag\", \"owner\".\"id\", \"owner\".\"login\", \"foo\".\"owner_id\" as " +
-                "\"fk0\" from \"public\".\"foo\" as \"foo\" left outer join \"public\".\"app_user\" as \"owner\" on " +
-                "\"owner\".\"id\" = \"foo\".\"owner_id\" where (\"foo\".\"name\" = ? and \"owner\".\"login\" = ?) " +
-                "order by \"foo\".\"id\" limit ?",
+                "\"foo\".\"type\", \"foo\".\"flag\", \"owner\".\"id\", \"owner\".\"login\", \"foo\".\"owner_id\" from" +
+                " \"public\".\"foo\" as \"foo\" left outer join \"public\".\"app_user\" as \"owner\" on \"owner\"" +
+                ".\"id\" = \"foo\".\"owner_id\" where (\"foo\".\"name\" = ? and \"owner\".\"login\" = ?) order by " +
+                "\"foo\".\"id\" limit ?",
             (dsl, ctx) -> new MockResult[]{
                 new MockResult(
                     0,
@@ -66,8 +66,7 @@ public class InteractiveQueryConditionTest
                         FOO.TYPE,
                         FOO.FLAG,
                         APP_USER.ID,
-                        APP_USER.LOGIN,
-                        FOO.OWNER_ID
+                        APP_USER.LOGIN
                     )
                 )
             },
