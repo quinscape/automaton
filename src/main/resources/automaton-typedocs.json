@@ -24,6 +24,10 @@
           {
             "name":"domainType",
             "description":"Domain type to generate an id for."
+          },
+          {
+            "name":"count",
+            "description":""
           }
         ]
       },
@@ -49,19 +53,19 @@
       },
       {
         "name":"updateAssociations",
-        "description":"Updates the associations of one source domain over a many-to-many connection / an associative entity",
+        "description":"Updates the associations of one source domain object over a many-to-many connection / an associative entity",
         "paramDocs":[
           {
             "name":"domainType",
-            "description":"associative domain type"
+            "description":"associative domain type / link table"
           },
           {
-            "name":"sourceFieldName",
-            "description":"name of the source-side field"
+            "name":"leftSideRelation",
+            "description":"The relation over which the source domain type is connected with the associative\n                             domain type / link table"
           },
           {
-            "name":"sourceId",
-            "description":"Id-value of the current source object (all source fields must contains this value)"
+            "name":"sourceIds",
+            "description":"Id-values of the current source object (all source id fields must contains this value)"
           },
           {
             "name":"domainObjects",
