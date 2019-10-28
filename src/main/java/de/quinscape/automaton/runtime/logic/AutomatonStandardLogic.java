@@ -20,6 +20,8 @@ import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
@@ -33,10 +35,10 @@ import java.util.stream.Collectors;
 import static org.jooq.impl.DSL.*;
 
 @GraphQLLogic
+@Transactional
 public class AutomatonStandardLogic
 {
     private final static Logger log = LoggerFactory.getLogger(AutomatonStandardLogic.class);
-
 
     private final DSLContext dslContext;
     private final DomainQL domainQL;
@@ -105,13 +107,13 @@ public class AutomatonStandardLogic
 
         log.debug("storeDomainObjects: {}", domainObjects);
 
-        Map<String, List<DomainObject>> map = mapObjects(domainObjects);
+        Map<String, List<DomainObject>> map = mapObjectsByDomainType(domainObjects);
 
-        for (List<DomainObject> list : map.values())
+        for (List<DomainObject> objects : map.values())
         {
-            if (list.size() == 1)
+            if (objects.size() == 1)
             {
-                final DomainObject domainObject = list.get(0);
+                final DomainObject domainObject = objects.get(0);
 
                 provideId(domainObject);
                 storeDomainObject(
@@ -120,25 +122,23 @@ public class AutomatonStandardLogic
             }
             else
             {
-                final String domainType = domainObjects.get(0).getDomainType();
-                final int newIdsNeeded = (int) domainObjects
+                final String domainType = objects.get(0).getDomainType();
+                final List<DomainObject> objectsWithoutId = objects
                     .stream()
                     .filter(id -> Objects.equals(id, idGenerator.getPlaceholderId(domainType)))
-                    .count();
+                    .collect(Collectors.toList());
 
-                final List<Object> ids = idGenerator.generate(domainType, newIdsNeeded);
-                final Iterator<Object> iterator = ids.iterator();
-                for (DomainObject domainObject : list)
+                if (objectsWithoutId.size() > 0)
                 {
-                    final Object id = domainObject.getProperty(DomainObject.ID);
-
-                    if (Objects.equals(id, idGenerator.getPlaceholderId(domainType)))
+                    final List<Object> ids = idGenerator.generate(domainType, objectsWithoutId.size());
+                    final Iterator<Object> iterator = ids.iterator();
+                    for (DomainObject domainObject : objectsWithoutId)
                     {
                         final Object newId = iterator.next();
                         domainObject.setProperty(DomainObject.ID, newId);
                     }
                 }
-                batchStoreOperation.execute(list);
+                batchStoreOperation.execute(objects);
             }
         }
 
@@ -175,7 +175,7 @@ public class AutomatonStandardLogic
     }
 
 
-    private Map<String, List<DomainObject>> mapObjects(List<DomainObject> domainObjects)
+    private Map<String, List<DomainObject>> mapObjectsByDomainType(List<DomainObject> domainObjects)
     {
         Map<String, List<DomainObject>> map = Maps.newHashMapWithExpectedSize(domainObjects.size());
 
@@ -230,6 +230,7 @@ public class AutomatonStandardLogic
      * @return  array with id values as {@link GenericScalar}.
      */
     @GraphQLMutation
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public List<GenericScalar> updateAssociations(
         @NotNull String domainType,
         @NotNull String leftSideRelation,
