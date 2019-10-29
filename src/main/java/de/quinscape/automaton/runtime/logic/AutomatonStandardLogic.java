@@ -67,7 +67,7 @@ public class AutomatonStandardLogic
      * Stores a single domain object of any type. Note that you might have to manually register an input type.
      *
      * @param domainObject  domain object wrapped as DomainObject scalar
-     * @return
+     * @return domain object id as generic scalar
      */
     @GraphQLMutation
     public GenericScalar storeDomainObject(
@@ -123,9 +123,15 @@ public class AutomatonStandardLogic
             else
             {
                 final String domainType = objects.get(0).getDomainType();
+                final Object placeholderId = idGenerator.getPlaceholderId(domainType);
+                if (placeholderId == null)
+                {
+                    throw new IllegalStateException("ID placeholder value can't be null");
+                }
+
                 final List<DomainObject> objectsWithoutId = objects
                     .stream()
-                    .filter(id -> Objects.equals(id, idGenerator.getPlaceholderId(domainType)))
+                    .filter(domainObject -> placeholderId.equals(domainObject.getProperty(DomainObject.ID)))
                     .collect(Collectors.toList());
 
                 if (objectsWithoutId.size() > 0)
