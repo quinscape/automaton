@@ -254,46 +254,65 @@ public class AutomatonStandardLogic
 
         final List<String> sourceFields = relationModel.getSourceFields();
 
-        final Condition sourceCondition;
+        final List<Condition> conditions = new ArrayList<>(2);
         if (sourceFields.size() == 1)
         {
+            // build "field = id" condition
             final Field<Object> sourceField = (Field<Object>) domainQL.lookupField(outputType, sourceFields.get(0));
-            sourceCondition = sourceField.eq(sourceIds.get(0).getValue());
+            conditions.add(sourceField.eq(sourceIds.get(0).getValue()));
         }
         else
         {
-            List<Condition> conditions = new ArrayList<>();
-
+            // build "fieldA = id1 AND fieldB = id2" condition
+            List<Condition> comparisons = new ArrayList<>();
             for (int i = 0; i < sourceFields.size(); i++)
             {
                 final String sourceFieldName = sourceFields.get(i);
                 final GenericScalar sourceId = sourceIds.get(i);
                 final Field<Object> sourceField = (Field<Object>) domainQL.lookupField(outputType, sourceFieldName);
 
-                conditions.add(
+                comparisons.add(
                     sourceField.eq(sourceId.getValue())
                 );
             }
 
-            sourceCondition = DSL.and(conditions);
+            comparisons.add(
+                DSL.and(
+                    comparisons
+                )
+            );
+        }
+
+        final Object placeholderId = idGenerator.getPlaceholderId(outputType);
+        if (placeholderId == null)
+        {
+            throw new IllegalStateException("ID placeholder value can't be null");
         }
 
         // find all non-placeholder link object ids for the current connected objects
         final List<Object> ids = domainObjects.stream()
             .map(domainObject -> domainObject.getProperty(DomainObject.ID))
-            .filter(id -> !Objects.equals(id, idGenerator.getPlaceholderId(outputType)))
+            .filter(id -> !placeholderId.equals(id))
             .collect(Collectors.toList());
+
+        if (ids.size() > 0)
+        {
+            // delete all entries that are not among the given pre-existing ids,
+            // otherwise delete all entries with the source id values.
+            conditions.add(
+                not(
+                    idField.in(
+                        ids
+                    )
+                )
+            );
+        }
 
         // delete all link table rows that do not contain any of those ids.
         dslContext.deleteFrom(linkTable)
             .where(
                 and(
-                    sourceCondition,
-                    not(
-                        idField.in(
-                            ids
-                        )
-                    )
+                    conditions
                 )
             )
             .execute();
