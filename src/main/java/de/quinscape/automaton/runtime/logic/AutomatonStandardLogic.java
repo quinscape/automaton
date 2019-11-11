@@ -1,8 +1,10 @@
 package de.quinscape.automaton.runtime.logic;
 
 import com.google.common.collect.Maps;
+import de.quinscape.automaton.model.workingset.WorkingSetDeletion;
 import de.quinscape.automaton.runtime.domain.IdGenerator;
 import de.quinscape.automaton.runtime.domain.op.BatchStoreOperation;
+import de.quinscape.automaton.runtime.domain.op.DefaultStoreOperation;
 import de.quinscape.automaton.runtime.domain.op.StoreOperation;
 import de.quinscape.automaton.runtime.util.GraphQLUtil;
 import de.quinscape.domainql.DomainQL;
@@ -15,7 +17,9 @@ import de.quinscape.domainql.generic.DomainObject;
 import de.quinscape.domainql.generic.GenericScalar;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.DeleteQuery;
 import org.jooq.Field;
+import org.jooq.InsertQuery;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
@@ -360,5 +364,53 @@ public class AutomatonStandardLogic
         log.debug("generateDomainObjectId: {}", ids);
 
         return ids;
+    }
+
+
+    /**
+     * Server-side end-point for WorkingSet.persist()
+     *
+     * @param domainObjects     List of new and changed domain objects
+     * @param deletions         List of object deletions
+     *
+     * @return 
+     */
+    @GraphQLMutation
+    public boolean persistWorkingSet(
+        @NotNull List<DomainObject> domainObjects,
+        @NotNull List<WorkingSetDeletion> deletions
+    )
+    {
+        if (domainObjects.size() > 0)
+        {
+            storeDomainObjects(domainObjects);
+        }
+
+        if (deletions.size() > 0)
+        {
+            dslContext.batch(
+                deletions.stream().map(deletion -> {
+
+                    final Table<?> jooqTable = domainQL.getJooqTable(deletion.getType());
+                    final Field<Object> idField = (Field<Object>) domainQL.lookupField(deletion.getType(), "id");
+
+
+                    final DeleteQuery<?> deleteQuery = dslContext.deleteQuery(
+                        jooqTable
+                    );
+                    deleteQuery.addConditions(
+                        idField.eq(
+                            deletion.getId().getValue()
+                        )
+                    );
+                    return deleteQuery;
+                })
+                    .collect(
+                        Collectors.toList()
+                    )
+            ).execute();
+        }
+
+        return true;
     }
 }

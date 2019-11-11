@@ -32,6 +32,20 @@
         ]
       },
       {
+        "name":"persistWorkingSet",
+        "description":"Server-side end-point for WorkingSet.persist()",
+        "paramDocs":[
+          {
+            "name":"domainObjects",
+            "description":"List of new and changed domain objects"
+          },
+          {
+            "name":"deletions",
+            "description":"List of object deletions"
+          }
+        ]
+      },
+      {
         "name":"storeDomainObject",
         "description":"Stores a single domain object of any type. Note that you might have to manually register an input type.",
         "paramDocs":[
@@ -278,6 +292,26 @@
     "description":"A named constant within a view.",
     "fieldDocs":[
       
+    ]
+  },
+  {
+    "name":"WorkingSetDeletion",
+    "description":"Encapsulates the type and id of on object deletion in a working set.",
+    "fieldDocs":[
+      {
+        "name":"id",
+        "description":"Id of deleted object as generic scalar.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"type",
+        "description":"Domain type of deleted object",
+        "paramDocs":[
+          
+        ]
+      }
     ]
   }
 ]
