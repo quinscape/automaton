@@ -208,10 +208,8 @@ public class AutomatonStandardLogic
      */
     @GraphQLMutation
     public boolean deleteDomainObject(
-        @NotNull
-            String type,
-        @NotNull
-            String id
+        @NotNull String type,
+        @NotNull GenericScalar id
     )
     {
         final Table<?> jooqTable = domainQL.getJooqTable(type);
@@ -220,7 +218,9 @@ public class AutomatonStandardLogic
                 field(
                     name("id")
                 )
-                .eq(id)
+                .eq(
+                    id.getValue()
+                )
             )
             .execute();
 
