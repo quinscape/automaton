@@ -2,6 +2,7 @@ package de.quinscape.automaton.runtime.logic;
 
 import com.google.common.collect.Maps;
 import de.quinscape.automaton.model.workingset.WorkingSetDeletion;
+import de.quinscape.automaton.runtime.AutomatonException;
 import de.quinscape.automaton.runtime.domain.IdGenerator;
 import de.quinscape.automaton.runtime.domain.op.BatchStoreOperation;
 import de.quinscape.automaton.runtime.domain.op.DefaultStoreOperation;
@@ -21,6 +22,7 @@ import org.jooq.DeleteQuery;
 import org.jooq.Field;
 import org.jooq.InsertQuery;
 import org.jooq.Table;
+import org.jooq.TableField;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -204,14 +207,72 @@ public class AutomatonStandardLogic
      *
      * @param type      domain type name
      * @param id        domain object id to delete
+     * @param cascade   optional list of relations to follow when deleting the object
      * @return
      */
     @GraphQLMutation
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public boolean deleteDomainObject(
         @NotNull String type,
-        @NotNull GenericScalar id
+        @NotNull GenericScalar id,
+        List<String> cascade
     )
     {
+        final Map<RelationModel, Object> tmpIds = new HashMap<>();
+
+        if (cascade != null)
+        {
+            for (String relation : cascade)
+            {
+                final RelationModel relationModel = domainQL.getRelationModel(relation);
+
+                final List<? extends TableField<?, ?>> targetDBFields = relationModel.getTargetDBFields();
+                final List<? extends TableField<?, ?>> sourceDBFields = relationModel.getSourceDBFields();
+
+                if (relationModel.getSourceType().equals(type))
+                {
+                    if (targetDBFields.size() == 1)
+                    {
+
+                        final TableField<?, Object> sourceField = (TableField<?, Object>) sourceDBFields.get(0);
+
+                        final Object linkedId = dslContext.select(sourceField).from(relationModel.getSourceTable()).where(
+                            field("id").eq(id.getValue())
+                        ).fetchOne(sourceField);
+
+                        tmpIds.put(relationModel, linkedId);
+
+                    }
+                    else
+                    {
+                        throw new UnsupportedOperationException("Cascade delete for multi-key fk not supported yet.");
+                    }
+                }
+                else if (relationModel.getTargetType().equals(type))
+                {
+                    if (targetDBFields.size() == 1)
+                    {
+                        final TableField<?, Object> sourceField = (TableField<?, Object>) sourceDBFields.get(0);
+                        dslContext.deleteFrom( relationModel.getSourceTable())
+                            .where(
+                                sourceField.eq(
+                                    id.getValue()
+                                )
+                            )
+                            .execute();
+                    }
+                    else
+                    {
+                        throw new UnsupportedOperationException("Cascade delete for multi-key fk not supported yet.");
+                    }
+                }
+                else
+                {
+                    throw new AutomatonException("Relation '" + relation + "' does neither start or end at type '" + type + "'.");
+                }
+            }
+        }
+
         final Table<?> jooqTable = domainQL.getJooqTable(type);
         final int count = dslContext.deleteFrom( jooqTable)
             .where(
@@ -223,6 +284,26 @@ public class AutomatonStandardLogic
                 )
             )
             .execute();
+
+        if (tmpIds.size() > 0)
+        {
+            for (Map.Entry<RelationModel, Object> e : tmpIds.entrySet())
+            {
+                final RelationModel relationModel = e.getKey();
+                final Object linkedId = e.getValue();
+                final List<? extends TableField<?, ?>> targetDBFields = relationModel.getTargetDBFields();
+                final TableField<?, Object> targetField = (TableField<?, Object>) targetDBFields.get(0);
+
+                dslContext.deleteFrom( relationModel.getTargetTable())
+                    .where(
+                        targetField.eq(
+                            linkedId
+                        )
+                    )
+                    .execute();
+            }
+        }
+
 
         return count == 1;
     }

@@ -14,6 +14,10 @@
           {
             "name":"id",
             "description":"domain object id to delete"
+          },
+          {
+            "name":"cascade",
+            "description":"optional list of relations to follow when deleting the object"
           }
         ]
       },
