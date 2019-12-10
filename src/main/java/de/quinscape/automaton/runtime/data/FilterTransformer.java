@@ -112,6 +112,18 @@ public class FilterTransformer
                         transformOperands(queryExecution, operands)
                     );
                 }
+                else if (name.equals("not"))
+                {
+                    if (operands.size() > 1)
+                    {
+                        throw new IllegalStateException("Not has only one argument");
+                    }
+
+                    final List<? extends Condition> conditions = transformOperands(queryExecution, operands);
+                    return DSL.not(
+                        conditions.get(0)
+                    );
+                }
                 else
                 {
                     return invokeFieldMethod(queryExecution, condition);
@@ -202,7 +214,7 @@ public class FilterTransformer
     }
 
 
-    private Collection<? extends Condition> transformOperands(
+    private List<? extends Condition> transformOperands(
         QueryExecution queryExecution,
         List<Map<String, Object>> operands
     )
