@@ -5,6 +5,9 @@ import de.quinscape.automaton.model.message.IncomingMessage;
 import de.quinscape.automaton.model.message.OutgoingMessage;
 import de.quinscape.automaton.runtime.AutomatonException;
 import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
+import de.quinscape.automaton.runtime.filter.Filter;
+import de.quinscape.automaton.runtime.filter.FilterContext;
+import de.quinscape.automaton.runtime.filter.JavaFilterTransformer;
 import de.quinscape.automaton.runtime.message.AutomatonWebSocketHandlerAware;
 import de.quinscape.automaton.runtime.message.ConnectionListener;
 import de.quinscape.automaton.runtime.message.IncomingMessageHandler;
@@ -26,6 +29,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -55,7 +59,6 @@ public class DefaultAutomatonWebSocketHandler
 
     private final ConcurrentMap<String, IncomingMessageHandler> handlers = new ConcurrentHashMap<>();
 
-    private final ConcurrentMap<String, Topic> topics = new ConcurrentHashMap<>();
 
     private final WebSocketHandlerOptions options;
 
@@ -266,10 +269,10 @@ public class DefaultAutomatonWebSocketHandler
                     listener.onClose(this, conn);
                 }
 
-                for (Topic topic : topics.values())
-                {
-                    topic.unsubscribe(conn);
-                }
+//                for (Topic topic : topics.values())
+//                {
+//                    topic.unsubscribe(conn);
+//                }
             }
         }
     }
@@ -359,51 +362,6 @@ public class DefaultAutomatonWebSocketHandler
     }
 
 
-
-
-    @Override
-    public void subscribe(AutomatonClientConnection connection, String topic)
-    {
-        log.debug("register {} for topic '{}'", connection.getConnectionId(), topic);
-
-        Topic t = new Topic();
-        final Topic existing = topics.putIfAbsent(topic, t);
-        if (existing != null)
-        {
-            t = existing;
-        }
-
-        t.subscribe(connection);
-    }
-
-    @Override
-    public void unsubscribe(AutomatonClientConnection connection, String topic)
-    {
-        log.debug("unsubscribe {} from topic '{}'", connection.getConnectionId(), topic);
-
-        final Topic t = topics.get(topic);
-        if (t != null)
-        {
-            t.unsubscribe(connection);
-        }
-    }
-
-
-    @Override
-    public void sendUpdateForTopic(String topic, OutgoingMessage outgoingMessage)
-    {
-        log.debug("update for topic '{}': {}", topic, outgoingMessage);
-
-        final Topic t = topics.get(topic);
-        if (t != null)
-        {
-            final String json = JSONUtil.DEFAULT_GENERATOR.forValue(outgoingMessage);
-            for (AutomatonClientConnection connection : t.getConnections())
-            {
-                connection.send(json);
-            }
-        }
-    }
     @Override
     public void shutDown()
     {

@@ -75,33 +75,6 @@ public interface AutomatonWebSocketHandler
      */
     void broadcast(OutgoingMessage message, String excludedConnectionId);
 
-
-    /**
-     * Dynamically registers the given connection to receive updates relating to the topic with the given name.
-     *
-     * @param connection        connection
-     * @param topic             topic
-     */
-    void subscribe(AutomatonClientConnection connection, String topic);
-
-    /**
-     * Dynamically deregisters the given connection from receiving updates relating to the topic with the given name.
-     *
-     * @param connection        connection
-     * @param topic             topic
-     */
-    void unsubscribe(AutomatonClientConnection connection, String topic);
-
-    /**
-     * Broadcasts the given message to all connections registered to the given topic.
-     *
-     * @param topic                 topic
-     * @param outgoingMessage       message
-     *                              
-     * @see de.quinscape.automaton.runtime.message.TopicMessageHandler
-     */
-    void sendUpdateForTopic(String topic, OutgoingMessage outgoingMessage);
-
     /**
      * Shuts down the websocket handler
      */

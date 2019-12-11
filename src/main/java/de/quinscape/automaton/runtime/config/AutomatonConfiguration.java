@@ -13,6 +13,7 @@ import de.quinscape.automaton.runtime.domain.op.BatchStoreOperation;
 import de.quinscape.automaton.runtime.domain.op.DefaultBatchStoreOperation;
 import de.quinscape.automaton.runtime.domain.op.DefaultStoreOperation;
 import de.quinscape.automaton.runtime.domain.op.StoreOperation;
+import de.quinscape.automaton.runtime.filter.JavaFilterTransformer;
 import de.quinscape.automaton.runtime.logic.AutomatonStandardLogic;
 import de.quinscape.automaton.runtime.provider.DefaultProcessInjectionService;
 import de.quinscape.automaton.runtime.provider.ProcessInjectionService;
@@ -185,6 +186,13 @@ public class AutomatonConfiguration
     public FilterTransformer filterTransformer()
     {
         return new FilterTransformer();
+    }
+
+    @Bean
+    public JavaFilterTransformer javaFilterTransformer(
+    )
+    {
+        return new JavaFilterTransformer();
     }
 
 
