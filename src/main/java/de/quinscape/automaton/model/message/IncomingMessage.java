@@ -25,7 +25,22 @@ public final class IncomingMessage
         String type
     )
     {
-        this.type = type != null ? type : GraphQLMessageHandler.TYPE;
+        if (connectionId == null)
+        {
+            throw new IllegalArgumentException("connectionId can't be null");
+        }
+
+        if (type == null)
+        {
+            throw new IllegalArgumentException("type can't be null");
+        }
+
+        if (messageId == null)
+        {
+            throw new IllegalArgumentException("messageId can't be null");
+        }
+
+        this.type = type;
         this.connectionId = connectionId;
         this.messageId = messageId;
         this.payload = payload;
