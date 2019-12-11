@@ -8,7 +8,6 @@ import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
 import de.quinscape.automaton.runtime.message.AutomatonWebSocketHandlerAware;
 import de.quinscape.automaton.runtime.message.ConnectionListener;
 import de.quinscape.automaton.runtime.message.IncomingMessageHandler;
-import de.quinscape.automaton.runtime.message.OutgoingMessageFactory;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -360,18 +359,6 @@ public class DefaultAutomatonWebSocketHandler
     }
 
 
-    @Override
-    public void broadcast(OutgoingMessageFactory factory)
-    {
-        broadcast(factory.createMessage(), null);
-    }
-
-
-    @Override
-    public void broadcast(OutgoingMessageFactory factory, String excludedConnectionId)
-    {
-        broadcast(factory.createMessage(), excludedConnectionId);
-    }
 
 
     @Override
@@ -417,15 +404,6 @@ public class DefaultAutomatonWebSocketHandler
             }
         }
     }
-
-
-    @Override
-    public void sendUpdateForTopic(String topic, OutgoingMessageFactory messageFactory)
-    {
-        sendUpdateForTopic(topic, messageFactory.createMessage());
-    }
-
-
     @Override
     public void shutDown()
     {

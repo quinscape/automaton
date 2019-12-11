@@ -2,7 +2,6 @@ package de.quinscape.automaton.runtime.ws;
 
 import de.quinscape.automaton.model.message.OutgoingMessage;
 import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
-import de.quinscape.automaton.runtime.message.OutgoingMessageFactory;
 import org.springframework.web.socket.WebSocketSession;
 import org.svenson.JSONProperty;
 
@@ -35,13 +34,6 @@ public interface AutomatonClientConnection
      * @param message   outgoing message
      */
     void send(OutgoingMessage message);
-
-    /**
-     * Creates an outgoing message with the given outgoing message factory and sends it as JSON.
-     *
-     * @param factory
-     */
-    void send(OutgoingMessageFactory factory);
 
     /**
      * Responds to a request/responsed paired request.

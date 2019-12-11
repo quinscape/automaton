@@ -4,7 +4,6 @@ import de.quinscape.automaton.runtime.AutomatonException;
 import de.quinscape.automaton.model.message.OutgoingMessage;
 import de.quinscape.automaton.model.message.Response;
 import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
-import de.quinscape.automaton.runtime.message.OutgoingMessageFactory;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -131,18 +130,6 @@ public class DefaultAutomatonClientConnection
         {
             throw new AutomatonException("Error sending websocket message", e);
         }
-    }
-
-
-    /**
-     * Sends the outgoing message produced by the given outgoing message factory.
-     *
-     * @param factory outgoing message factory
-     */
-    @Override
-    public void send(OutgoingMessageFactory factory)
-    {
-        send(factory.createMessage());
     }
 
 
