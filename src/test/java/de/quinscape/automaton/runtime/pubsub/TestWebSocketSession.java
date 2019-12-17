@@ -1,7 +1,5 @@
 package de.quinscape.automaton.runtime.pubsub;
 
-import de.quinscape.automaton.runtime.domain.monitor.DomainTypeUsage;
-import de.quinscape.automaton.runtime.util.Base32;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketExtension;
@@ -16,7 +14,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 public class TestWebSocketSession
     implements WebSocketSession
