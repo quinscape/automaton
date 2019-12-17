@@ -21,6 +21,7 @@ public class PubSubMessageHandler
     
     private final static String SUBSCRIBE = "SUBSCRIBE";
     private final static String UNSUBSCRIBE = "UNSUBSCRIBE";
+    private final static String PUBLISH = "PUBLISH";
 
     private final DomainQL domainQL;
 
@@ -57,19 +58,30 @@ public class PubSubMessageHandler
 
         final String op = (String) payload.get("op");
         final String topic = (String) payload.get("topic");
-        final Long id = (Long) payload.get("id");
 
         switch (op)
         {
             case SUBSCRIBE:
+            {
+                final Long id = (Long) payload.get("id");
                 final Map<String, Object> raw = (Map<String, Object>) payload.get("filter");
                 final Map<String, Object> deserialized = JavaFilterTransformer.deserialize(domainQL, raw, false);
                 final Filter filter = javaFilterTransformer.transform(deserialized);
                 pubSubService.subscribe(connection, topic, filter, id);
                 break;
+            }
             case UNSUBSCRIBE:
+            {
+                final Long id = (Long) payload.get("id");
                 pubSubService.unsubscribe(connection, topic, id);
                 break;
+            }
+            case PUBLISH:
+            {
+                final Object message = payload.get("message");
+                pubSubService.publish(topic, message);
+                break;
+            }
             default:
                 throw new IllegalStateException("Unhandled pubsub operation: " + op);
         }
