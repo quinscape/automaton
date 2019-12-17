@@ -17,6 +17,17 @@ public final class IsTrueFilter
     private Filter operandA;
 
 
+    public IsTrueFilter()
+    {
+
+    }
+
+
+    public IsTrueFilter(Filter operandA)
+    {
+        this.operandA = operandA;
+    }
+
     @Override
     public void configure(
         Function<Map<String, Object>, Filter> transform, Map<String, Object> node

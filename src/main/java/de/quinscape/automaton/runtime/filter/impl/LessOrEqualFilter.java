@@ -19,6 +19,17 @@ public final class LessOrEqualFilter
     private Filter operandB;
 
 
+    public LessOrEqualFilter()
+    {
+
+    }
+
+
+    public LessOrEqualFilter(Filter operandA, Filter operandB)
+    {
+        this.operandA = operandA;
+        this.operandB = operandB;
+    }
     @Override
     public void configure(
         Function<Map<String, Object>, Filter> transform, Map<String, Object> node

@@ -17,6 +17,18 @@ public final class EqualIgnoreCaseFilter
     private Filter operandB;
 
 
+    public EqualIgnoreCaseFilter()
+    {
+
+    }
+
+
+    public EqualIgnoreCaseFilter(Filter operandA, Filter operandB)
+    {
+        this.operandA = operandA;
+        this.operandB = operandB;
+    }
+
     @Override
     public void configure(
         Function<Map<String, Object>, Filter> transform, Map<String, Object> node

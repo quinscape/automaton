@@ -1,17 +1,15 @@
 package de.quinscape.automaton.runtime.filter.impl;
-        
 
+
+import de.quinscape.automaton.runtime.filter.ConfigurableFilter;
 import de.quinscape.automaton.runtime.filter.Filter;
 import de.quinscape.automaton.runtime.filter.FilterContext;
-import de.quinscape.automaton.runtime.filter.ConfigurableFilter;
-import de.quinscape.automaton.runtime.filter.impl.LiteralValue;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public final class InFilter
     implements ConfigurableFilter
@@ -20,6 +18,18 @@ public final class InFilter
 
     private List<Object> values;
 
+
+    public InFilter()
+    {
+
+    }
+
+
+    public InFilter(Filter operandA, List<Object> values)
+    {
+        this.operandA = operandA;
+        this.values = values;
+    }
 
     @Override
     public void configure(

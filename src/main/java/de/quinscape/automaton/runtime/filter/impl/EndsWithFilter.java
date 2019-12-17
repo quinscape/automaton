@@ -17,6 +17,18 @@ public final class EndsWithFilter
     private Filter operandB;
 
 
+    public EndsWithFilter()
+    {
+
+    }
+
+
+    public EndsWithFilter(Filter operandA, Filter operandB)
+    {
+        this.operandA = operandA;
+        this.operandB = operandB;
+    }
+
     @Override
     public void configure(
         Function<Map<String, Object>, Filter> transform, Map<String, Object> node

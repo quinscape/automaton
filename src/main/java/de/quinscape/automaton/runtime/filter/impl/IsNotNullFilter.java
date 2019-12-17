@@ -16,6 +16,17 @@ public final class IsNotNullFilter
     private Filter operandA;
 
 
+    public IsNotNullFilter()
+    {
+
+    }
+
+
+    public IsNotNullFilter(Filter operandA)
+    {
+        this.operandA = operandA;
+    }
+
     @Override
     public void configure(
         Function<Map<String, Object>, Filter> transform, Map<String, Object> node

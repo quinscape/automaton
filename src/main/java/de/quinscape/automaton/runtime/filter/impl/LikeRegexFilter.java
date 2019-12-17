@@ -19,6 +19,18 @@ public final class LikeRegexFilter
     private Pattern pattern;
 
 
+    public LikeRegexFilter()
+    {
+
+    }
+
+
+    public LikeRegexFilter(Filter operandA, Pattern pattern)
+    {
+        this.operandA = operandA;
+        this.pattern = pattern;
+    }
+
 
     @Override
     public void configure(

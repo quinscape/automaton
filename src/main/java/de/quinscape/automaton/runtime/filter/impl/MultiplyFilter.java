@@ -17,6 +17,18 @@ public final class MultiplyFilter
     private Filter operandB;
 
 
+    public MultiplyFilter()
+    {
+
+    }
+
+
+    public MultiplyFilter(Filter operandA, Filter operandB)
+    {
+        this.operandA = operandA;
+        this.operandB = operandB;
+    }
+
     @Override
     public void configure(
         Function<Map<String, Object>, Filter> transform, Map<String, Object> node

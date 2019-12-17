@@ -16,6 +16,17 @@ public final class UnaryMinusFilter
     private Filter operandA;
 
 
+    public UnaryMinusFilter()
+    {
+
+    }
+
+
+    public UnaryMinusFilter(Filter operandA)
+    {
+        this.operandA = operandA;
+    }
+
     @Override
     public void configure(
         Function<Map<String, Object>, Filter> transform, Map<String, Object> node

@@ -1,5 +1,5 @@
 package de.quinscape.automaton.runtime.filter.impl;
-        
+
 
 import de.quinscape.automaton.runtime.filter.Filter;
 import de.quinscape.automaton.runtime.filter.FilterContext;
@@ -14,7 +14,21 @@ public final class ModuloFilter
     implements ConfigurableFilter
 {
     private Filter operandA;
+
     private Filter operandB;
+
+
+    public ModuloFilter()
+    {
+
+    }
+
+
+    public ModuloFilter(Filter operandA, Filter operandB)
+    {
+        this.operandA = operandA;
+        this.operandB = operandB;
+    }
 
 
     @Override
@@ -35,6 +49,8 @@ public final class ModuloFilter
         final Long valueB = ensureNumber(operandB.evaluate(ctx));
         return valueA % valueB;
     }
+
+
     public Filter getOperandA()
     {
         return operandA;

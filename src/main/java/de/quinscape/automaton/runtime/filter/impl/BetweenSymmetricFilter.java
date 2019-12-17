@@ -18,6 +18,19 @@ public final class BetweenSymmetricFilter
     private Filter operandC;
 
 
+    public BetweenSymmetricFilter()
+    {
+
+    }
+
+
+    public BetweenSymmetricFilter(Filter operandA, Filter operandB, Filter operandC)
+    {
+        this.operandA = operandA;
+        this.operandB = operandB;
+        this.operandC = operandC;
+    }
+
     @Override
     public void configure(
         Function<Map<String, Object>, Filter> transform, Map<String, Object> node

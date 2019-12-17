@@ -17,6 +17,18 @@ public final class BitNorFilter
     private Filter operandB;
 
 
+    public BitNorFilter()
+    {
+
+    }
+
+
+    public BitNorFilter(Filter operandA, Filter operandB)
+    {
+        this.operandA = operandA;
+        this.operandB = operandB;
+    }
+
     @Override
     public void configure(
         Function<Map<String, Object>, Filter> transform, Map<String, Object> node

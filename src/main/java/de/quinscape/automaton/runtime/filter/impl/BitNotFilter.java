@@ -16,6 +16,17 @@ public final class BitNotFilter
     private Filter operandA;
 
 
+    public BitNotFilter()
+    {
+
+    }
+
+
+    public BitNotFilter(Filter operandA)
+    {
+        this.operandA = operandA;
+    }
+
     @Override
     public void configure(
         Function<Map<String, Object>, Filter> transform, Map<String, Object> node
