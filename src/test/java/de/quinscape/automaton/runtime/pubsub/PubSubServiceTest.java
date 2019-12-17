@@ -120,7 +120,7 @@ public class PubSubServiceTest
         assertThat(pathUtil.getPropertyPath(result, "payload.payload.name"), is("payload-0"));
         assertThat(pathUtil.getPropertyPath(result, "payload.payload.num"), is(1122L));
 
-        TestPayload testPayload = (TestPayload) ((TopicUpdate) topicListener.getOutgoingMessage().getPayload()).getPayload();
+        TestPayload testPayload = (TestPayload) ((TopicUpdate)topicListener.getTopicUpdate()).getPayload();
         assertThat(testPayload.getName(), is("payload-0"));
         assertThat(testPayload.getNum(), is(1122));
 
@@ -219,7 +219,7 @@ public class PubSubServiceTest
         assertThat(pathUtil.getPropertyPath(result, "payload.payload.name"), is("aaa"));
         assertThat(pathUtil.getPropertyPath(result, "payload.payload.num"), is(2345L));
 
-        TestPayload testPayload = (TestPayload) ((TopicUpdate) topicListener.getOutgoingMessage().getPayload()).getPayload();
+        TestPayload testPayload = (TestPayload) ((TopicUpdate)topicListener.getTopicUpdate()).getPayload();
         assertThat(testPayload.getName(), is("bbb"));
         assertThat(testPayload.getNum(), is(3456));
 

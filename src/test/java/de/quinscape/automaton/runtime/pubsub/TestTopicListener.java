@@ -1,23 +1,19 @@
 package de.quinscape.automaton.runtime.pubsub;
 
-import de.quinscape.automaton.model.message.OutgoingMessage;
-
 public class TestTopicListener
     implements TopicListener
 {
-    private OutgoingMessage outgoingMessage;
+    private Object topicUpdate;
 
-
-    @Override
-    public void onMessage(OutgoingMessage outgoingMessage)
+    public Object getTopicUpdate()
     {
-
-        this.outgoingMessage = outgoingMessage;
+        return topicUpdate;
     }
 
 
-    public OutgoingMessage getOutgoingMessage()
+    @Override
+    public void onMessage(Object topicUpdate)
     {
-        return outgoingMessage;
+        this.topicUpdate = topicUpdate;
     }
 }

@@ -132,7 +132,7 @@ final class TopicRegistration
         }
         else
         {
-            topicListener.onMessage(outgoingMessage);
+            topicListener.onMessage(outgoingMessage.getPayload());
         }
     }
 }
