@@ -199,7 +199,7 @@ public class InteractiveQuerySortTest
                 "        queryConfig{\n" +
                 "            id\n" +
                 "            condition\n" +
-                "            currentPage\n" +
+                "            offset\n" +
                 "            pageSize\n" +
                 "            sortFields\n" +
                 "        }\n" +
@@ -236,7 +236,7 @@ public class InteractiveQuerySortTest
                     "    \"queryConfig\":{\n" +
                     "      \"id\":null,\n" +
                     "      \"condition\":null,\n" +
-                    "      \"currentPage\":0,\n" +
+                    "      \"offset\":0,\n" +
                     "      \"pageSize\":10,\n" +
                     "      \"sortFields\":[\n" +
                     "        \"!owner.login\",\n" +

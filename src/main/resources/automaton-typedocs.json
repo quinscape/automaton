@@ -255,6 +255,13 @@
         ]
       },
       {
+        "name":"offset",
+        "description":"Current offset within the paginated results. The number of rows to skip in the results.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
         "name":"pageSize",
         "description":"Maximum number of paginated results.,",
         "paramDocs":[
@@ -271,13 +278,6 @@
       {
         "name":"id",
         "description":"Optional unique query identifier. Useful for server-side query implementations.",
-        "paramDocs":[
-          
-        ]
-      },
-      {
-        "name":"currentPage",
-        "description":"Current page within the paginated results",
         "paramDocs":[
           
         ]

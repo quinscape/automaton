@@ -12,7 +12,7 @@ public final class QueryConfig
 {
     private ConditionScalar condition = new ConditionScalar();
 
-    private int currentPage = 0;
+    private int offset = 0;
 
     private int pageSize = 10;
 
@@ -38,19 +38,19 @@ public final class QueryConfig
 
 
     /**
-     * Current page within the paginated results
+     * Current offset within the paginated results. The number of rows to skip in the results.
      *
      * @return
      */
-    public int getCurrentPage()
+    public int getOffset()
     {
-        return currentPage;
+        return offset;
     }
 
 
-    public void setCurrentPage(int currentPage)
+    public void setOffset(int offset)
     {
-        this.currentPage = currentPage;
+        this.offset = offset;
     }
 
 
@@ -109,7 +109,7 @@ public final class QueryConfig
     {
         return super.toString() + ": "
             + "condition = " + condition
-            + ", currentPage = " + currentPage
+            + ", currentPage = " + offset
             + ", pageSize = " + pageSize
             + ", sortFields = " + sortFields
             + ", id = '" + id + '\''

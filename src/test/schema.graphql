@@ -126,8 +126,8 @@ type Node {
 type QueryConfig {
   # FilterDSL condition graph or null
   condition: Condition
-  # Current page within the paginated results
-  currentPage: Int
+  # Current offset within the paginated results
+  offset: Int
   # Optional unique query identifier. Useful for server-side query implementations.
   id: String
   # Maximum number of paginated results.
@@ -189,7 +189,7 @@ input NodeInput {
 input QueryConfigInput {
   id: String
   condition: GenericScalar
-  currentPage: Int
+  offset: Int
   pageSize: Int
   sortOrder: SortOrderInput
 }

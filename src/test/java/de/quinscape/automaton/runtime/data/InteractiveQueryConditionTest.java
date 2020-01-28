@@ -140,7 +140,7 @@ public class InteractiveQueryConditionTest
                 "        queryConfig{\n" +
                 "            id\n" +
                 "            condition\n" +
-                "            currentPage\n" +
+                "            offset\n" +
                 "            pageSize\n" +
                 "            sortFields\n" +
                 "        }\n" +
@@ -285,7 +285,7 @@ public class InteractiveQueryConditionTest
                     "          }\n" +
                     "        ]\n" +
                     "      },\n" +
-                    "      \"currentPage\":0,\n" +
+                    "      \"offset\":0,\n" +
                     "      \"pageSize\":10,\n" +
                     "      \"sortFields\":[\n" +
                     "        \"id\"\n" +

@@ -44,7 +44,6 @@ import java.math.BigInteger;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1042,7 +1041,7 @@ public final class RuntimeQuery<T>
         if (pageSize > 0 && query.getRelationModel() == null)
         {
             selectQuery.addLimit(
-                config.getCurrentPage() * pageSize,
+                config.getOffset(),
                 pageSize
             );
         }

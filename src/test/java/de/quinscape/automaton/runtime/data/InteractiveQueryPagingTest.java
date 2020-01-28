@@ -200,7 +200,7 @@ public class InteractiveQueryPagingTest
                 "        queryConfig{\n" +
                 "            id\n" +
                 "            condition\n" +
-                "            currentPage\n" +
+                "            offset\n" +
                 "            pageSize\n" +
                 "            sortFields\n" +
                 "        }\n" +
@@ -220,7 +220,7 @@ public class InteractiveQueryPagingTest
             .variables(ImmutableMap.of(
                 "config",
                 JSONUtil.DEFAULT_PARSER.parse("{\n" +
-                    "    \"currentPage\" : 2,\n" +
+                    "    \"offset\" : 6,\n" +
                     "    \"pageSize\" : 3\n" +
                     "}")))
             .build();
@@ -237,7 +237,7 @@ public class InteractiveQueryPagingTest
                     "    \"queryConfig\":{\n" +
                     "      \"id\":null,\n" +
                     "      \"condition\":null,\n" +
-                    "      \"currentPage\":2,\n" +
+                    "      \"offset\":6,\n" +
                     "      \"pageSize\":3,\n" +
                     "      \"sortFields\":[\n" +
                     "        \"id\"\n" +
