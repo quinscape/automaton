@@ -3,16 +3,19 @@ package de.quinscape.automaton.runtime.logic;
 import com.google.common.collect.Maps;
 import de.quinscape.automaton.model.workingset.WorkingSetDeletion;
 import de.quinscape.automaton.runtime.AutomatonException;
+import de.quinscape.automaton.runtime.data.FilterTransformer;
+import de.quinscape.automaton.runtime.data.SimpleFieldResolver;
 import de.quinscape.automaton.runtime.domain.IdGenerator;
 import de.quinscape.automaton.runtime.domain.op.BatchStoreOperation;
-import de.quinscape.automaton.runtime.domain.op.DefaultStoreOperation;
 import de.quinscape.automaton.runtime.domain.op.StoreOperation;
+import de.quinscape.automaton.runtime.scalar.ConditionScalar;
 import de.quinscape.automaton.runtime.util.GraphQLUtil;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.TypeRegistry;
 import de.quinscape.domainql.annotation.GraphQLField;
 import de.quinscape.domainql.annotation.GraphQLLogic;
 import de.quinscape.domainql.annotation.GraphQLMutation;
+import de.quinscape.domainql.annotation.GraphQLQuery;
 import de.quinscape.domainql.config.RelationModel;
 import de.quinscape.domainql.generic.DomainObject;
 import de.quinscape.domainql.generic.GenericScalar;
@@ -20,7 +23,6 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.DeleteQuery;
 import org.jooq.Field;
-import org.jooq.InsertQuery;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.impl.DSL;
@@ -52,6 +54,8 @@ public class AutomatonStandardLogic
     private final IdGenerator idGenerator;
     private final StoreOperation storeOperation;
     private final BatchStoreOperation batchStoreOperation;
+    private final FilterTransformer filterTransformer;
+    private final SimpleFieldResolver simpleFieldResolver = new SimpleFieldResolver();
 
 
     public AutomatonStandardLogic(
@@ -59,7 +63,8 @@ public class AutomatonStandardLogic
         DomainQL domainQL,
         IdGenerator idGenerator,
         StoreOperation storeOperation,
-        BatchStoreOperation batchStoreOperation
+        BatchStoreOperation batchStoreOperation,
+        FilterTransformer filterTransformer
     )
     {
         this.dslContext = dslContext;
@@ -67,6 +72,7 @@ public class AutomatonStandardLogic
         this.idGenerator = idGenerator;
         this.storeOperation = storeOperation;
         this.batchStoreOperation = batchStoreOperation;
+        this.filterTransformer = filterTransformer;
     }
 
 
@@ -493,5 +499,44 @@ public class AutomatonStandardLogic
         }
 
         return true;
+    }
+
+    @GraphQLQuery
+    public List<String> getDomainTypeIndex(
+        @NotNull String domainType,
+        @NotNull String field,
+        ConditionScalar condition
+    )
+    {
+
+        final Table<?> jooqTable = domainQL.getJooqTable(domainType);
+        final Field<?> nameField = domainQL.lookupField(domainType, field);
+
+        final Condition jooqCondition;
+        if (condition == null)
+        {
+            jooqCondition = null;
+        }
+        else
+        {
+            jooqCondition = filterTransformer.transform(
+                simpleFieldResolver,
+                condition
+            );
+        }
+
+        final Field<Object> idxField = field("first");
+        return dslContext
+            .selectDistinct(
+                nameField.substring(1, 1).upper().as("first")
+            )
+            .from(jooqTable)
+            .where(jooqCondition)
+            .orderBy(
+                idxField
+            )
+            .fetch(
+                idxField, String.class
+            );
     }
 }

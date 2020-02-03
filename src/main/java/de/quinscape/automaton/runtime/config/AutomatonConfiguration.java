@@ -8,10 +8,7 @@ import de.quinscape.automaton.runtime.data.DefaultInteractiveQueryService;
 import de.quinscape.automaton.runtime.data.FilterTransformer;
 import de.quinscape.automaton.runtime.data.InteractiveQueryService;
 import de.quinscape.automaton.runtime.domain.IdGenerator;
-import de.quinscape.automaton.runtime.domain.UUIDGenerator;
 import de.quinscape.automaton.runtime.domain.op.BatchStoreOperation;
-import de.quinscape.automaton.runtime.domain.op.DefaultBatchStoreOperation;
-import de.quinscape.automaton.runtime.domain.op.DefaultStoreOperation;
 import de.quinscape.automaton.runtime.domain.op.StoreOperation;
 import de.quinscape.automaton.runtime.filter.JavaFilterTransformer;
 import de.quinscape.automaton.runtime.logic.AutomatonStandardLogic;
@@ -28,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -95,10 +91,18 @@ public class AutomatonConfiguration
         @Lazy DomainQL domainQL,
         IdGenerator idGenerator,
         StoreOperation storeOperation,
-        BatchStoreOperation batchStoreOperation
+        BatchStoreOperation batchStoreOperation,
+        FilterTransformer filterTransformer
     )
     {
-        return new AutomatonStandardLogic(dslContext, domainQL, idGenerator, storeOperation, batchStoreOperation);
+        return new AutomatonStandardLogic(
+            dslContext,
+            domainQL,
+            idGenerator,
+            storeOperation,
+            batchStoreOperation,
+            filterTransformer
+        );
     }
 
     @Bean
