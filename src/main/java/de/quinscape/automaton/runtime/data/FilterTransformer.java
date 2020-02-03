@@ -10,7 +10,6 @@ import de.quinscape.spring.jsview.util.JSONUtil;
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.OrderField;
-import org.jooq.SortField;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +19,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,10 +39,10 @@ public class FilterTransformer
 
 
     public Condition transform(
-        QueryExecution queryExecution, ConditionScalar conditionScalar
+        FieldResolver fieldResolver, ConditionScalar conditionScalar
     )
     {
-        final Object transformed = transformRecursive(queryExecution, conditionScalar.getRoot());
+        final Object transformed = transformRecursive(fieldResolver, conditionScalar.getRoot());
 
 //        if (!(transformed instanceof Condition))
 //        {
@@ -55,10 +53,10 @@ public class FilterTransformer
     }
 
     public OrderField<?> transform(
-        QueryExecution queryExecution, FieldExpressionScalar fieldExpressionScalar
+        FieldResolver fieldResolver, FieldExpressionScalar fieldExpressionScalar
     )
     {
-        final Object transformed = transformRecursive(queryExecution, fieldExpressionScalar.getRoot());
+        final Object transformed = transformRecursive(fieldResolver, fieldExpressionScalar.getRoot());
 
         if (transformed == null)
         {
@@ -74,7 +72,7 @@ public class FilterTransformer
 
 
     private Object transformRecursive(
-        QueryExecution queryExecution,
+        FieldResolver fieldResolver,
         Map<String, Object> condition
     )
     {
@@ -92,7 +90,7 @@ public class FilterTransformer
             case COMPONENT:
             {
                 final Map<String, Object> kid = ConditionBuilder.getCondition(condition);
-                return transformRecursive(queryExecution, kid);
+                return transformRecursive(fieldResolver, kid);
             }
             case CONDITION:
             {
@@ -103,13 +101,13 @@ public class FilterTransformer
                 if (name.equals("and"))
                 {
                     return DSL.and(
-                        transformOperands(queryExecution, operands)
+                        transformOperands(fieldResolver, operands)
                     );
                 }
                 else if (name.equals("or"))
                 {
                     return DSL.or(
-                        transformOperands(queryExecution, operands)
+                        transformOperands(fieldResolver, operands)
                     );
                 }
                 else if (name.equals("not"))
@@ -119,20 +117,20 @@ public class FilterTransformer
                         throw new IllegalStateException("Not has only one argument");
                     }
 
-                    final List<? extends Condition> conditions = transformOperands(queryExecution, operands);
+                    final List<? extends Condition> conditions = transformOperands(fieldResolver, operands);
                     return DSL.not(
                         conditions.get(0)
                     );
                 }
                 else
                 {
-                    return invokeFieldMethod(queryExecution, condition);
+                    return invokeFieldMethod(fieldResolver, condition);
                 }
             }
             case FIELD:
             {
                 final String name = ConditionBuilder.getName(condition);
-                return queryExecution.resolveField(name);
+                return fieldResolver.resolveField(name);
             }
             case VALUE:
             {
@@ -150,7 +148,7 @@ public class FilterTransformer
             }
             case OPERATION:
             {
-                return invokeFieldMethod(queryExecution, condition);
+                return invokeFieldMethod(fieldResolver, condition);
             }
             default:
                 throw new AutomatonException("Unhandled node type: " + nodeType);
@@ -159,7 +157,7 @@ public class FilterTransformer
 
 
     private Object invokeFieldMethod(
-        QueryExecution queryExecution,
+        FieldResolver fieldResolver,
         Map<String, Object> condition
     )
     {
@@ -172,7 +170,7 @@ public class FilterTransformer
         }
 
         final Object value = transformRecursive(
-            queryExecution,
+            fieldResolver,
             operands.get(0)
         );
 
@@ -188,7 +186,7 @@ public class FilterTransformer
                 condition));
         }
 
-        Field field = (Field) value;
+        Field<?> field = (Field<?>) value;
 
         AccessHolder holder = new AccessHolder(name, operands.size() - 1);
         final AccessHolder existing = fieldAccessHolders.putIfAbsent(name, holder);
@@ -196,26 +194,26 @@ public class FilterTransformer
         {
             holder = existing;
         }
-        return holder.invoke(field, transformRestOfOperands(queryExecution, operands));
+        return holder.invoke(field, transformRestOfOperands(fieldResolver, operands));
     }
 
 
     private Object[] transformRestOfOperands(
-        QueryExecution queryExecution,
+        FieldResolver fieldResolver,
         List<Map<String, Object>> operands
     )
     {
         Object[] array = new Object[operands.size() - 1];
         for (int i = 1; i < operands.size(); i++)
         {
-            array[i - 1] = transformRecursive(queryExecution, operands.get(i));
+            array[i - 1] = transformRecursive(fieldResolver, operands.get(i));
         }
         return array;
     }
 
 
     private List<? extends Condition> transformOperands(
-        QueryExecution queryExecution,
+        FieldResolver fieldResolver,
         List<Map<String, Object>> operands
     )
     {
@@ -224,7 +222,7 @@ public class FilterTransformer
         for (Map<String, Object> operand : operands)
         {
             final Object value = transformRecursive(
-                queryExecution,
+                fieldResolver,
                 operand
             );
 

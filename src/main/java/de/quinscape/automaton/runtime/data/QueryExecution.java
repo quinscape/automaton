@@ -21,7 +21,12 @@ import java.util.Set;
 
 import static org.jooq.impl.DSL.*;
 
+/**
+ * Encapsulates a query execution potentially consisting of multiple SQL queries.
+ *
+ */
 public final class QueryExecution
+    implements FieldResolver
 {
     private final DataFetchingEnvironment env;
 
@@ -142,6 +147,15 @@ public final class QueryExecution
     }
 
 
+    /**
+     * Resolves a field within an InteractiveQuery based query execution. The names rougly follow the GraphQL naming conventions.
+     * (e.g. "name", "owner.login")
+     *
+     * @param fieldName     name of the field
+     *
+     * @return JOOQ field
+     */
+    @Override
     public Field<?> resolveField(String fieldName)
     {
         final SelectedField field = env.getSelectionSet().getField(RuntimeQuery.ROWS_PREFIX + fieldName.replace('.', '/'));
