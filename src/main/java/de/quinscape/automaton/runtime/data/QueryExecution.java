@@ -159,6 +159,12 @@ public final class QueryExecution
     public Field<?> resolveField(String fieldName)
     {
         final SelectedField field = env.getSelectionSet().getField(RuntimeQuery.ROWS_PREFIX + fieldName.replace('.', '/'));
+
+        if (field == null)
+        {
+            throw new RuntimeQueryException("Could not resolve field: '" + fieldName + "'");
+        }
+
         final String parentLocation = getParent(field.getQualifiedName());
         final SelectedField parentField = env.getSelectionSet().getField(parentLocation);
 
