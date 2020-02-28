@@ -9,16 +9,84 @@ import org.svenson.util.JSONBuilder;
 import javax.servlet.http.Cookie;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.List;
 
 /**
  * Provides a list of alternate stylesheets to the client and sets a base template placeholder <code>$CURRENT_STYLE</code>.
- *
+ * <p>
  * By default the current style is either the first style provided. Alternatively, the provider can be constructed with
  * a {@link StyleSheetSelector} instance.
+ * </p><p>
+ * To implement multiple, user-selectable styles in your application, you first need multiple independent stylesheet files
+ * which should be placed under <code>src/main/webapp</code>.
+ * </p><p>
+ * Then you need to register the AlternateStyleProvider as JsViewProvider (in the standard layout in the local
+ * WebConfiguration.java). Make sure to also use a base-template that uses the $CURRENT_STYLE as stylesheet.
  *
+ * <pre>{@code
+ *     public void configureViewResolvers(ViewResolverRegistry registry)
+ *     {
+ *         final GraphQLSchema graphQLSchema = domainQL.getGraphQLSchema();
+ *         registry.viewResolver(
+ *             JsViewResolver.newResolver(servletContext, "WEB-INF/template-alternate-styles.html")
+ *                 .withResourceLoader(resourceLoader)
  *
+ *                 // ...
+ *
+ *                 .withViewDataProvider(
+ *                     new AlternateStyleProvider(
+ *                         servletContext.getContextPath(),
+ *                         Arrays.asList(
+ *                             new StyleSheetDefinition("QS", "/css/bootstrap-automaton.min.css"),
+ *                             new StyleSheetDefinition("QS condensed", "/css/bootstrap-automaton-condensed.min.css")
+ *                         )
+ *                     )
+ *                 )
+ *                 .build()
+ *         );
+ *     }
+ * }</pre>
+ *
+ * Finally, you need to use the StyleSwitcher component or write your own using the system-provided style-information.
+ *
+ * <pre>{@code
+ * import React, { useReducer } from "react"
+ *
+ * import { LogoutForm, StyleSwitcher } from "@quinscape/automaton-js"
+ *
+ * import {
+ *     Collapse,
+ *     Container,
+ *     Navbar
+ * } from "reactstrap"
+ *
+ * // ...
+ *
+ * const Layout = props => {
+ *
+ *     const { env, children } = props;
+ *
+ *     const { contextPath } = env.config;
+ *
+ *     return (
+ *         <Container
+ *             fluid={ false }
+ *         >
+ *             <Navbar ... />
+ *             {
+ *                 children
+ *             }
+ *             <hr/>
+ *             <div className="footer">
+ *                 <StyleSwitcher/>
+ *                 <LogoutForm/>
+ *             </div>
+ *         </Container>
+ *     );
+ * };
+ *
+ * export default Layout
+ * }</pre>
  */
 public class AlternateStyleProvider
     implements JsViewProvider
