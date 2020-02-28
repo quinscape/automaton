@@ -3,7 +3,9 @@ package de.quinscape.automaton.runtime.pubsub;
 import de.quinscape.automaton.model.message.OutgoingMessage;
 import de.quinscape.automaton.runtime.filter.Filter;
 import de.quinscape.automaton.runtime.filter.FilterContext;
+import de.quinscape.automaton.runtime.message.ConnectionListener;
 import de.quinscape.automaton.runtime.ws.AutomatonClientConnection;
+import de.quinscape.automaton.runtime.ws.AutomatonWebSocketHandler;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -295,5 +297,24 @@ public final class DefaultPubSubService
         }
 
         subscriptionListeners.remove(subscriptionListener);
+    }
+
+
+    @Override
+    public void onClose(
+        AutomatonWebSocketHandler webSocketHandler, AutomatonClientConnection connection
+    )
+    {
+        log.debug("Unsubscribing {} from all topics", connection);
+
+        topics.values().forEach( topic -> topic.unsubscribe(connection, null));
+    }
+
+
+    @Override
+    public void onOpen(
+        AutomatonWebSocketHandler webSocketHandler, AutomatonClientConnection connection
+    )
+    {
     }
 }

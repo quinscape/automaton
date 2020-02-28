@@ -27,6 +27,13 @@ class Topic
     }
 
 
+    /**
+     * Registers the given connection with the given filter and the given id.
+     *
+     * @param connection        connection
+     * @param filter            Java filter matching the published data shape
+     * @param id                subscription id clients can use to distinguish multiple registrations on the same channel
+     */
     public synchronized void subscribe(
         AutomatonClientConnection connection,
         Filter filter,
@@ -57,6 +64,13 @@ class Topic
     }
 
 
+    /**
+     * Subscribes the given topic listener with the given filter and the given id.
+     *
+     * @param topicListener     topic listener
+     * @param filter            Java filter
+     * @param id                subscription id topic listeners can use to distinguish multiple registrations on the same channel
+     */
     public synchronized void subscribe(
         TopicListener topicListener,
         Filter filter,
@@ -68,10 +82,25 @@ class Topic
     }
 
 
+    /**
+     * Removes the registration of the given connection with the given id.
+     * If id is <code>null</code> all registrations of the connection will be removed.
+     *
+     * @param connection    connection
+     * @param id            connection id
+     */
     public synchronized void unsubscribe(AutomatonClientConnection connection, Long id)
     {
-        final Set<TopicRegistration> registrations = registrationsByRecipient.get(connection.getConnectionId());
-        registrations.removeIf(registration -> registration.getId().equals(id));
+        final String connectionId = connection.getConnectionId();
+        if (id == null)
+        {
+            registrationsByRecipient.remove(connectionId);
+        }
+        else
+        {
+            final Set<TopicRegistration> registrations = registrationsByRecipient.get(connectionId);
+            registrations.removeIf(registration -> registration.getId().equals(id));
+        }
     }
 
 

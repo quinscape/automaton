@@ -148,7 +148,7 @@ public class TestWebSocketSession
     @Override
     public boolean isOpen()
     {
-        return false;
+        return true;
     }
 
 

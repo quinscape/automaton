@@ -1,8 +1,8 @@
 package de.quinscape.automaton.runtime.ws;
 
-import de.quinscape.automaton.runtime.AutomatonException;
 import de.quinscape.automaton.model.message.OutgoingMessage;
 import de.quinscape.automaton.model.message.Response;
+import de.quinscape.automaton.runtime.AutomatonException;
 import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.slf4j.Logger;
@@ -11,7 +11,6 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.svenson.JSONProperty;
 
-import java.io.IOException;
 import java.time.Instant;
 
 public class DefaultAutomatonClientConnection
@@ -118,17 +117,27 @@ public class DefaultAutomatonClientConnection
             }
         }
 
-        try
+        if (session.isOpen())
         {
-            session.sendMessage(
-                new TextMessage(
-                    json
-                )
-            );
+            try
+            {
+                session.sendMessage(
+                    new TextMessage(
+                        json
+                    )
+                );
+            }
+            catch (Exception e)
+            {
+                throw new AutomatonException("Error sending websocket message", e);
+            }
         }
-        catch (IOException e)
+        else
         {
-            throw new AutomatonException("Error sending websocket message", e);
+            if (log.isDebugEnabled())
+            {
+                log.debug("Session closed: could not send {}", json);
+            }
         }
     }
 

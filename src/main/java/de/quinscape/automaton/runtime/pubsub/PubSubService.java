@@ -1,6 +1,7 @@
 package de.quinscape.automaton.runtime.pubsub;
 
 import de.quinscape.automaton.runtime.filter.Filter;
+import de.quinscape.automaton.runtime.message.ConnectionListener;
 import de.quinscape.automaton.runtime.ws.AutomatonClientConnection;
 
 import javax.validation.constraints.NotNull;
@@ -9,7 +10,7 @@ import javax.validation.constraints.NotNull;
  * Provides Publish/Subscribe services for websocket messages and connections.
  *
  */
-public interface PubSubService
+public interface PubSubService extends ConnectionListener
 {
     /**
      * Subscribes the given connection to the given topic using the given filter assigning a unique id to the subscription.

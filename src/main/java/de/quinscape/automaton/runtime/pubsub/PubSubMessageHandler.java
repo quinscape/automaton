@@ -3,8 +3,10 @@ package de.quinscape.automaton.runtime.pubsub;
 import de.quinscape.automaton.model.message.IncomingMessage;
 import de.quinscape.automaton.runtime.filter.Filter;
 import de.quinscape.automaton.runtime.filter.JavaFilterTransformer;
+import de.quinscape.automaton.runtime.message.AutomatonWebSocketHandlerAware;
 import de.quinscape.automaton.runtime.message.IncomingMessageHandler;
 import de.quinscape.automaton.runtime.ws.AutomatonClientConnection;
+import de.quinscape.automaton.runtime.ws.AutomatonWebSocketHandler;
 import de.quinscape.domainql.DomainQL;
 
 import java.util.Map;
@@ -15,7 +17,7 @@ import java.util.Map;
  * 
  */
 public class PubSubMessageHandler
-    implements IncomingMessageHandler
+    implements IncomingMessageHandler, AutomatonWebSocketHandlerAware
 {
     private final static String TYPE = "PUBSUB";
     
@@ -29,13 +31,28 @@ public class PubSubMessageHandler
 
     private final JavaFilterTransformer javaFilterTransformer;
 
-
     public PubSubMessageHandler(
         DomainQL domainQL,
         PubSubService pubSubService,
         JavaFilterTransformer javaFilterTransformer
     )
     {
+        if (domainQL == null)
+        {
+            throw new IllegalArgumentException("domainQL can't be null");
+        }
+
+        if (pubSubService == null)
+        {
+            throw new IllegalArgumentException("pubSubService can't be null");
+        }
+
+
+        if (javaFilterTransformer == null)
+        {
+            throw new IllegalArgumentException("javaFilterTransformer can't be null");
+        }
+
         this.domainQL = domainQL;
         this.pubSubService = pubSubService;
         this.javaFilterTransformer = javaFilterTransformer;
@@ -85,5 +102,14 @@ public class PubSubMessageHandler
             default:
                 throw new IllegalStateException("Unhandled pubsub operation: " + op);
         }
+    }
+
+
+    @Override
+    public void setAutomatonWebSocketHandler(AutomatonWebSocketHandler webSocketHandler)
+    {
+        //this.webSocketHandler = webSocketHandler;
+
+        webSocketHandler.register(pubSubService);
     }
 }
