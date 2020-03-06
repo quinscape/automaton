@@ -18,4 +18,6 @@ class Recipient
         this.registration = registration;
         this.ids = ids;
     }
+
+
 }

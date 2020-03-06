@@ -1,6 +1,7 @@
 package de.quinscape.automaton.runtime.pubsub;
 
 import de.quinscape.automaton.model.message.OutgoingMessage;
+import de.quinscape.automaton.model.message.OutgoingMessageType;
 
 import java.util.List;
 
@@ -9,7 +10,6 @@ import java.util.List;
  */
 public class TopicUpdate
 {
-    private static final String TOPIC = "TOPIC";
 
     private final String topic;
 
@@ -62,6 +62,6 @@ public class TopicUpdate
 
     public static OutgoingMessage createMessage(String topic, Object payload, List<Long> ids)
     {
-        return new OutgoingMessage(TOPIC, new TopicUpdate(topic, payload, ids));
+        return new OutgoingMessage(OutgoingMessageType.TOPIC, new TopicUpdate(topic, payload, ids));
     }
 }

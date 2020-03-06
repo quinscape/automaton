@@ -10,7 +10,7 @@ import de.quinscape.automaton.runtime.ws.AutomatonClientConnection;
  */
 public interface SubscriptionListener
 {
-    void onSubscribe(AutomatonClientConnection connection, Filter filter);
+    void onSubscribe(AutomatonClientConnection connection, String topic, Filter filter, Long id);
 
     void onUnsubscribe(AutomatonClientConnection connection);
 }

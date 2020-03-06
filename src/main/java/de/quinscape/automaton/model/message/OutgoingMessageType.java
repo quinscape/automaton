@@ -13,5 +13,5 @@ public final class OutgoingMessageType
 
     public final static String RESPONSE = "RESPONSE";
     public final static String ERROR = "ERROR";
-    public static final String PUSH_ACTION = "PUSH_ACTION";
+    public final static String TOPIC = "TOPIC";
 }

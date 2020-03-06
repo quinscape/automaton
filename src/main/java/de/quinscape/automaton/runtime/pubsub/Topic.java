@@ -69,15 +69,13 @@ class Topic
      *
      * @param topicListener     topic listener
      * @param filter            Java filter
-     * @param id                subscription id topic listeners can use to distinguish multiple registrations on the same channel
      */
     public synchronized void subscribe(
         TopicListener topicListener,
-        Filter filter,
-        Long id
+        Filter filter
     )
     {
-        final TopicRegistration newRegistration = new TopicRegistration(topicListener, filter, id);
+        final TopicRegistration newRegistration = new TopicRegistration(topicListener, filter);
         addRegistration(topicListener, newRegistration);
     }
 
@@ -104,10 +102,9 @@ class Topic
     }
 
 
-    public synchronized void unsubscribe(TopicListener topicListener, Long id)
+    public synchronized void unsubscribe(TopicListener topicListener)
     {
-        final Set<TopicRegistration> registrations = registrationsByRecipient.get(topicListener);
-        registrations.removeIf(registration -> registration.getId().equals(id));
+        registrationsByRecipient.remove(topicListener);
     }
 
 

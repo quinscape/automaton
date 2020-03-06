@@ -1,8 +1,8 @@
 package de.quinscape.automaton.runtime.pubsub;
 
 import de.quinscape.automaton.runtime.filter.Filter;
-import de.quinscape.automaton.runtime.message.ConnectionListener;
 import de.quinscape.automaton.runtime.ws.AutomatonClientConnection;
+import de.quinscape.automaton.runtime.ws.AutomatonWebSocketHandler;
 
 import javax.validation.constraints.NotNull;
 
@@ -10,7 +10,7 @@ import javax.validation.constraints.NotNull;
  * Provides Publish/Subscribe services for websocket messages and connections.
  *
  */
-public interface PubSubService extends ConnectionListener
+public interface PubSubService
 {
     /**
      * Subscribes the given connection to the given topic using the given filter assigning a unique id to the subscription.
@@ -54,13 +54,11 @@ public interface PubSubService extends ConnectionListener
      * @param topicListener     topic listener
      * @param topic             topic name
      * @param filter            filter to apply to the message payloads published for the topic
-     * @param id                client-side generated id value to distinguish multiple subscriptions for one connection
      */
     void subscribe(
         @NotNull TopicListener topicListener,
         @NotNull String topic,
-        Filter filter,
-        @NotNull Long id
+        Filter filter
     );
 
     /**
@@ -68,12 +66,10 @@ public interface PubSubService extends ConnectionListener
      *
      * @param topicListener     topic listener
      * @param topic         topic name
-     * @param id            client-side generated id value to distinguish multiple subscriptions for one connection
      */
     void unsubscribe(
         @NotNull TopicListener topicListener,
-        @NotNull String topic,
-        @NotNull Long id
+        @NotNull String topic
     );
 
     /**
@@ -112,4 +108,6 @@ public interface PubSubService extends ConnectionListener
     void unregister(
         @NotNull SubscriptionListener subscriptionListener
     );
+
+    AutomatonWebSocketHandler getWebSocketHandler();
 }

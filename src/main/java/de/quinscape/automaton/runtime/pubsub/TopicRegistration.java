@@ -13,14 +13,19 @@ import javax.validation.constraints.NotNull;
  */
 final class TopicRegistration
 {
+    /**
+     * Websocket connection for this registration. Mutually exclusive with .
+     */
     private final AutomatonClientConnection connection;
+
+    /**
+     * TopicListener for this registration. Mutually exclusive with connection.
+     */
+    private final TopicListener topicListener;
 
     private final Filter filter;
 
     private final Long id;
-
-    private final TopicListener topicListener;
-
 
     public TopicRegistration(
         @NotNull AutomatonClientConnection connection,
@@ -46,23 +51,17 @@ final class TopicRegistration
     }
 
 
-    public TopicRegistration(TopicListener topicListener, Filter filter, Long id)
+    public TopicRegistration(TopicListener topicListener, Filter filter)
     {
         if (topicListener == null)
         {
             throw new IllegalArgumentException("topicListener can't be null");
         }
 
-
-        if (id == null)
-        {
-            throw new IllegalArgumentException("id can't be null");
-        }
-
         this.connection = null;
         this.topicListener = topicListener;
         this.filter = filter;
-        this.id = id;
+        this.id = -1L;
 
     }
 
@@ -114,25 +113,5 @@ final class TopicRegistration
             + ", filter = " + filter
             + ", id = " + id
             ;
-    }
-
-
-    /**
-     * Sends the given outgoing message to either the websocket connection or the topic listener for this
-     * registration.
-     *
-     * @param outgoingMessage outgoing message
-     */
-    public void send(OutgoingMessage outgoingMessage)
-    {
-        if (connection != null)
-        {
-            final String json = JSONUtil.DEFAULT_GENERATOR.forValue(outgoingMessage);
-            connection.send(json);
-        }
-        else
-        {
-            topicListener.onMessage(outgoingMessage.getPayload());
-        }
     }
 }

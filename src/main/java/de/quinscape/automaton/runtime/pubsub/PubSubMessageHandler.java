@@ -14,15 +14,16 @@ import java.util.Map;
 /**
  * Handles the subscribing and unsubscribing of connections to topics. You need to use this message handler in your
  * {@link de.quinscape.automaton.runtime.ws.AutomatonWebSocketHandler} to use the topic feature.
- * 
  */
 public class PubSubMessageHandler
     implements IncomingMessageHandler, AutomatonWebSocketHandlerAware
 {
-    private final static String TYPE = "PUBSUB";
-    
+    private final static String MESSAGE_TYPE = "PUBSUB";
+
     private final static String SUBSCRIBE = "SUBSCRIBE";
+
     private final static String UNSUBSCRIBE = "UNSUBSCRIBE";
+
     private final static String PUBLISH = "PUBLISH";
 
     private final DomainQL domainQL;
@@ -30,6 +31,7 @@ public class PubSubMessageHandler
     private final PubSubService pubSubService;
 
     private final JavaFilterTransformer javaFilterTransformer;
+
 
     public PubSubMessageHandler(
         DomainQL domainQL,
@@ -62,7 +64,7 @@ public class PubSubMessageHandler
     @Override
     public String getMessageType()
     {
-        return TYPE;
+        return MESSAGE_TYPE;
     }
 
 
@@ -71,7 +73,7 @@ public class PubSubMessageHandler
         IncomingMessage msg, AutomatonClientConnection connection
     )
     {
-        final Map<String,Object> payload = (Map<String, Object>) msg.getPayload();
+        final Map<String, Object> payload = (Map<String, Object>) msg.getPayload();
 
         final String op = (String) payload.get("op");
         final String topic = (String) payload.get("topic");
@@ -108,8 +110,9 @@ public class PubSubMessageHandler
     @Override
     public void setAutomatonWebSocketHandler(AutomatonWebSocketHandler webSocketHandler)
     {
-        //this.webSocketHandler = webSocketHandler;
-
-        webSocketHandler.register(pubSubService);
+        if (pubSubService instanceof AutomatonWebSocketHandlerAware)
+        {
+            ((AutomatonWebSocketHandlerAware) pubSubService).setAutomatonWebSocketHandler(webSocketHandler);
+        }
     }
 }

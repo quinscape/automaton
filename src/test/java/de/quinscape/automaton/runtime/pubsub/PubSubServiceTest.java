@@ -7,13 +7,16 @@ import de.quinscape.automaton.runtime.util.Base32;
 import de.quinscape.automaton.runtime.ws.DefaultAutomatonClientConnection;
 import de.quinscape.automaton.runtime.ws.DefaultAutomatonWebSocketHandler;
 import de.quinscape.domainql.DomainQL;
+import de.quinscape.domainql.util.JSONHolder;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
+import org.svenson.util.JSONBeanUtil;
 import org.svenson.util.JSONPathUtil;
+import org.svenson.util.RecastUtil;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -32,6 +35,7 @@ public class PubSubServiceTest
 
     private final DomainQL domainQL = DomainQL.newDomainQL(null).build();
     private final static JSONPathUtil pathUtil = new JSONPathUtil(JSONUtil.OBJECT_SUPPORT);
+    private final static JSONBeanUtil util = JSONUtil.DEFAULT_UTIL;
 
     private PubSubService pubSubSvc = new DefaultPubSubService();
 
@@ -74,7 +78,7 @@ public class PubSubServiceTest
             "}"));
 
         final TestTopicListener topicListener = new TestTopicListener();
-        pubSubSvc.subscribe(topicListener, testTopic, null,5294L);
+        pubSubSvc.subscribe(topicListener, testTopic, null);
 
         final Topic test = pubSubSvc.getTopics(testTopic);
 
@@ -100,7 +104,7 @@ public class PubSubServiceTest
 
         assertThat(listenerRegistration.getConnection(), is(nullValue()));
         assertThat(listenerRegistration.getTopicListener(), is(topicListener));
-        assertThat(listenerRegistration.getId(), is(5294L));
+        assertThat(listenerRegistration.getId(), is(-1L));
 
         pubSubSvc.publish(testTopic, new TestPayload("payload-0", 1122));
 
@@ -120,15 +124,16 @@ public class PubSubServiceTest
         assertThat(pathUtil.getPropertyPath(result, "payload.payload.name"), is("payload-0"));
         assertThat(pathUtil.getPropertyPath(result, "payload.payload.num"), is(1122L));
 
-        TestPayload testPayload = (TestPayload) ((TopicUpdate)topicListener.getTopicUpdate()).getPayload();
+        TestPayload testPayload = (TestPayload) topicListener.getTopicUpdate();
         assertThat(testPayload.getName(), is("payload-0"));
         assertThat(testPayload.getNum(), is(1122));
 
         pubSubSvc.unsubscribe(connection, testTopic, 2982L);
-        pubSubSvc.unsubscribe(topicListener, testTopic, 5294L);
+        pubSubSvc.unsubscribe(topicListener, testTopic);
 
+        assertThat(test.getRegistrationsByConnection().size(), is(1));
         assertThat(test.getRegistrationsByConnection().get(0).size(), is(0));
-        assertThat(test.getRegistrationsByConnection().get(1).size(), is(0));
+        //assertThat(test.getRegistrationsByConnection().get(1).size(), is(0));
     }
 
     @Test
@@ -171,7 +176,7 @@ public class PubSubServiceTest
             ))
         );
 
-        pubSubSvc.subscribe(topicListener, testTopic, filter2,6239L);
+        pubSubSvc.subscribe(topicListener, testTopic, filter2);
 
         final Topic test = pubSubSvc.getTopics(testTopic);
 
@@ -198,7 +203,7 @@ public class PubSubServiceTest
 
         assertThat(listenerRegistration.getConnection(), is(nullValue()));
         assertThat(listenerRegistration.getTopicListener(), is(topicListener));
-        assertThat(listenerRegistration.getId(), is(6239L));
+        assertThat(listenerRegistration.getId(), is(-1L));
 
         pubSubSvc.publish(testTopic, new TestPayload("bbb", 3456));
         pubSubSvc.publish(testTopic, new TestPayload("aaa", 2345));
@@ -219,7 +224,7 @@ public class PubSubServiceTest
         assertThat(pathUtil.getPropertyPath(result, "payload.payload.name"), is("aaa"));
         assertThat(pathUtil.getPropertyPath(result, "payload.payload.num"), is(2345L));
 
-        TestPayload testPayload = (TestPayload) ((TopicUpdate)topicListener.getTopicUpdate()).getPayload();
+        TestPayload testPayload = (TestPayload) topicListener.getTopicUpdate();
         assertThat(testPayload.getName(), is("bbb"));
         assertThat(testPayload.getNum(), is(3456));
 
