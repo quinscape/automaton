@@ -94,6 +94,40 @@
     ]
   },
   {
+    "name":"ActivityType",
+    "description":"Enum type for domain monitor activity.\n\nKeep in sync with src/message/monitor/useDomainMonitor.js in automaton-js.",
+    "fieldDocs":[
+      {
+        "name":"INACTIVE",
+        "description":"User/connection stopped interacting with the object.\n\nIs not actually stored but just used as a counter signal to {@link #ACTIVE}.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"ACTIVE",
+        "description":"The user/connection is interacting with the entity on the client-side UI level",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"CHANGED",
+        "description":"The user has changed the entity.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"DELETED",
+        "description":"The user has deleted the entity.",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
     "name":"AutomatonApplication",
     "description":"Root model of the application models.",
     "fieldDocs":[
@@ -132,6 +166,54 @@
     "description":"Root model of the application models.",
     "fieldDocs":[
       
+    ]
+  },
+  {
+    "name":"DomainActivity",
+    "description":"Topic payload type for the domain monitor topic.",
+    "fieldDocs":[
+      {
+        "name":"timeStamp",
+        "description":"Timestamp this event was received. Clients do not need to set this, the server will overwrite it.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"domainType",
+        "description":"Domain type of the entity",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"connectionId",
+        "description":"Connection id this activity is associated with. Might be <code>null<\/code>.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"id",
+        "description":"Id value of the entity",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"type",
+        "description":"Type of activity.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"user",
+        "description":"User info string for this activity.",
+        "paramDocs":[
+          
+        ]
+      }
     ]
   },
   {
