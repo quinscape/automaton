@@ -5,9 +5,6 @@ import de.quinscape.automaton.model.message.IncomingMessage;
 import de.quinscape.automaton.model.message.OutgoingMessage;
 import de.quinscape.automaton.runtime.AutomatonException;
 import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
-import de.quinscape.automaton.runtime.filter.Filter;
-import de.quinscape.automaton.runtime.filter.FilterContext;
-import de.quinscape.automaton.runtime.filter.JavaFilterTransformer;
 import de.quinscape.automaton.runtime.message.AutomatonWebSocketHandlerAware;
 import de.quinscape.automaton.runtime.message.ConnectionListener;
 import de.quinscape.automaton.runtime.message.IncomingMessageHandler;
@@ -29,7 +26,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -75,6 +71,13 @@ public class DefaultAutomatonWebSocketHandler
     {
         this(handlers, WebSocketHandlerOptions.DEFAULT);
     }
+
+
+    public WebSocketHandlerOptions getOptions()
+    {
+        return options;
+    }
+
 
     public DefaultAutomatonWebSocketHandler(
         Collection<IncomingMessageHandler> handlers,
@@ -242,6 +245,7 @@ public class DefaultAutomatonWebSocketHandler
             session.close( NOT_REGISTERED );
             return;
         }
+
         connection.initialize(session);
         connections.put(cid, connection);
 
