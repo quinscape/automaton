@@ -5,6 +5,8 @@ import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
 import de.quinscape.automaton.runtime.config.ClientCrsfToken;
 import de.quinscape.automaton.runtime.config.ScopeTableConfig;
 import de.quinscape.automaton.runtime.i18n.TranslationService;
+import de.quinscape.automaton.runtime.merge.MergeOptions;
+import de.quinscape.automaton.runtime.merge.MergeService;
 import de.quinscape.automaton.runtime.util.Base32;
 import de.quinscape.automaton.runtime.util.LocaleUtil;
 import de.quinscape.automaton.runtime.util.ProcessUtil;
@@ -20,10 +22,12 @@ import org.jooq.Field;
 import org.jooq.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.web.csrf.CsrfToken;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.jooq.impl.DSL.*;
 
@@ -73,7 +77,7 @@ public final class AutomatonJsViewProvider
 
     private static final String CSRF_TOKEN = "csrfToken";
 
-    private static final String VALUE_PROP = "_value";
+    private static final String MERGE_OPTIONS = "mergeOptions";
 
     private final ProcessInjectionService processInjectionService;
 
@@ -89,14 +93,18 @@ public final class AutomatonJsViewProvider
 
     private final SchemaDataProvider schemaProvider;
 
+    private final MergeOptions mergeOptions;
+
+
     /**
      * Creates a new AutomatonJsViewProvider instance.
-     *  @param dslContext                        JOOQ DSL context
-     * @param domainQL
-     * @param processInjectionService           project injection service
-     * @param translationService                translation service implementation
+     * @param dslContext                    JOOQ DSL context
+     * @param domainQL                      Project DomainQL
+     * @param processInjectionService       project injection service
+     * @param translationService            translation service implementation
      * @param automatonWebSocketHandler     web socket handler, can be <code>null</code>
-     * @param scopeTableConfig                  scope table config
+     * @param scopeTableConfig              scope table config
+     * @param mergeOptions                  options for the merge service if applicable
      */
     public AutomatonJsViewProvider(
         DSLContext dslContext,
@@ -104,11 +112,13 @@ public final class AutomatonJsViewProvider
         ProcessInjectionService processInjectionService,
         TranslationService translationService,
         AutomatonWebSocketHandler automatonWebSocketHandler,
-        ScopeTableConfig scopeTableConfig
-    )
+        ScopeTableConfig scopeTableConfig,
+        MergeOptions mergeOptions
+        )
     {
         this.dslContext = dslContext;
         this.scopeTableConfig = scopeTableConfig;
+        this.mergeOptions = mergeOptions;
         if (processInjectionService == null)
         {
             throw new IllegalArgumentException("processInjectionService can't be null");
@@ -148,9 +158,19 @@ public final class AutomatonJsViewProvider
         {
             provideProcessInjections(context);
             provideScopes(context);
+                provideMergeOptions(context);
             schemaProvider.provide(context);
         }
         provideCommonData(context);
+    }
+
+
+    private void provideMergeOptions(JsViewContext context)
+    {
+        if (mergeOptions != null)
+        {
+            context.provideViewData(MERGE_OPTIONS, mergeOptions.getJson());
+        }
     }
 
 
@@ -239,11 +259,12 @@ public final class AutomatonJsViewProvider
 
         final String appName = context.getJsView().getEntryPoint();
 
-        final Map<String, Map<String, Object>> injections = processInjectionService.getProcessInjections(appName, processName, inputFromParams(context.getRequest().getParameterMap()));
+        final Map<String, Object> input = ProcessUtil.flattenParameterMap(context.getRequest());
+        final Map<String, Map<String, Object>> injections = processInjectionService.getProcessInjections(appName, processName, input);
 
         final String locale = LocaleUtil.localeCode(context.getRequest().getLocale());
         context.provideViewData(INJECTIONS, injections);
-        context.provideViewData(INPUT, ProcessUtil.flattenParameterMap(context.getRequest()));
+        context.provideViewData(INPUT, input);
         context.provideViewData(LOCALE, locale);
         context.provideViewData(PROCESS_NAME, processName);
 
@@ -255,26 +276,6 @@ public final class AutomatonJsViewProvider
             )
         );
     }
-
-
-
-
-
-    private Object inputFromParams(Map<String, String[]> parameterMap)
-    {
-        if (parameterMap.size() == 1)
-        {
-            final String[] value = parameterMap.get(VALUE_PROP);
-            if (value != null)
-            {
-                // SCALAR INPUT
-            }
-        }
-
-        // Object input
-        return null;
-    }
-
 
     private String getProcessName(JsViewContext context)
     {

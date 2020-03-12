@@ -275,7 +275,7 @@ public final class DefaultPubSubService
 
 
     @Override
-    public Topic getTopics(
+    public Topic getTopic(
         @NotNull String topic
     )
     {

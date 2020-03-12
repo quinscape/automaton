@@ -1,13 +1,15 @@
 package de.quinscape.automaton.runtime.logic;
 
 import com.google.common.collect.Maps;
-import de.quinscape.automaton.model.workingset.WorkingSetDeletion;
+import de.quinscape.automaton.model.workingset.DomainObjectDeletion;
 import de.quinscape.automaton.runtime.AutomatonException;
 import de.quinscape.automaton.runtime.data.FilterTransformer;
 import de.quinscape.automaton.runtime.data.SimpleFieldResolver;
 import de.quinscape.automaton.runtime.domain.IdGenerator;
 import de.quinscape.automaton.runtime.domain.op.BatchStoreOperation;
 import de.quinscape.automaton.runtime.domain.op.StoreOperation;
+import de.quinscape.automaton.runtime.merge.MergeResult;
+import de.quinscape.automaton.runtime.merge.MergeService;
 import de.quinscape.automaton.runtime.scalar.ConditionScalar;
 import de.quinscape.automaton.runtime.util.GraphQLUtil;
 import de.quinscape.domainql.DomainQL;
@@ -50,11 +52,19 @@ public class AutomatonStandardLogic
     private final static Logger log = LoggerFactory.getLogger(AutomatonStandardLogic.class);
 
     private final DSLContext dslContext;
+
     private final DomainQL domainQL;
+
     private final IdGenerator idGenerator;
+
     private final StoreOperation storeOperation;
+
     private final BatchStoreOperation batchStoreOperation;
+
     private final FilterTransformer filterTransformer;
+
+    private final MergeService mergeService;
+
     private final SimpleFieldResolver simpleFieldResolver = new SimpleFieldResolver();
 
 
@@ -64,7 +74,8 @@ public class AutomatonStandardLogic
         IdGenerator idGenerator,
         StoreOperation storeOperation,
         BatchStoreOperation batchStoreOperation,
-        FilterTransformer filterTransformer
+        FilterTransformer filterTransformer,
+        MergeService mergeService
     )
     {
         this.dslContext = dslContext;
@@ -73,6 +84,7 @@ public class AutomatonStandardLogic
         this.storeOperation = storeOperation;
         this.batchStoreOperation = batchStoreOperation;
         this.filterTransformer = filterTransformer;
+        this.mergeService = mergeService;
     }
 
 
@@ -89,6 +101,11 @@ public class AutomatonStandardLogic
     )
     {
         log.debug("storeDomainObject: {}", domainObject);
+
+        if (mergeService != null)
+        {
+            mergeService.ensureNotVersioned(domainObject.getDomainType());
+        }
 
         provideId(domainObject);
         storeOperation.execute(domainObject);
@@ -128,6 +145,11 @@ public class AutomatonStandardLogic
             {
                 final DomainObject domainObject = objects.get(0);
 
+                if (mergeService != null)
+                {
+                    mergeService.ensureNotVersioned(domainObject.getDomainType());
+                }
+
                 provideId(domainObject);
                 storeDomainObject(
                     domainObject
@@ -136,6 +158,12 @@ public class AutomatonStandardLogic
             else
             {
                 final String domainType = objects.get(0).getDomainType();
+
+                if (mergeService != null)
+                {
+                    mergeService.ensureNotVersioned(domainType);
+                }
+
                 final Object placeholderId = idGenerator.getPlaceholderId(domainType);
                 if (placeholderId == null)
                 {
@@ -178,6 +206,7 @@ public class AutomatonStandardLogic
                 Collectors.toList()
             );
     }
+
 
 
 
@@ -224,6 +253,13 @@ public class AutomatonStandardLogic
         List<String> cascade
     )
     {
+
+        if (mergeService != null)
+        {
+            mergeService.ensureNotVersioned(type);
+        }
+
+
         final Map<RelationModel, Object> tmpIds = new HashMap<>();
 
         if (cascade != null)
@@ -335,6 +371,11 @@ public class AutomatonStandardLogic
         @NotNull List<DomainObject> domainObjects
     )
     {
+        if (mergeService != null)
+        {
+            mergeService.ensureNotVersioned(domainType);
+        }
+
         final String outputType = GraphQLUtil.getOutputTypeName(domainType);
 
 
@@ -465,7 +506,7 @@ public class AutomatonStandardLogic
     @GraphQLMutation
     public boolean persistWorkingSet(
         @NotNull List<DomainObject> domainObjects,
-        @NotNull List<WorkingSetDeletion> deletions
+        @NotNull List<DomainObjectDeletion> deletions
     )
     {
         if (domainObjects.size() > 0)
@@ -478,8 +519,15 @@ public class AutomatonStandardLogic
             dslContext.batch(
                 deletions.stream().map(deletion -> {
 
-                    final Table<?> jooqTable = domainQL.getJooqTable(deletion.getType());
-                    final Field<Object> idField = (Field<Object>) domainQL.lookupField(deletion.getType(), "id");
+                    final String domainType = deletion.getType();
+
+                    if (mergeService != null)
+                    {
+                        mergeService.ensureNotVersioned(domainType);
+                    }
+
+                    final Table<?> jooqTable = domainQL.getJooqTable(domainType);
+                    final Field<Object> idField = (Field<Object>) domainQL.lookupField(domainType, "id");
 
 
                     final DeleteQuery<?> deleteQuery = dslContext.deleteQuery(
@@ -499,6 +547,23 @@ public class AutomatonStandardLogic
         }
 
         return true;
+    }
+
+    /**
+     * Server-side end-point for WorkingSet.persist()
+     *
+     * @param domainObjects     List of new and changed domain objects
+     * @param deletions         List of object deletions
+     *
+     * @return
+     */
+    @GraphQLMutation
+    public MergeResult mergeWorkingSet(
+        @NotNull List<DomainObject> domainObjects,
+        @NotNull List<DomainObjectDeletion> deletions
+    )
+    {
+        return mergeService.merge(domainObjects, deletions);
     }
 
     @GraphQLQuery

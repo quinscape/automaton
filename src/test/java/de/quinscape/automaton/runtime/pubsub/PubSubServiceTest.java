@@ -7,7 +7,6 @@ import de.quinscape.automaton.runtime.util.Base32;
 import de.quinscape.automaton.runtime.ws.DefaultAutomatonClientConnection;
 import de.quinscape.automaton.runtime.ws.DefaultAutomatonWebSocketHandler;
 import de.quinscape.domainql.DomainQL;
-import de.quinscape.domainql.util.JSONHolder;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -16,7 +15,6 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
 import org.svenson.util.JSONBeanUtil;
 import org.svenson.util.JSONPathUtil;
-import org.svenson.util.RecastUtil;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -80,7 +78,7 @@ public class PubSubServiceTest
         final TestTopicListener topicListener = new TestTopicListener();
         pubSubSvc.subscribe(topicListener, testTopic, null);
 
-        final Topic test = pubSubSvc.getTopics(testTopic);
+        final Topic test = pubSubSvc.getTopic(testTopic);
 
         final List<Set<TopicRegistration>> registrationsByConnection = test.getRegistrationsByConnection();
 
@@ -178,7 +176,7 @@ public class PubSubServiceTest
 
         pubSubSvc.subscribe(topicListener, testTopic, filter2);
 
-        final Topic test = pubSubSvc.getTopics(testTopic);
+        final Topic test = pubSubSvc.getTopic(testTopic);
 
         final List<Set<TopicRegistration>> registrationsByConnection = test.getRegistrationsByConnection();
 

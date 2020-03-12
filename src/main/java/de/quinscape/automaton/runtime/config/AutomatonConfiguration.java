@@ -12,6 +12,7 @@ import de.quinscape.automaton.runtime.domain.op.BatchStoreOperation;
 import de.quinscape.automaton.runtime.domain.op.StoreOperation;
 import de.quinscape.automaton.runtime.filter.JavaFilterTransformer;
 import de.quinscape.automaton.runtime.logic.AutomatonStandardLogic;
+import de.quinscape.automaton.runtime.merge.MergeService;
 import de.quinscape.automaton.runtime.provider.DefaultProcessInjectionService;
 import de.quinscape.automaton.runtime.provider.ProcessInjectionService;
 import de.quinscape.domainql.DomainQL;
@@ -92,7 +93,8 @@ public class AutomatonConfiguration
         IdGenerator idGenerator,
         StoreOperation storeOperation,
         BatchStoreOperation batchStoreOperation,
-        FilterTransformer filterTransformer
+        FilterTransformer filterTransformer,
+        @Lazy @Autowired(required = false) MergeService mergeService
     )
     {
         return new AutomatonStandardLogic(
@@ -101,7 +103,8 @@ public class AutomatonConfiguration
             idGenerator,
             storeOperation,
             batchStoreOperation,
-            filterTransformer
+            filterTransformer,
+            mergeService
         );
     }
 
