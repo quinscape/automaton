@@ -1,5 +1,6 @@
 package de.quinscape.automaton.runtime.pubsub;
 
+import de.quinscape.automaton.model.pubsub.TopicUpdate;
 import de.quinscape.automaton.runtime.filter.Filter;
 
 /**

@@ -13,7 +13,7 @@ import java.util.Set;
 /**
  * Encapsulates all registrations for one topic.
  */
-class Topic
+final class Topic
 {
     private final String name;
 

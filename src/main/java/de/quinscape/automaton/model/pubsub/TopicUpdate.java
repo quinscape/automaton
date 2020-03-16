@@ -1,4 +1,4 @@
-package de.quinscape.automaton.runtime.pubsub;
+package de.quinscape.automaton.model.pubsub;
 
 import de.quinscape.automaton.model.message.OutgoingMessage;
 import de.quinscape.automaton.model.message.OutgoingMessageType;
@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Message encapsulating updates for a topic
  */
-public class TopicUpdate
+public final class TopicUpdate
 {
 
     private final String topic;

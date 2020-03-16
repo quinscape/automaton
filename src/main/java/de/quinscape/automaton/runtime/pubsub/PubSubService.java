@@ -92,7 +92,7 @@ public interface PubSubService
      *
      * @return topic or <code>null</code>
      */
-    Topic getTopics(
+    Topic getTopic(
         @NotNull String topic
     );
 
