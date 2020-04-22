@@ -1,14 +1,18 @@
 package de.quinscape.automaton.runtime.logic;
 
 import com.google.common.collect.Maps;
-import de.quinscape.automaton.model.workingset.DomainObjectDeletion;
+import de.quinscape.automaton.model.merge.EntityChange;
+import de.quinscape.automaton.model.merge.MergeConfig;
+import de.quinscape.automaton.model.merge.MergeConflict;
+import de.quinscape.automaton.model.merge.MergeResolution;
+import de.quinscape.automaton.model.merge.MergeResult;
+import de.quinscape.automaton.model.merge.EntityDeletion;
 import de.quinscape.automaton.runtime.AutomatonException;
 import de.quinscape.automaton.runtime.data.FilterTransformer;
 import de.quinscape.automaton.runtime.data.SimpleFieldResolver;
 import de.quinscape.automaton.runtime.domain.IdGenerator;
 import de.quinscape.automaton.runtime.domain.op.BatchStoreOperation;
 import de.quinscape.automaton.runtime.domain.op.StoreOperation;
-import de.quinscape.automaton.runtime.merge.MergeResult;
 import de.quinscape.automaton.runtime.merge.MergeService;
 import de.quinscape.automaton.runtime.scalar.ConditionScalar;
 import de.quinscape.automaton.runtime.util.GraphQLUtil;
@@ -506,7 +510,7 @@ public class AutomatonStandardLogic
     @GraphQLMutation
     public boolean persistWorkingSet(
         @NotNull List<DomainObject> domainObjects,
-        @NotNull List<DomainObjectDeletion> deletions
+        @NotNull List<EntityDeletion> deletions
     )
     {
         if (domainObjects.size() > 0)
@@ -550,20 +554,22 @@ public class AutomatonStandardLogic
     }
 
     /**
-     * Server-side end-point for WorkingSet.persist()
+     * Server-side end-point for WorkingSet.merge()
      *
-     * @param domainObjects     List of new and changed domain objects
+     * @param mergeConfig       Configuration for the current merge
+     * @param changes           List of new and changed domain objects
      * @param deletions         List of object deletions
      *
      * @return
      */
     @GraphQLMutation
     public MergeResult mergeWorkingSet(
-        @NotNull List<DomainObject> domainObjects,
-        @NotNull List<DomainObjectDeletion> deletions
+        MergeConfig mergeConfig,
+        @NotNull List<EntityChange> changes,
+        @NotNull List<EntityDeletion> deletions
     )
     {
-        return mergeService.merge(domainObjects, deletions);
+        return mergeService.merge(changes, deletions, mergeConfig);
     }
 
     @GraphQLQuery
@@ -603,5 +609,18 @@ public class AutomatonStandardLogic
             .fetch(
                 idxField, String.class
             );
+    }
+
+
+    /**
+     * Dummy end-point to define the types involved in resolving a merge conflict, which happens on the client side only. This is only exists for documentation purposes.
+     */
+    @GraphQLMutation
+    public MergeResolution resolveMerge(
+        MergeConfig mergeConfig,
+        MergeConflict mergeConflict
+    )
+    {
+        throw new UnsupportedOperationException("End-point exists only for documentation/schema purposes");
     }
 }

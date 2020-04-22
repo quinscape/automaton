@@ -1,11 +1,13 @@
-package de.quinscape.automaton.model.workingset;
+package de.quinscape.automaton.model.merge;
 
 import de.quinscape.domainql.generic.GenericScalar;
+
+import javax.validation.constraints.NotNull;
 
 /**
  * Encapsulates the type and id of on object deletion in a working set.
  */
-public class DomainObjectDeletion
+public class EntityDeletion
 {
     private String type;
 
@@ -17,6 +19,7 @@ public class DomainObjectDeletion
      * Domain type of deleted object
      * @return
      */
+    @NotNull
     public String getType()
     {
         return type;
@@ -46,6 +49,7 @@ public class DomainObjectDeletion
      * 
      * @return
      */
+    @NotNull
     public GenericScalar getId()
     {
         return id;
@@ -56,6 +60,4 @@ public class DomainObjectDeletion
     {
         this.id = id;
     }
-
-
 }
