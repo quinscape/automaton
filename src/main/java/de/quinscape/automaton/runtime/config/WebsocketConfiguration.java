@@ -6,10 +6,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+import org.springframework.web.socket.server.standard.ServletServerContainerFactoryBean;
 
 @Configuration
 public class WebsocketConfiguration
@@ -45,5 +47,13 @@ public class WebsocketConfiguration
                 DefaultAutomatonWebSocketHandler.class);
             registry.addHandler(webSocketHandler, "/automaton-ws");
         }
+    }
+
+    @Bean
+    public ServletServerContainerFactoryBean createWebSocketContainer() {
+        ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();
+        container.setMaxTextMessageBufferSize(8192);
+        container.setMaxBinaryMessageBufferSize(8192);
+        return container;
     }
 }

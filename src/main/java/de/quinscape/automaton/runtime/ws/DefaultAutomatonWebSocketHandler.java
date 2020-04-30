@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  * Handles websockets. It is an extension of Spring's TextWebSocketHandler to handle the application websocket traffic
  * without Socket.io/STOMP.
  */
-public class DefaultAutomatonWebSocketHandler
+    public class DefaultAutomatonWebSocketHandler
     extends TextWebSocketHandler
     implements AutomatonWebSocketHandler
 {
