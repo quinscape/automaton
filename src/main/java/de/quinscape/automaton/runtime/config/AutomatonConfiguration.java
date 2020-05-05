@@ -124,8 +124,6 @@ public class AutomatonConfiguration
         DSLContext dslContext
     )
     {
-        log.info("Create ScopeSyncController");
-        
         return new ScopeSyncController(
             scopeTableConfig,
             dslContext
