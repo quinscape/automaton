@@ -11,6 +11,7 @@ import de.quinscape.automaton.runtime.message.IncomingMessageHandler;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
@@ -58,8 +59,6 @@ public class DefaultAutomatonWebSocketHandler
 
     private final WebSocketHandlerOptions options;
 
-    private final Thread cleanupThread;
-
     private volatile Instant lastCleanup;
 
     private volatile boolean running = true;
@@ -100,40 +99,6 @@ public class DefaultAutomatonWebSocketHandler
             .forEach( h -> ((AutomatonWebSocketHandlerAware) h).setAutomatonWebSocketHandler(this) );
 
         log.info("Starting AutomatonWebSocketHandler, handlers = {}", this.handlers);
-
-        this.cleanupThread = new Thread(() -> {
-            try
-            {
-                while(running)
-                {
-                    Thread.sleep(options.getCleanupInterval());
-                    final Instant now = Instant.now();
-
-                    if (Duration.between(lastCleanup, now).toMillis() > options.getCleanupInterval())
-                    {
-
-                        lastCleanup = Instant.now();
-
-                        final int before = preparedConnections.size();
-
-                        preparedConnections.values()
-                            .removeIf(
-                                connection -> Duration.between(connection.getCreated(), now).toMillis() > options.getPreparedLifetime()
-                            );
-
-                        log.debug("Cleaned up stale websocket connections: {} connections removed", before - preparedConnections.size());
-                    }
-                }
-            }
-            catch (InterruptedException e)
-            {
-                log.info("Interrupted: ", e);
-            }
-        });
-        lastCleanup = Instant.now();
-        cleanupThread.setDaemon(true);
-        cleanupThread.setName(CLEANUP_THREAD_NAME);
-        cleanupThread.start();
     }
 
 
@@ -371,6 +336,21 @@ public class DefaultAutomatonWebSocketHandler
     {
         log.debug("Shutdown");
         running = false;
-        cleanupThread.interrupt();
     }
+
+    @Scheduled(fixedDelay = 600000) // 10 minutes
+    public void cleanup()
+    {
+        final Instant now = Instant.now();
+
+        final int sizeBefore = preparedConnections.size();
+
+        preparedConnections.values()
+            .removeIf(
+                connection -> Duration.between(connection.getCreated(), now).toMillis() > options.getPreparedLifetime()
+            );
+
+        log.debug("Cleaned up {} connections", sizeBefore - preparedConnections.size());
+    }
+
 }

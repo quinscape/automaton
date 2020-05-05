@@ -25,12 +25,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.ContextStoppedEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 
 import javax.servlet.ServletContext;
@@ -65,6 +69,7 @@ import java.io.IOException;
  */
 @Configuration
 @EnableWebSocket
+@EnableScheduling
 @Import({
     WebsocketConfiguration.class
 })
@@ -199,6 +204,20 @@ public class AutomatonConfiguration
         return new JavaFilterTransformer();
     }
 
+    @Bean
+    public TaskScheduler taskScheduler(
+        @Value("${automaton.scheduler.pool-size:3}") int poolSize
+    ) {
+
+        log.info("Creating ThreadPoolTaskScheduler: pool size = {}", poolSize);
+
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(poolSize);
+        scheduler.setThreadNamePrefix("auto-task-");
+        scheduler.setDaemon(true);
+
+        return scheduler;
+    }
 
     @EventListener(ContextStoppedEvent.class)
     public void onContextStopped(ContextStoppedEvent event) throws IOException
