@@ -189,13 +189,16 @@ public class AlternateStyleProvider
     private StyleSheetDefinition readCookie(JsViewContext context) throws UnsupportedEncodingException
     {
         final Cookie[] cookies = context.getRequest().getCookies();
-        for (Cookie cookie : cookies)
+        if( cookies != null)
         {
-            if (cookie.getName().equals(PREFERRED_STYLE))
+            for (Cookie cookie : cookies)
             {
-                final String name = cookie.getValue();
+                if (cookie.getName().equals(PREFERRED_STYLE))
+                {
+                    final String name = cookie.getValue();
 
-                return findStyle(URLDecoder.decode(name, "UTF-8"));
+                    return findStyle(URLDecoder.decode(name, "UTF-8"));
+                }
             }
         }
         return null;
