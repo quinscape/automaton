@@ -59,7 +59,7 @@
         <dependency>
             <groupId>de.quinscape</groupId>
             <artifactId>spring-jsview</artifactId>
-            <version>0.5</version>
+            <version>0.6</version>
         </dependency>
 
 
@@ -112,7 +112,7 @@
         <dependency>
             <groupId>de.quinscape.domainql</groupId>
             <artifactId>domainql</artifactId>
-            <version>0.2.3</version>
+            <version>0.2.5</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>

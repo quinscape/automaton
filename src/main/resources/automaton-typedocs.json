@@ -36,6 +36,24 @@
         ]
       },
       {
+        "name":"mergeWorkingSet",
+        "description":"Server-side end-point for WorkingSet.merge()",
+        "paramDocs":[
+          {
+            "name":"mergeConfig",
+            "description":"Configuration for the current merge"
+          },
+          {
+            "name":"changes",
+            "description":"List of new and changed domain objects"
+          },
+          {
+            "name":"deletions",
+            "description":"List of object deletions"
+          }
+        ]
+      },
+      {
         "name":"persistWorkingSet",
         "description":"Server-side end-point for WorkingSet.persist()",
         "paramDocs":[
@@ -47,6 +65,13 @@
             "name":"deletions",
             "description":"List of object deletions"
           }
+        ]
+      },
+      {
+        "name":"resolveMerge",
+        "description":"Dummy end-point to define the types involved in resolving a merge conflict, which happens on the client side only. This is only exists for documentation purposes.",
+        "paramDocs":[
+          
         ]
       },
       {
@@ -217,6 +242,80 @@
     ]
   },
   {
+    "name":"EntityChange",
+    "description":"Encapsulates multiple changes for a single entity / domain object.",
+    "fieldDocs":[
+      {
+        "name":"changes",
+        "description":"List of changes",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"id",
+        "description":"Id value of the entity/domain object",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"type",
+        "description":"Domain type of the object",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"version",
+        "description":"Version of the entity/domain object",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name":"EntityDeletion",
+    "description":"Encapsulates the type and id of on object deletion in a working set.",
+    "fieldDocs":[
+      {
+        "name":"id",
+        "description":"Id of deleted object as generic scalar.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"type",
+        "description":"Domain type of deleted object",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name":"EntityFieldChange",
+    "description":"A change for one domain object field",
+    "fieldDocs":[
+      {
+        "name":"field",
+        "description":"Field the change applies to",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"value",
+        "description":"Generic scalar value of the field. Must match the underlying GraphQL field type.",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
     "name":"IncomingMessage",
     "description":"Container for incoming messages.",
     "fieldDocs":[
@@ -258,6 +357,154 @@
       {
         "name":"rows",
         "description":"List with current rows of [T].",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name":"MergeResolution",
+    "description":"Encapsulates the result of a merge operation. Used in-memory on the client-side.",
+    "fieldDocs":[
+      {
+        "name":"resolutions",
+        "description":"Resolutions to apply to the working set.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"operation",
+        "description":"Operation selected by the user.",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name":"MergeResolutionEntity",
+    "description":"Encapsulates the merge resolution for one of the entities involved. Used in-memory on the client-side.",
+    "fieldDocs":[
+      
+    ]
+  },
+  {
+    "name":"MergeResolutionField",
+    "description":"Encapsulates the merge resolution of a single field. Used in-memory on the client-side.",
+    "fieldDocs":[
+      {
+        "name":"name",
+        "description":"GraphQL name of the field.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"value",
+        "description":"Wrapped value",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name":"MergeResolutionFieldStatus",
+    "description":null,
+    "fieldDocs":[
+      {
+        "name":"UNDECIDED",
+        "description":"User has not yet decided.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"OURS",
+        "description":"We took the original value.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"THEIRS",
+        "description":"We took over the current database value",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"VALUE",
+        "description":"The user specified an alternate third value.",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name":"MergeResolutionOperation",
+    "description":"User selected operation for a merge",
+    "fieldDocs":[
+      {
+        "name":"DISCARD",
+        "description":"The whole process is aborted and the current working set data is to be discarded.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"CANCEL",
+        "description":"The store operation was canceled. The working set remains as-is.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"APPLY",
+        "description":"The merge resolutions are to be applied without executing the final store operation. The user can inspect the merge\nresult in the original form context.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"STORE",
+        "description":"Merge resolutions are applied to the working set and the final store operation is performed.",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name":"MergeResult",
+    "description":"Encapsulates the result of a merge process, i.e. a list of domain object conflicts.",
+    "fieldDocs":[
+      {
+        "name":"done",
+        "description":"Returns true when the merge is done because there were no conflicts.",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name":"MergeTypeConfig",
+    "description":null,
+    "fieldDocs":[
+      {
+        "name":"ignored",
+        "description":"List of fields that are ignored in the merge, i.e. the last value always wins. This is useful for\nmeta-data fields like creation time or change author",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"mergeGroups",
+        "description":"List of field groups are that only merged together. A change in one field of a merge-group always creates a\nconflict\nfor the whole group.",
         "paramDocs":[
           
         ]
@@ -374,30 +621,37 @@
     ]
   },
   {
-    "name":"ViewDeclaration",
-    "description":"A named constant within a view.",
-    "fieldDocs":[
-      
-    ]
-  },
-  {
-    "name":"WorkingSetDeletion",
-    "description":"Encapsulates the type and id of on object deletion in a working set.",
+    "name":"TopicUpdate",
+    "description":"Message encapsulating updates for a topic",
     "fieldDocs":[
       {
-        "name":"id",
-        "description":"Id of deleted object as generic scalar.",
+        "name":"payload",
+        "description":"Returns the (filtered) published payload. Not to be confused with the outgoing message payload.",
         "paramDocs":[
           
         ]
       },
       {
-        "name":"type",
-        "description":"Domain type of deleted object",
+        "name":"topic",
+        "description":"Return the name of the topic this update is for.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"ids",
+        "description":"Client-side handler ids to notify of this update.",
         "paramDocs":[
           
         ]
       }
+    ]
+  },
+  {
+    "name":"ViewDeclaration",
+    "description":"A named constant within a view.",
+    "fieldDocs":[
+      
     ]
   }
 ]
