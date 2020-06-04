@@ -203,25 +203,33 @@ public class DefaultTranslationService
      */
     private Set<String> findProcessNames(StaticFunctionReferences refs) throws IOException
     {
+        Set<String> processNames = new HashSet<>();
+
         // handle may be hot-reloading, so we can't cache this
         final Map<String, ModuleFunctionReferences> refsMap = refs.getModuleFunctionReferences();
 
-        Set<String> processNames = new HashSet<>();
-        for (Map.Entry<String, ModuleFunctionReferences> e : refsMap.entrySet())
+        if (refsMap == null)
         {
-            final String modulePath = e.getKey();
-
-            final Matcher matcher = PROCESS_MAIN_PATTERN.matcher(modulePath);
-
-            if (matcher.matches())
+            log.warn("Could not find any static function references at all. Did a proper js build happen?");
+        }
+        else
+        {
+            for (Map.Entry<String, ModuleFunctionReferences> e : refsMap.entrySet())
             {
-                final String appName = matcher.group(1);
-                final String processName = matcher.group(2);
-                final String moduleName = matcher.group(3);
+                final String modulePath = e.getKey();
 
-                if (processName.equals(moduleName))
+                final Matcher matcher = PROCESS_MAIN_PATTERN.matcher(modulePath);
+
+                if (matcher.matches())
                 {
-                    processNames.add(appName + "/" + processName);
+                    final String appName = matcher.group(1);
+                    final String processName = matcher.group(2);
+                    final String moduleName = matcher.group(3);
+
+                    if (processName.equals(moduleName))
+                    {
+                        processNames.add(appName + "/" + processName);
+                    }
                 }
             }
         }
