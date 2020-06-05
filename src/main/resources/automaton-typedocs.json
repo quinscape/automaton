@@ -445,6 +445,47 @@
     ]
   },
   {
+    "name":"MergeResolutionFieldType",
+    "description":null,
+    "fieldDocs":[
+      {
+        "name":"FIELD",
+        "description":"Normal input field",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"FK_OBJECT",
+        "description":"Embedded object for a foreign key",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"MANY_TO_MANY",
+        "description":"Embedded list of objects for a m-to-n relation",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"FK_KEY",
+        "description":"Foreign key raw key id field",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"IGNORE",
+        "description":"Ignored field",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
     "name":"MergeResolutionOperation",
     "description":"User selected operation for a merge",
     "fieldDocs":[
