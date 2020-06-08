@@ -1,8 +1,11 @@
 package de.quinscape.automaton.model.merge;
 
+import de.quinscape.automaton.model.EntityReference;
 import de.quinscape.domainql.generic.GenericScalar;
 
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MergeConflictField
 {
@@ -11,6 +14,8 @@ public class MergeConflictField
     private GenericScalar ours;
 
     private GenericScalar theirs;
+
+    private List<EntityReference> references = new ArrayList<>();
 
 
     public MergeConflictField()
@@ -68,13 +73,25 @@ public class MergeConflictField
     }
 
 
+    public List<EntityReference> getReferences()
+    {
+        return references;
+    }
+
+
+    public void setReferences(List<EntityReference> references)
+    {
+        this.references = references;
+    }
+
+
     @Override
     public String toString()
     {
-        return super.toString() + ": "
-            + "name = '" + name + '\''
+        return "name = '" + name + '\''
             + ", ours = " + ours
             + ", theirs = " + theirs
+            + ", references = " + references
             ;
     }
 }

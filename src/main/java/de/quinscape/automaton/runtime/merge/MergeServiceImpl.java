@@ -1,6 +1,7 @@
 package de.quinscape.automaton.runtime.merge;
 
 import com.google.common.math.BigIntegerMath;
+import de.quinscape.automaton.model.EntityReference;
 import de.quinscape.automaton.model.merge.EntityChange;
 import de.quinscape.automaton.model.merge.EntityDeletion;
 import de.quinscape.automaton.model.merge.EntityFieldChange;
@@ -843,6 +844,9 @@ public class MergeServiceImpl
             final String targetType = rightSideRelation.getTargetType();
             final Field<Object> targetIdField = (Field<Object>) domainQL.lookupField(targetType, "id");
 
+            final Field<Object> sourceIdField = (Field<Object>) domainQL.lookupField(rightSideRelation.getSourceType(), "id");
+            final Field<Object> sourceVersionField = (Field<Object>) domainQL.lookupField(rightSideRelation.getSourceType(), options.getVersionField());
+
             final Field<Object> leftSourceField = (Field<Object>) domainQL.lookupField(
                 leftSideRelation.getSourceType(),
                 leftSideRelation.getSourceFields().get(0)
@@ -870,10 +874,10 @@ public class MergeServiceImpl
             // Add source and target id field to selection
 
             query.addSelect(
-                leftSourceField
-            );
-            query.addSelect(
-                targetIdField
+                leftSourceField,
+                targetIdField,
+                sourceIdField,
+                sourceVersionField
             );
 
             final GraphQLObjectType targetGraphQLType = (GraphQLObjectType) domainQL.getGraphQLSchema().getType(targetType);
@@ -923,23 +927,28 @@ public class MergeServiceImpl
                 final MergeConflict mergeConflict = result.get();
 
 
-                List<DomainObject> values = getList(mergeConflict, fieldName);
+                final String rowSourceId = (String) record.get(sourceIdField);
+                final String rowSourceVersion = (String) record.get(sourceVersionField);
+
+                final MergeConflictField field = getConflictField(mergeConflict, fieldName);
+                final List<DomainObject> values = (List<DomainObject>) field.getTheirs().getValue();
 
                 GenericDomainObject domainObject = mapDomainObject(targetType, fieldLookup, record);
                 values.add(domainObject);
+                field.getReferences().add(new EntityReference(rightSideRelation.getSourceType() , rowSourceId, rowSourceVersion));
 
                 return domainObject;
             });
         }
 
 
-        private List<DomainObject> getList(MergeConflict mergeConflict, String fieldName)
+        private MergeConflictField getConflictField(MergeConflict mergeConflict, String fieldName)
         {
             for (MergeConflictField field : mergeConflict.getFields())
             {
                 if (field.getName().equals(fieldName))
                 {
-                    return (List<DomainObject>) field.getTheirs().getValue();
+                    return field;
                 }
             }
 

@@ -1,11 +1,16 @@
 package de.quinscape.automaton.model.merge;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
 
 public class MergeConfig
 {
+    private final static Logger log = LoggerFactory.getLogger(MergeConfig.class);
+
     private List<MergeTypeConfig> typeConfigs;
 
     private boolean allowDiscard = true;
@@ -67,6 +72,9 @@ public class MergeConfig
                 }
             }
         }
+
+        log.debug("Using default config for type '{}'", domainType);
+
         return MergeTypeConfig.DEFAULT;
     }
 }
