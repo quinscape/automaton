@@ -205,15 +205,15 @@ public class DefaultTranslationService
     {
         Set<String> processNames = new HashSet<>();
 
-        // handle may be hot-reloading, so we can't cache this
-        final Map<String, ModuleFunctionReferences> refsMap = refs.getModuleFunctionReferences();
-
-        if (refsMap == null)
+        if (refs == null)
         {
             log.warn("Could not find any static function references at all. Did a proper js build happen?");
         }
         else
         {
+            // handle may be hot-reloading, so we can't cache this
+            final Map<String, ModuleFunctionReferences> refsMap = refs.getModuleFunctionReferences();
+
             for (Map.Entry<String, ModuleFunctionReferences> e : refsMap.entrySet())
             {
                 final String modulePath = e.getKey();
