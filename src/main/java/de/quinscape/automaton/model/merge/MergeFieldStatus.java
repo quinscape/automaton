@@ -1,6 +1,6 @@
 package de.quinscape.automaton.model.merge;
 
-public enum MergeResolutionFieldStatus
+public enum MergeFieldStatus
 {
     /**
      * User has not yet decided.

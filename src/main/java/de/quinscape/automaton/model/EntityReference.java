@@ -1,5 +1,7 @@
 package de.quinscape.automaton.model;
 
+import de.quinscape.domainql.generic.GenericScalar;
+
 import javax.validation.constraints.NotNull;
 
 /**
@@ -9,7 +11,7 @@ public class EntityReference
 {
     private String type;
 
-    private String id;
+    private GenericScalar id;
 
     private String version;
 
@@ -19,7 +21,7 @@ public class EntityReference
         this(null, null, null);
     }
 
-    public EntityReference(String type, String id, String version)
+    public EntityReference(String type, GenericScalar id, String version)
     {
         this.type = type;
         this.id = id;
@@ -41,13 +43,13 @@ public class EntityReference
 
 
     @NotNull
-    public String getId()
+    public GenericScalar getId()
     {
         return id;
     }
 
 
-    public void setId(@NotNull String id)
+    public void setId(@NotNull GenericScalar id)
     {
         this.id = id;
     }

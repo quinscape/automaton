@@ -7,6 +7,10 @@ import javax.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * A merge conflict for one entity.
+ * 
+ */
 public class MergeConflict
 {
     private String type;
@@ -19,6 +23,10 @@ public class MergeConflict
 
     private String theirVersion;
 
+
+    /**
+     * Type of the entity.
+     */
     @NotNull
     public String getType()
     {
@@ -32,6 +40,9 @@ public class MergeConflict
     }
 
 
+    /**
+     * Id of the entity as generic scalar
+     */
     @NotNull
     public GenericScalar getId()
     {
@@ -45,6 +56,10 @@ public class MergeConflict
     }
 
 
+    /**
+     * Conflicted fields. Will be both conflicts on scalar fields as well as conflicts on object fields representing
+     * foreign key and many-to-many conflicts and the informational/user-facing data to resolve those.
+     */
     @NotNull
     public List<MergeConflictField> getFields()
     {
@@ -64,6 +79,10 @@ public class MergeConflict
     }
 
 
+    /**
+     * True if the entity has been deleted on the other side
+     * @return
+     */
     public boolean isDeleted()
     {
         return deleted;
@@ -82,6 +101,10 @@ public class MergeConflict
         this.theirVersion = theirVersion;
     }
 
+
+    /**
+     * The version of the currently stored entity.
+     */
     public String getTheirVersion()
     {
         return theirVersion;
@@ -110,5 +133,25 @@ public class MergeConflict
             + ", deleted = " + deleted
             + ", theirVersion = '" + theirVersion + '\''
             ;
+    }
+
+
+    /**
+     * Returns true if all conflict fields are decided or if there are no conflict fields.
+     */
+    public boolean isDecided()
+    {
+        if (fields != null)
+        {
+            for (MergeConflictField field : fields)
+            {
+                if (field.getStatus() == MergeFieldStatus.UNDECIDED)
+                {
+                    return false;
+                }
+            }
+
+        }
+        return true;
     }
 }

@@ -13,11 +13,9 @@ public class MergeResolutionField
 
     private GenericScalar value;
 
-    private String objectField;
-
     private MergeResolutionFieldType fieldType;
 
-    private MergeResolutionFieldStatus status = MergeResolutionFieldStatus.UNDECIDED;
+    private MergeFieldStatus status = MergeFieldStatus.UNDECIDED;
 
 
     /**
@@ -52,31 +50,19 @@ public class MergeResolutionField
 
 
     @NotNull
-    public MergeResolutionFieldStatus getStatus()
+    public MergeFieldStatus getStatus()
     {
         return status;
     }
 
 
-    public void setStatus(MergeResolutionFieldStatus status)
+    public void setStatus(MergeFieldStatus status)
     {
         if (status == null)
         {
             throw new IllegalArgumentException("status can't be null");
         }
         this.status = status;
-    }
-
-
-    public String getObjectField()
-    {
-        return objectField;
-    }
-
-
-    public void setObjectField(String objectField)
-    {
-        this.objectField = objectField;
     }
 
 

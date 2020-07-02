@@ -316,6 +316,13 @@
     ]
   },
   {
+    "name":"EntityReference",
+    "description":"Reference to a specific entity or entity version",
+    "fieldDocs":[
+      
+    ]
+  },
+  {
     "name":"IncomingMessage",
     "description":"Container for incoming messages.",
     "fieldDocs":[
@@ -364,6 +371,129 @@
     ]
   },
   {
+    "name":"MergeConflict",
+    "description":"A merge conflict for one entity.",
+    "fieldDocs":[
+      {
+        "name":"decided",
+        "description":"Returns true if all conflict fields are decided or if there are no conflict fields.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"deleted",
+        "description":"True if the entity has been deleted on the other side",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"theirVersion",
+        "description":"The version of the currently stored entity.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"id",
+        "description":"Id of the entity as generic scalar",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"type",
+        "description":"Type of the entity.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"fields",
+        "description":"Conflicted fields. Will be both conflicts on scalar fields as well as conflicts on object fields representing\nforeign key and many-to-many conflicts and the informational/user-facing data to resolve those.",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name":"MergeConflictField",
+    "description":"A field within a merge conflict.",
+    "fieldDocs":[
+      {
+        "name":"theirs",
+        "description":"The currently stored value for the conflict.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"ours",
+        "description":"The user's value for the conflict.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"references",
+        "description":"In case of a pseudo conflict on a many-to-many field this contains entity references to the current set of link\ntype entities.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"informational",
+        "description":"True if the conflict is only sent for informational purposes and for the \"apply\" function. It marks conflicts\nthat are already resolved.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"status",
+        "description":"Field status for the conflict. If MergeOptions#isAllowAutoMerge() is enabled, this will always be MergeFieldStatus#UNDECIDED, if auto-merge\nis disabled, the system will report back successful merges with the respective choices made.",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name":"MergeFieldStatus",
+    "description":null,
+    "fieldDocs":[
+      {
+        "name":"UNDECIDED",
+        "description":"User has not yet decided.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"OURS",
+        "description":"We took the original value.",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"THEIRS",
+        "description":"We took over the current database value",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"VALUE",
+        "description":"The user specified an alternate third value.",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
     "name":"MergeResolution",
     "description":"Encapsulates the result of a merge operation. Used in-memory on the client-side.",
     "fieldDocs":[
@@ -404,40 +534,6 @@
       {
         "name":"value",
         "description":"Wrapped value",
-        "paramDocs":[
-          
-        ]
-      }
-    ]
-  },
-  {
-    "name":"MergeResolutionFieldStatus",
-    "description":null,
-    "fieldDocs":[
-      {
-        "name":"UNDECIDED",
-        "description":"User has not yet decided.",
-        "paramDocs":[
-          
-        ]
-      },
-      {
-        "name":"OURS",
-        "description":"We took the original value.",
-        "paramDocs":[
-          
-        ]
-      },
-      {
-        "name":"THEIRS",
-        "description":"We took over the current database value",
-        "paramDocs":[
-          
-        ]
-      },
-      {
-        "name":"VALUE",
-        "description":"The user specified an alternate third value.",
         "paramDocs":[
           
         ]

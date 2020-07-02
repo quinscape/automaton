@@ -8,6 +8,7 @@ import de.quinscape.automaton.model.merge.EntityFieldChange;
 import de.quinscape.automaton.model.merge.MergeConfig;
 import de.quinscape.automaton.model.merge.MergeConflict;
 import de.quinscape.automaton.model.merge.MergeConflictField;
+import de.quinscape.automaton.model.merge.MergeFieldStatus;
 import de.quinscape.automaton.model.merge.MergeResult;
 import de.quinscape.automaton.model.merge.MergeTypeConfig;
 import de.quinscape.automaton.runtime.AutomatonException;
@@ -48,6 +49,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -74,9 +76,11 @@ public class MergeServiceImpl
     implements MergeService
 {
 
-    private final static String LIST_OF_DOMAIN_OBJECTS = "[DomainObject]";
+    private final static String LIST_OF_DOMAIN_OBJECTS_TYPE = "[DomainObject]";
+    private static final String DOMAIN_OBJECT_TYPE = "DomainObject";
 
     private final static Logger log = LoggerFactory.getLogger(MergeServiceImpl.class);
+
 
     private final BitMaskingUtil bitMaskingUtil;
 
@@ -121,6 +125,13 @@ public class MergeServiceImpl
     public MergeOptions getOptions()
     {
         return options;
+    }
+
+
+    @Override
+    public void flush()
+    {
+        versions.clear();
     }
 
 
@@ -287,10 +298,10 @@ public class MergeServiceImpl
                 else
                 {
                     addForeignKeyConflicts(changeConflicts);
-                    final List<MergeConflict> realConflicts = addManyToManyConflicts(changeConflicts);
+                    final List<MergeConflict> correctedConflicts = addManyToManyConflicts(changeConflicts);
 
                     // if all our conflicts disappeared, we can repeat the store with new versions
-                    if (realConflicts.isEmpty() && options.isAllowAutoMerge())
+                    if (allConflictsDecided(correctedConflicts) && options.isAllowAutoMerge())
                     {
                         log.debug("Conflicts empty after validating many-to-many conflicts. Auto-merge engaged.");
 
@@ -331,14 +342,16 @@ public class MergeServiceImpl
                     }
                     else
                     {
-                        changeConflicts = realConflicts;
+                        changeConflicts = correctedConflicts;
                     }
                 }
             } while (repeat);
 
             final List<MergeConflict> deletionConflicts = executeDeletes(entityDeletions);
 
-            if (changeConflicts.isEmpty() && deletionConflicts.isEmpty())
+            final int changeCount = changeConflicts.size();
+            final int deleteCount = deletionConflicts.size();
+            if (changeCount == 0 && deleteCount == 0)
             {
                 log.debug("Storing version records: {}", versionRecords);
 
@@ -357,11 +370,11 @@ public class MergeServiceImpl
             }
             else
             {
-                // we have unresolved merge conflicts, so our transaction has failed
+                // we have unresolved merge conflicts / resolved conflicts with auto-merge disabled, so our transaction has failed
                 TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 
                 final List<MergeConflict> mergeConflicts = new ArrayList<>(
-                    changeConflicts.size() + deletionConflicts.size()
+                    changeCount + deleteCount
                 );
                 mergeConflicts.addAll(changeConflicts);
                 mergeConflicts.addAll(deletionConflicts);
@@ -371,6 +384,7 @@ public class MergeServiceImpl
                 return new MergeResult(mergeConflicts);
             }
         }
+
 
 
 
@@ -460,7 +474,7 @@ public class MergeServiceImpl
                         );
 
                         MergeTypeInfo mergeTypeInfo = getMergeTypeInfo(domainType);
-                        final BigInteger fields = changesForEntity
+                        final BigInteger fieldMask = changesForEntity
                             .stream()
                             .filter( c -> !typeConfig.isIgnored(c.getField()) )
                             .map( c -> bitMaskingUtil.getMask( mergeTypeInfo.getFieldIndex(c.getField()) ))
@@ -469,7 +483,7 @@ public class MergeServiceImpl
 
                         entityVersion = new EntityVersion(
                             newVersion,
-                            fields,
+                            fieldMask,
                             AutomatonAuthentication.current().getId(),
                             Timestamp.from(Instant.now()),
                             domainType,
@@ -491,6 +505,7 @@ public class MergeServiceImpl
                     if (isVersioned && resultCount != 1)
                     {
                         versionRecords.remove(entityVersion);
+
                         final MergeConflict mergeConflict = createMergeConflict(
                             domainType,
                             table,
@@ -501,7 +516,7 @@ public class MergeServiceImpl
                         );
 
                         // if we have no actual merge conflict and auto-merging is allowed
-                        if (mergeConflict.getFields().isEmpty() && options.isAllowAutoMerge())
+                        if (mergeConflict.isDecided() && options.isAllowAutoMerge())
                         {
                             // we update our version assumption and repeat the whole insert/update
                             ourVersion = mergeConflict.getTheirVersion();
@@ -642,8 +657,9 @@ public class MergeServiceImpl
                 List<MergeConflictField> newFields = new ArrayList<>(conflict.getFields().size());
                 for (MergeConflictField field : conflict.getFields())
                 {
-                    if (field.getTheirs().getType().equals(LIST_OF_DOMAIN_OBJECTS))
+                    if (field.getTheirs().getType().equals(LIST_OF_DOMAIN_OBJECTS_TYPE) && !field.isInformational())
                     {
+
                         final Set<Object> ourIds = ((List<DomainObject>) field.getOurs().getValue()).stream()
                             .map(obj -> obj.getProperty(DomainObject.ID))
                             .collect(Collectors.toSet());
@@ -662,7 +678,17 @@ public class MergeServiceImpl
                         else
                         {
                             log.debug("Selected ids match! ids = {}. Ignoring field conflict", ourIds);
+
+                            newFields.add(
+                                new MergeConflictField(
+                                    field.getName(),
+                                    field.getOurs(),
+                                    field.getTheirs(),
+                                    MergeFieldStatus.THEIRS
+                                )
+                            );
                         }
+
                     }
                     else
                     {
@@ -670,16 +696,9 @@ public class MergeServiceImpl
                     }
                 }
 
-                if (newFields.size() > 0)
-                {
-                    newConflicts.add(
-                        conflict.copy(newFields)
-                    );
-                }
-                else
-                {
-                    log.debug("Ignoring conflict");
-                }
+                newConflicts.add(
+                    conflict.copy(newFields)
+                );
             }
 
             return newConflicts;
@@ -783,13 +802,24 @@ public class MergeServiceImpl
                 }
 
                 final MergeConflict mergeConflict = result.get();
+
+                final MergeConflictField fkFieldConflict = getConflictField(
+                    mergeConflict,
+                    relationModel.getSourceFields().get(0)
+                );
+                final boolean informational = fkFieldConflict.isInformational();
+
                 GenericDomainObject domainObject = mapDomainObject(targetType, fieldLookup, record);
+                final MergeConflictField objectFieldConflict = new MergeConflictField(
+                    relationModel.getLeftSideObjectName(),
+                    null,
+                    new GenericScalar(DOMAIN_OBJECT_TYPE, domainObject),
+                    informational ? MergeFieldStatus.THEIRS : MergeFieldStatus.UNDECIDED
+                );
+
+                objectFieldConflict.setInformational(informational);
                 mergeConflict.getFields().add(
-                    new MergeConflictField(
-                        relationModel.getLeftSideObjectName(),
-                        null,
-                        new GenericScalar("DomainObject", domainObject)
-                    )
+                    objectFieldConflict
                 );
                 return domainObject;
             });
@@ -884,6 +914,10 @@ public class MergeServiceImpl
 
             Map<String, Field<Object>> fieldLookup = new HashMap<>();
 
+            final String idTypeName = GraphQLTypeUtil.unwrapNonNull(
+                    targetGraphQLType.getFieldDefinition("id").getType()
+                ).getName();
+
             // Add all non-null scalar fields
             targetGraphQLType.getFieldDefinitions()
                 .stream()
@@ -927,7 +961,7 @@ public class MergeServiceImpl
                 final MergeConflict mergeConflict = result.get();
 
 
-                final String rowSourceId = (String) record.get(sourceIdField);
+                final Object rowSourceId = record.get(sourceIdField);
                 final String rowSourceVersion = (String) record.get(sourceVersionField);
 
                 final MergeConflictField field = getConflictField(mergeConflict, fieldName);
@@ -935,7 +969,13 @@ public class MergeServiceImpl
 
                 GenericDomainObject domainObject = mapDomainObject(targetType, fieldLookup, record);
                 values.add(domainObject);
-                field.getReferences().add(new EntityReference(rightSideRelation.getSourceType() , rowSourceId, rowSourceVersion));
+                field.getReferences().add(
+                    new EntityReference(
+                        rightSideRelation.getSourceType(),
+                        new GenericScalar(idTypeName, rowSourceId),
+                        rowSourceVersion
+                    )
+                );
 
                 return domainObject;
             });
@@ -967,9 +1007,6 @@ public class MergeServiceImpl
 
             throw new IllegalStateException("Could not find merge conflict field for '" + fieldName + "'");
         }
-
-
-
 
         private MergeConflict createMergeConflict(
             String domainType,
@@ -1021,7 +1058,8 @@ public class MergeServiceImpl
                             new MergeConflictField(
                                 field,
                                 new GenericScalar(scalarType, ourValue),
-                                null
+                                null,
+                                MergeFieldStatus.UNDECIDED
                             )
                         );
                     }
@@ -1043,12 +1081,14 @@ public class MergeServiceImpl
                 final String theirVersion = (String) util.getProperty(current, options.getVersionField());
                 conflict.setTheirVersion(theirVersion);
 
+                final GraphQLObjectType graphQLType = (GraphQLObjectType) domainQL.getGraphQLSchema()
+                    .getType(domainType);
+
+                final List<GraphQLFieldDefinition> fields = graphQLType.getFieldDefinitions();
+
                 if (isDeleted)
                 {
-                    final GraphQLObjectType graphQLType = (GraphQLObjectType) domainQL.getGraphQLSchema()
-                        .getType(domainType);
-
-                    for (GraphQLFieldDefinition fieldDef : graphQLType.getFieldDefinitions())
+                    for (GraphQLFieldDefinition fieldDef : fields)
                     {
                         final String name = fieldDef.getName();
 
@@ -1060,7 +1100,8 @@ public class MergeServiceImpl
                                 new MergeConflictField(
                                     name,
                                     null,
-                                    new GenericScalar(type.getName(), theirValue)
+                                    new GenericScalar(type.getName(), theirValue),
+                                    MergeFieldStatus.UNDECIDED
                                 )
                             );
 
@@ -1076,6 +1117,11 @@ public class MergeServiceImpl
                     {
                         log.debug("change mask is null. We found no record for version {}", ourVersion);
                     }
+
+
+                    // get a copy of our changed mask to quickly erase bits from
+                    final byte[] changedBytes = changedMask != null ? changedMask.toByteArray() : getAllChangedMask(fields.size());
+                    final int lastByte = changedBytes.length - 1;
 
                     for (EntityFieldChange change : changesForEntity)
                     {
@@ -1097,59 +1143,169 @@ public class MergeServiceImpl
                             theirValue = util.getProperty(current, field);
                         }
 
+                        // lookup the index the current field has in its type
+                        final int fieldIndex = mergeTypeInfo.getFieldIndex(field);
+
                         final boolean conflictingFieldEdits = (
                             changedMask == null ||
                             bitMaskingUtil.check(
                                 changedMask,
-                                mergeTypeInfo.getFieldIndex(field)
+                                fieldIndex
                             )
                         );
                         
+                        final String scalarType = genericScalar.getType();
                         if (conflictingFieldEdits)
                         {
-                            // We can't compare the list yet because we don't have the values
-                            // we assume a conflict here and validate that later
-                            if (isList || !theirValue.equals(ourValue))
+                            // if the value of a conflicting edit is actually the same, it's no conflict.
+                            // if it's a list we can't compare it yet, so we assume a conflict here and validate that later
+                            // when we have loaded the values.
+                            if (!theirValue.equals(ourValue) || isList)
                             {
                                 log.debug("Conflicting field '{}' does not match (isList = {})", field, isList);
 
-                                String scalarType = genericScalar.getType();
                                 conflictFields.add(
                                     new MergeConflictField(
                                         field,
                                         new GenericScalar(scalarType, ourValue),
-                                        new GenericScalar(scalarType, theirValue)
+                                        new GenericScalar(scalarType, theirValue),
+                                        MergeFieldStatus.UNDECIDED
                                     )
                                 );
 
+                            }
+                            else
+                            {
+                                conflictFields.add(
+                                    new MergeConflictField(
+                                        field,
+                                        new GenericScalar(scalarType, ourValue),
+                                        new GenericScalar(scalarType, theirValue),
+                                        MergeFieldStatus.THEIRS,
+                                        true
+                                    )
+                                );
+                            }
+                        }
+                        else
+                        {
+                            conflictFields.add(
+                                new MergeConflictField(
+                                    field,
+                                    new GenericScalar(scalarType, ourValue),
+                                    new GenericScalar(scalarType, theirValue),
+                                    MergeFieldStatus.OURS,
+                                    true
+                                )
+                            );
+                        }
+
+                        if (isList)
+                        {
+                            final RelationKey key = new RelationKey(domainType, field);
+                            final Set<Object> ids = manyToManyEntities.computeIfAbsent(
+                                key,
+                                t -> new HashSet<>()
+                            );
+                            ids.add(idScalar.getValue());
+                        }
+                        else
+                        {
+                            // is our current field a foreign key id field?
+                            final RelationModel relationModel = mergeTypeInfo.getForeignKeysMap().get(field);
+                            if (relationModel != null)
+                            {
                                 final RelationKey key = new RelationKey(domainType, field);
-                                if (isList)
+                                final Set<Object> ids = foreignKeyEntities.computeIfAbsent(
+                                    key,
+                                    t -> new HashSet<>()
+                                );
+                                ids.add(idScalar.getValue());
+                            }
+                        }
+
+                        // to end up with a byte array containing only 1 bits for fields that have been changed by others,
+                        // but not by the current user we erase the bit of each field in the changed set
+                        final int index = fieldIndex / 8;
+                        final int byteMask = ~(1 << (fieldIndex - (index * 8)));
+                        changedBytes[lastByte - index] &= byteMask;
+
+                    }
+
+                    // iterate over all remaining set bits
+                    int fieldIndex = 0;
+                    for (int index = lastByte; index >= 0; index--)
+                    {
+                        byte currentByte = changedBytes[index];
+                        int indexInByte = fieldIndex;
+                        for (int bit = 0; bit < 8 && currentByte != 0; bit++)
+                        {
+                            if ((currentByte & 1) == 1)
+                            {
+                                final GraphQLFieldDefinition fieldDef = fields.get(indexInByte);
+                                final String name = fieldDef.getName();
+
+                                final GraphQLUnmodifiedType fieldType = GraphQLTypeUtil.unwrapAll(fieldDef.getType());
+                                final boolean isScalarType = fieldType instanceof GraphQLScalarType;
+                                final boolean isList = GraphQLTypeUtil.isList(GraphQLTypeUtil.unwrapNonNull(fieldDef.getType()));
+
+                                Object theirValue;
+                                if (isScalarType)
                                 {
-                                    final Set<Object> ids = manyToManyEntities.computeIfAbsent(
-                                        key,
-                                        t -> new HashSet<>()
+                                    theirValue = util.getProperty(current, name);
+
+                                    conflictFields.add(
+                                        new MergeConflictField(
+                                            name,
+                                            null,
+                                            new GenericScalar(fieldType.getName(), theirValue),
+                                            MergeFieldStatus.THEIRS,
+                                            true
+                                        )
                                     );
-                                    ids.add(idScalar.getValue());
-                                }
-                                else
-                                {
+
                                     // is our current field a foreign key id field?
-                                    final RelationModel relationModel = mergeTypeInfo.getForeignKeysMap().get(field);
+                                    final RelationModel relationModel = mergeTypeInfo.getForeignKeysMap().get(name);
                                     if (relationModel != null)
                                     {
+                                        final RelationKey key = new RelationKey(domainType, name);
                                         final Set<Object> ids = foreignKeyEntities.computeIfAbsent(
                                             key,
                                             t -> new HashSet<>()
                                         );
                                         ids.add(idScalar.getValue());
                                     }
+
+                                }
+                                else if (isList)
+                                {
+                                    theirValue = isList ? new ArrayList<>() : null;
+
+                                    conflictFields.add(
+                                        new MergeConflictField(
+                                            name,
+                                            null,
+                                            new GenericScalar(
+                                                isList ? LIST_OF_DOMAIN_OBJECTS_TYPE : DOMAIN_OBJECT_TYPE,
+                                                theirValue
+                                            ),
+                                            MergeFieldStatus.THEIRS,
+                                            true
+                                        )
+                                    );
+
+                                    final RelationKey key = new RelationKey(domainType, name);
+                                    final Set<Object> ids = manyToManyEntities.computeIfAbsent(
+                                        key,
+                                        t -> new HashSet<>()
+                                    );
+                                    ids.add(idScalar.getValue());
                                 }
                             }
-                            else
-                            {
-                                log.debug("Conflicting field '{}' matches current value", field);
-                            }
+                            currentByte >>>= 1;
+                            indexInByte++;
                         }
+                        fieldIndex += 8;
                     }
                 }
 
@@ -1158,6 +1314,29 @@ public class MergeServiceImpl
 
             return conflict;
         }
+    }
+
+
+    private static byte[] getAllChangedMask(int size)
+    {
+        // round up byte size
+        final int byteSize = (size + 7) >> 3;
+        final byte[] data = new byte[byteSize];
+        Arrays.fill(data, (byte) -1);
+        return data;
+    }
+
+
+    private static boolean allConflictsDecided(List<MergeConflict> realConflicts)
+    {
+        for (MergeConflict conflict : realConflicts)
+        {
+            if (!conflict.isDecided())
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     ////////////////////////////////////////////////// SCHEDULED JOBS //////////////////////////////////////////////////

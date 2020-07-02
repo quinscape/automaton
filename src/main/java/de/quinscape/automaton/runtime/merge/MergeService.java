@@ -32,4 +32,5 @@ public interface MergeService
         return new MergeServiceBuilder(domainQL, dslContext);
     }
 
+    void flush();
 }
