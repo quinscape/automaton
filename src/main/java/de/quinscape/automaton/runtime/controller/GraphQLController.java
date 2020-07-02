@@ -1,5 +1,6 @@
 package de.quinscape.automaton.runtime.controller;
 
+import de.quinscape.automaton.runtime.config.AutomatonCSRFExceptions;
 import de.quinscape.automaton.runtime.util.GraphQLUtil;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import graphql.ExecutionResult;
@@ -38,7 +39,7 @@ public class GraphQLController
     /**
      * Special development GraphQL end point that is active if 
      */
-    public final static String GRAPHQL_DEV_URI = "/graphql-dev";
+    public final static String GRAPHQL_DEV_URI = AutomatonCSRFExceptions.DEV_SERVICES_PATH +  "graphql";
 
 
     @Autowired
@@ -64,7 +65,7 @@ public class GraphQLController
 
     /**
      * Special development graphql endpoint that is accessible without CSRF protection if the environment property
-     * <em>automatontest.graphql.dev</em> is set to <code>true</code>.
+     * <em>automatontest.crsf.dev</em> is set to <code>true</code>.
      *
      * This dedicated end point allows access to GraphQL queries from the IDE (without session/CSRF). 
      *

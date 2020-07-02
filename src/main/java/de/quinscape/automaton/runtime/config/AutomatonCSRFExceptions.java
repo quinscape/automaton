@@ -1,16 +1,18 @@
 package de.quinscape.automaton.runtime.config;
 
-import de.quinscape.automaton.runtime.controller.GraphQLController;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashSet;
 import java.util.Set;
 
-public class AllowDevGraphQLAccess
+public class AutomatonCSRFExceptions
     implements RequestMatcher
 {
     private static final Set<String> DEFAULT_IGNORED_METHODS;
+
+    public static final String DEV_SERVICES_PATH ="/_dev/";
+
     static
     {
         Set<String> set = new HashSet<>();
@@ -21,19 +23,19 @@ public class AllowDevGraphQLAccess
         DEFAULT_IGNORED_METHODS = set;
     }
 
-    private final boolean allowDevGraphQLAccess;
+    private final boolean csrfExceptions;
 
     private final Set<String> ignoredMethods;
 
 
-    public AllowDevGraphQLAccess(boolean allowDevGraphQLAccess)
+    public AutomatonCSRFExceptions(boolean csrfExceptions)
     {
-        this(allowDevGraphQLAccess, DEFAULT_IGNORED_METHODS);
+        this(csrfExceptions, DEFAULT_IGNORED_METHODS);
     }
 
-    public AllowDevGraphQLAccess(boolean allowDevGraphQLAccess, Set<String> ignoredMethods)
+    public AutomatonCSRFExceptions(boolean csrfExceptions, Set<String> ignoredMethods)
     {
-        this.allowDevGraphQLAccess = allowDevGraphQLAccess;
+        this.csrfExceptions = csrfExceptions;
         this.ignoredMethods = ignoredMethods;
     }
 
@@ -50,8 +52,8 @@ public class AllowDevGraphQLAccess
         // require all requests to be requested unless allowDevGraphQLAccess is set and the request is to the special dev graphql URI
         return
             !(
-                allowDevGraphQLAccess &&
-                request.getRequestURI().equals(request.getContextPath() + GraphQLController.GRAPHQL_DEV_URI)
+                csrfExceptions &&
+                request.getRequestURI().startsWith(request.getContextPath() + DEV_SERVICES_PATH)
             );
     }
 }
