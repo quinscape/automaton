@@ -3,9 +3,10 @@ package de.quinscape.automaton.runtime.filter.impl;
 
 import de.quinscape.automaton.runtime.filter.ConfigurableFilter;
 import de.quinscape.automaton.runtime.filter.Filter;
-import de.quinscape.automaton.runtime.filter.FilterContext;
+import de.quinscape.automaton.runtime.filter.FilterEvaluationContext;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -50,7 +51,7 @@ public final class LikeRegexFilter
 
 
     @Override
-    public Object evaluate(FilterContext ctx)
+    public Object evaluate(FilterEvaluationContext ctx)
     {
         Pattern pattern = this.pattern;
         if (pattern == null)
@@ -71,5 +72,10 @@ public final class LikeRegexFilter
     public Filter getOperandB()
     {
         return operandB;
+    }
+
+    public String toString()
+    {
+        return toString(this, Arrays.asList(operandA, operandB));
     }
 }

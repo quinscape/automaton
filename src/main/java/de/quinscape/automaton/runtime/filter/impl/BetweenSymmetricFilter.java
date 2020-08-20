@@ -2,7 +2,7 @@ package de.quinscape.automaton.runtime.filter.impl;
         
 
 import de.quinscape.automaton.runtime.filter.Filter;
-import de.quinscape.automaton.runtime.filter.FilterContext;
+import de.quinscape.automaton.runtime.filter.FilterEvaluationContext;
 import de.quinscape.automaton.runtime.filter.ConfigurableFilter;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
 
@@ -44,7 +44,7 @@ public final class BetweenSymmetricFilter
 
 
     @Override
-    public Object evaluate(FilterContext ctx)
+    public Object evaluate(FilterEvaluationContext ctx)
     {
         final Long valueA = ensureNumber(operandA.evaluate(ctx));
         Long valueB = ensureNumber(operandB.evaluate(ctx));
@@ -75,5 +75,10 @@ public final class BetweenSymmetricFilter
     public Filter getOperandC()
     {
         return operandC;
+    }
+
+    public String toString()
+    {
+        return "BetweenSymmetricFilter(" + operandA + " between " + operandB + " and " + operandC + ")";
     }
 }

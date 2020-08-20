@@ -2,10 +2,11 @@ package de.quinscape.automaton.runtime.filter.impl;
 
 
 import de.quinscape.automaton.runtime.filter.Filter;
-import de.quinscape.automaton.runtime.filter.FilterContext;
+import de.quinscape.automaton.runtime.filter.FilterEvaluationContext;
 import de.quinscape.automaton.runtime.filter.ConfigurableFilter;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -43,7 +44,7 @@ public final class ModuloFilter
 
 
     @Override
-    public Object evaluate(FilterContext ctx)
+    public Object evaluate(FilterEvaluationContext ctx)
     {
         final Long valueA = ensureNumber(operandA.evaluate(ctx));
         final Long valueB = ensureNumber(operandB.evaluate(ctx));
@@ -60,5 +61,10 @@ public final class ModuloFilter
     public Filter getOperandB()
     {
         return operandB;
+    }
+
+    public String toString()
+    {
+        return toString(this, Arrays.asList(operandA, operandB));
     }
 }

@@ -1,7 +1,7 @@
 package de.quinscape.automaton.runtime.filter.impl;
 
 import de.quinscape.automaton.runtime.filter.Filter;
-import de.quinscape.automaton.runtime.filter.FilterContext;
+import de.quinscape.automaton.runtime.filter.FilterEvaluationContext;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ public final class OrFilter
     }
 
     @Override
-    public Object evaluate(FilterContext ctx)
+    public Object evaluate(FilterEvaluationContext ctx)
     {
         for (Filter operand : getOperands())
         {
@@ -42,5 +42,10 @@ public final class OrFilter
     public List<? extends Filter> getOperands()
     {
         return operands;
+    }
+
+    public String toString()
+    {
+        return toString(this, operands);
     }
 }

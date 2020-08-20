@@ -3,7 +3,7 @@ package de.quinscape.automaton.runtime.filter.impl;
 
 import de.quinscape.automaton.runtime.filter.ConfigurableFilter;
 import de.quinscape.automaton.runtime.filter.Filter;
-import de.quinscape.automaton.runtime.filter.FilterContext;
+import de.quinscape.automaton.runtime.filter.FilterEvaluationContext;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -21,7 +21,7 @@ public final class IsNotDistinctFromFilter
 
 
     @Override
-    public Object evaluate(FilterContext ctx)
+    public Object evaluate(FilterEvaluationContext ctx)
     {
         return null;
     }

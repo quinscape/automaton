@@ -3,9 +3,10 @@ package de.quinscape.automaton.runtime.filter.impl;
 
 import de.quinscape.automaton.runtime.filter.ConfigurableFilter;
 import de.quinscape.automaton.runtime.filter.Filter;
-import de.quinscape.automaton.runtime.filter.FilterContext;
+import de.quinscape.automaton.runtime.filter.FilterEvaluationContext;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -45,7 +46,7 @@ public final class InFilter
 
 
     @Override
-    public Object evaluate(FilterContext ctx)
+    public Object evaluate(FilterEvaluationContext ctx)
     {
         final Object valueA = operandA.evaluate(ctx);
 
@@ -67,5 +68,10 @@ public final class InFilter
     public List<Object> getValues()
     {
         return values;
+    }
+
+    public String toString()
+    {
+        return "IN(" + operandA + " in " + values + ")";
     }
 }

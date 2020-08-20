@@ -1,7 +1,9 @@
 package de.quinscape.automaton.runtime.filter.impl;
 
 import de.quinscape.automaton.runtime.filter.Filter;
-import de.quinscape.automaton.runtime.filter.FilterContext;
+import de.quinscape.automaton.runtime.filter.FilterEvaluationContext;
+
+import java.util.Arrays;
 
 public final class FieldValue
     implements Filter
@@ -16,8 +18,13 @@ public final class FieldValue
 
 
     @Override
-    public Object evaluate(FilterContext ctx)
+    public Object evaluate(FilterEvaluationContext ctx)
     {
         return ctx.resolveField(name);
+    }
+
+    public String toString()
+    {
+        return "FieldValue(" + name + ")";
     }
 }

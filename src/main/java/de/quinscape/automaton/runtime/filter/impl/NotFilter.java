@@ -1,7 +1,7 @@
 package de.quinscape.automaton.runtime.filter.impl;
 
 import de.quinscape.automaton.runtime.filter.Filter;
-import de.quinscape.automaton.runtime.filter.FilterContext;
+import de.quinscape.automaton.runtime.filter.FilterEvaluationContext;
 
 public final class NotFilter
     implements Filter
@@ -17,7 +17,7 @@ public final class NotFilter
 
 
     @Override
-    public Object evaluate(FilterContext ctx)
+    public Object evaluate(FilterEvaluationContext ctx)
     {
         return !(boolean)filter.evaluate(ctx);
     }

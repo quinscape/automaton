@@ -2,10 +2,11 @@ package de.quinscape.automaton.runtime.filter.impl;
         
 
 import de.quinscape.automaton.runtime.filter.Filter;
-import de.quinscape.automaton.runtime.filter.FilterContext;
+import de.quinscape.automaton.runtime.filter.FilterEvaluationContext;
 import de.quinscape.automaton.runtime.filter.ConfigurableFilter;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -41,7 +42,7 @@ public final class ContainsIgnoreCaseFilter
 
 
     @Override
-    public Object evaluate(FilterContext ctx)
+    public Object evaluate(FilterEvaluationContext ctx)
     {
         final String valueA = operandA.evaluate(ctx).toString().toUpperCase();
         final String valueB = operandB.evaluate(ctx).toString().toUpperCase();
@@ -56,5 +57,10 @@ public final class ContainsIgnoreCaseFilter
     public Filter getOperandB()
     {
         return operandB;
+    }
+
+    public String toString()
+    {
+        return toString(this, Arrays.asList(operandA, operandB));
     }
 }

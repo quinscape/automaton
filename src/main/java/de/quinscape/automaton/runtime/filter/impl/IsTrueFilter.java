@@ -2,10 +2,11 @@ package de.quinscape.automaton.runtime.filter.impl;
         
 
 import de.quinscape.automaton.runtime.filter.Filter;
-import de.quinscape.automaton.runtime.filter.FilterContext;
+import de.quinscape.automaton.runtime.filter.FilterEvaluationContext;
 import de.quinscape.automaton.runtime.filter.ConfigurableFilter;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -39,7 +40,7 @@ public final class IsTrueFilter
 
 
     @Override
-    public Object evaluate(FilterContext ctx)
+    public Object evaluate(FilterEvaluationContext ctx)
     {
         final Object valueA = operandA.evaluate(ctx);
         return Objects.equals(valueA, Boolean.TRUE);
@@ -49,5 +50,10 @@ public final class IsTrueFilter
     public Filter getOperandA()
     {
         return operandA;
+    }
+
+    public String toString()
+    {
+        return toString(this, Collections.singletonList(operandA));
     }
 }

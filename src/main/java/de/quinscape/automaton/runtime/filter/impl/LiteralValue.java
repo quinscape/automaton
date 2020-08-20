@@ -1,7 +1,9 @@
 package de.quinscape.automaton.runtime.filter.impl;
 
 import de.quinscape.automaton.runtime.filter.Filter;
-import de.quinscape.automaton.runtime.filter.FilterContext;
+import de.quinscape.automaton.runtime.filter.FilterEvaluationContext;
+
+import java.util.Arrays;
 
 public final class LiteralValue
     implements Filter
@@ -19,7 +21,7 @@ public final class LiteralValue
 
 
     @Override
-    public Object evaluate(FilterContext ctx)
+    public Object evaluate(FilterEvaluationContext ctx)
     {
         return value;
     }
@@ -34,5 +36,10 @@ public final class LiteralValue
     public Object getValue()
     {
         return value;
+    }
+
+    public String toString()
+    {
+        return "LiteralValue(" + value + ", type = " + scalarType + ")";
     }
 }
