@@ -53,13 +53,13 @@ public class GraphQLController
 
     @RequestMapping(value = GRAPHQL_URI, method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> serveGraphQL(
-        @RequestBody Map body
+        @RequestBody Map<String,Object> body
         //@RequestParam("cid") String connectionId
     )
     {
         log.debug("Received query: {}", body);
 
-        return executeGraphQLQuery(body, null);
+        return executeGraphQLQuery(body);
     }
 
 
@@ -74,15 +74,19 @@ public class GraphQLController
      */
     @Profile("dev")
     @RequestMapping(value = GRAPHQL_DEV_URI, method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> serveGraphQLDev(@RequestBody Map body)
+    public ResponseEntity<String> serveGraphQLDev(@RequestBody Map<String,Object> body)
     {
-        return executeGraphQLQuery(body, null);
+        return executeGraphQLQuery(body);
     }
 
 
-    private ResponseEntity<String> executeGraphQLQuery(@RequestBody Map queryMap, Object context)
+    private ResponseEntity<String> executeGraphQLQuery(@RequestBody Map<String, Object> queryMap)
     {
-        ExecutionResult executionResult = GraphQLUtil.executeGraphQLQuery(graphQL, queryMap, context);
+        ExecutionResult executionResult = GraphQLUtil.executeGraphQLQuery(
+            graphQL,
+            queryMap,
+            null
+        );
 
         final List<GraphQLError> errors = executionResult.getErrors();
         if (errors.size() > 0)

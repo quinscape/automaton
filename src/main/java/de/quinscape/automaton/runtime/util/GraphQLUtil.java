@@ -19,16 +19,38 @@ public final class GraphQLUtil
         // no instances
     }
 
+    /**
+     * Key of the query string within the parameter map.
+     */
+    public final static String QUERY = "query";
+
+    /**
+     * Key of the variables map within the parameter map.
+     */
+    public final static String VARIABLES = "variables";
+
     public static ExecutionResult executeGraphQLQuery(
         GraphQL graphQL,
-        @RequestBody Map queryMap,
+        Map<String, Object> parameterMap,
         Object context
     )
     {
-        String query = (String) queryMap.get("query");
-        Map<String, Object> variables = (Map<String, Object>) queryMap.get("variables");
-        //log.debug("/graphql: query = {}, vars = {}", query, variables);
+        ExecutionInput executionInput = ExecutionInput.newExecutionInput()
+            .query(getQuery(parameterMap))
+            .variables(getVariables(parameterMap))
+            .context(context)
+            .build();
 
+        return graphQL.execute(executionInput);
+    }
+
+    public static ExecutionResult executeGraphQLQuery(
+        GraphQL graphQL,
+        String query,
+        Map<String, Object> variables,
+        Object context
+    )
+    {
         ExecutionInput executionInput = ExecutionInput.newExecutionInput()
             .query(query)
             .variables(variables)
@@ -57,6 +79,16 @@ public final class GraphQLUtil
         {
             return inputTypeName;
         }
+    }
+
+    public static String getQuery(Map<String,Object> parameters)
+    {
+        return (String) parameters.get(QUERY);
+    }
+
+    public static Map<String,Object> getVariables(Map<String,Object> parameters)
+    {
+        return (Map<String,Object>) parameters.get(VARIABLES);
     }
 
 }

@@ -14,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -143,27 +145,29 @@ public class DefaultProcessInjectionService
             final Object firstArg = args.get(0);
 
             final String query;
-            final Object variables;
+            final Map<String,Object> variables;
 
             final String identifier;
-            final Map<String, Object> queryMap;
             if (firstArg instanceof Map && ( identifier = (String) ((Map) firstArg).get("__identifier")) != null)
             {
-                queryMap = findNamedQuery(moduleName, refsMap, identifier);
+                final Map<String, Object> parameterMap = findNamedQuery(moduleName, refsMap, identifier);
+                query = GraphQLUtil.getQuery(parameterMap);
+                variables = GraphQLUtil.getVariables(parameterMap);
             }
             else
             {
                 query = (String) firstArg;
-                queryMap = new HashMap<>();
-                queryMap.put("query", query);
                 if (args.size() > 1)
                 {
-                    variables = args.get(1);
-                    queryMap.put("variables", variables);
+                    variables = (Map<String,Object>)args.get(1);
+                }
+                else
+                {
+                    variables = Collections.emptyMap();
                 }
             }
 
-            final ExecutionResult result = GraphQLUtil.executeGraphQLQuery(graphQL, queryMap, null);
+            final ExecutionResult result = GraphQLUtil.executeGraphQLQuery(graphQL, query, variables, null);
             final List<GraphQLError> errors = result.getErrors();
             if (errors.size() != 0)
             {
@@ -175,7 +179,7 @@ public class DefaultProcessInjectionService
             {
                 throw new AutomatonInjectionException("Data result must contain exactly one key");
             }
-            injections.put((String) queryMap.get("query"), data);
+            injections.put(query, data);
         }
         return injections;
     }
@@ -218,7 +222,7 @@ public class DefaultProcessInjectionService
                     throw new IllegalStateException("query(query[, variables]): Invalid argument: " + query);
                 }
 
-                map.put("query", query);
+                map.put(GraphQLUtil.QUERY, query);
 
                 if (args.size() > 1)
                 {
@@ -227,7 +231,7 @@ public class DefaultProcessInjectionService
                     {
                         throw new IllegalStateException("query(query[, variables]): Invalid variables argument: " + vars);
                     }
-                    map.put("variables", vars);
+                    map.put(GraphQLUtil.VARIABLES, vars);
                 }
                 return map;
             }

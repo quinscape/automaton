@@ -1,9 +1,11 @@
 package de.quinscape.automaton.runtime.message;
 
 import de.quinscape.automaton.model.message.IncomingMessage;
+import de.quinscape.automaton.runtime.util.GraphQLUtil;
 import de.quinscape.automaton.runtime.ws.AutomatonClientConnection;
 import de.quinscape.domainql.DomainQL;
 import graphql.ExecutionInput;
+import graphql.ExecutionResult;
 import graphql.GraphQL;
 
 import java.util.List;
@@ -44,17 +46,15 @@ public class GraphQLMessageHandler
 
         Map<String,Object> mapIn = (Map<String, Object>) msg.getPayload();
 
-        String query = (String) mapIn.get("query");
-        Map<String, Object> variables = (Map<String, Object>) mapIn.get("variables");
         //log.debug("/graphql: query = {}, vars = {}", query, variables);
 
-        ExecutionInput executionInput = ExecutionInput.newExecutionInput()
-            .query(query)
-            .variables(variables)
-            .context(connection.getConnectionId())
-            .build();
+        final ExecutionResult executionResult = GraphQLUtil.executeGraphQLQuery(
+            graphQL,
+            mapIn,
+            connection.getConnectionId()
+        );
 
-        Map<String, Object> result = graphQL.execute(executionInput).toSpecification();
+        Map<String, Object> result = executionResult.toSpecification();
 
         final List errors = (List) result.get("errors");
         if (errors != null && errors.size() > 0)
