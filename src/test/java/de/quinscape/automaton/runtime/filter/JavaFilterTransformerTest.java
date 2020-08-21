@@ -1,5 +1,7 @@
 package de.quinscape.automaton.runtime.filter;
 
+import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
+import de.quinscape.automaton.runtime.data.DefaultFilterContextRegistry;
 import de.quinscape.automaton.runtime.filter.impl.IsFalseFilter;
 import de.quinscape.automaton.runtime.filter.impl.IsTrueFilter;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
@@ -15,6 +17,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.*;
@@ -22,8 +25,7 @@ import static org.hamcrest.Matchers.*;
 
 public class JavaFilterTransformerTest
 {
-    private final DomainQL domainQL = DomainQL.newDomainQL(null).build();
-    private final JavaFilterTransformer transformer = new JavaFilterTransformer();
+    private final static Logger log = LoggerFactory.getLogger(JavaFilterTransformerTest.class);
 
     private final DomainQL domainQL = DomainQL.newDomainQL(null).build();
 
@@ -46,8 +48,8 @@ public class JavaFilterTransformerTest
             "}");
 
 
-        assertThat(filter.evaluate(new FilterContext(new FilterTestTarget("a", 0, false))), is(false));
-        assertThat(filter.evaluate(new FilterContext(new FilterTestTarget("a", 0, true))), is(true));
+        assertThat(filter.evaluate(new FilterEvaluationContext( new FilterTestTarget("a", 0, false))), is(false));
+        assertThat(filter.evaluate(new FilterEvaluationContext(new FilterTestTarget("a", 0, true))), is(true));
 
     }
 
@@ -76,8 +78,8 @@ public class JavaFilterTransformerTest
             "}");
 
 
-        assertThat(filter.evaluate(new FilterContext(new FilterTestTarget("a", 0, false))), is(true));
-        assertThat(filter.evaluate(new FilterContext(new FilterTestTarget("a", 0, true))), is(false));
+        assertThat(filter.evaluate(new FilterEvaluationContext(new FilterTestTarget("a", 0, false))), is(true));
+        assertThat(filter.evaluate(new FilterEvaluationContext(new FilterTestTarget("a", 0, true))), is(false));
 
     }
 
@@ -98,29 +100,33 @@ public class JavaFilterTransformerTest
             "}");
 
 
-        assertThat(filter.evaluate(new FilterContext(null)), is(false));
+        assertThat(filter.evaluate(new FilterEvaluationContext(null)), is(false));
 
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testWrongFieldReference()
     {
-        //language=JSON
-        final IsTrueFilter filter = (IsTrueFilter) fromJSON("{\n" +
-            "    \"type\": \"Condition\",\n" +
-            "    \"name\": \"isTrue\",\n" +
-            "    \"operands\": [\n" +
-            "        {\n" +
-            "            \"type\": \"Field\",\n" +
-            "            \"name\": \"nonExisting\"\n" +
-            "        " +
-            "}\n" +
-            "    ]\n" +
-            "}");
+        Assertions.assertThrows(
+            IllegalArgumentException.class,
+            () -> {
+                //language=JSON
+                final IsTrueFilter filter = (IsTrueFilter) fromJSON("{\n" +
+                    "    \"type\": \"Condition\",\n" +
+                    "    \"name\": \"isTrue\",\n" +
+                    "    \"operands\": [\n" +
+                    "        {\n" +
+                    "            \"type\": \"Field\",\n" +
+                    "            \"name\": \"nonExisting\"\n" +
+                    "        " +
+                    "}\n" +
+                    "    ]\n" +
+                    "}");
 
 
-        assertThat(filter.evaluate(new FilterContext(new FilterTestTarget("a", 0, false))), is(false));
-
+                assertThat(filter.evaluate(new FilterEvaluationContext(new FilterTestTarget("a", 0, false))), is(false));
+            }
+        );
     }
 
     @Test
@@ -180,10 +186,10 @@ public class JavaFilterTransformerTest
             "}");
 
 
-        assertThat(filter.evaluate(new FilterContext(new FilterTestTarget("aaa", 0, false))), is(true));
-        assertThat(filter.evaluate(new FilterContext(new FilterTestTarget("bbb", 0, true))), is(true));
-        assertThat(filter.evaluate(new FilterContext(new FilterTestTarget("ccc", 0, true))), is(true));
-        assertThat(filter.evaluate(new FilterContext(new FilterTestTarget("ddd", 0, true))), is(false));
+        assertThat(filter.evaluate(new FilterEvaluationContext(new FilterTestTarget("aaa", 0, false))), is(true));
+        assertThat(filter.evaluate(new FilterEvaluationContext(new FilterTestTarget("bbb", 0, true))), is(true));
+        assertThat(filter.evaluate(new FilterEvaluationContext(new FilterTestTarget("ccc", 0, true))), is(true));
+        assertThat(filter.evaluate(new FilterEvaluationContext(new FilterTestTarget("ddd", 0, true))), is(false));
 
     }
 
@@ -229,9 +235,9 @@ public class JavaFilterTransformerTest
             "}");
 
 
-        assertThat(filter.evaluate(new FilterContext(new FilterTestTarget("aaa", 0, false))), is(false));
-        assertThat(filter.evaluate(new FilterContext(new FilterTestTarget(null, 65, false))), is(false));
-        assertThat(filter.evaluate(new FilterContext(new FilterTestTarget("aaa", 65, false))), is(true));
+        assertThat(filter.evaluate(new FilterEvaluationContext(new FilterTestTarget("aaa", 0, false))), is(false));
+        assertThat(filter.evaluate(new FilterEvaluationContext(new FilterTestTarget(null, 65, false))), is(false));
+        assertThat(filter.evaluate(new FilterEvaluationContext(new FilterTestTarget("aaa", 65, false))), is(true));
 
     }
 
@@ -256,13 +262,18 @@ public class JavaFilterTransformerTest
             "}\n");
 
 
-        assertThat(filter.evaluate(new FilterContext(new FilterCoercionTarget("aaa", Timestamp.from(Instant.parse("2019-11-01T12:00:00.000Z"))))), is(false));
-        assertThat(filter.evaluate(new FilterContext(new FilterCoercionTarget("bbb", Timestamp.from(Instant.parse("2019-12-02T12:00:00.000Z"))))), is(true));
+        assertThat(filter.evaluate(new FilterEvaluationContext(new FilterCoercionTarget("aaa", Timestamp.from(Instant.parse("2019-11-01T12:00:00.000Z"))))), is(false));
+        assertThat(filter.evaluate(new FilterEvaluationContext(new FilterCoercionTarget("bbb", Timestamp.from(Instant.parse("2019-12-02T12:00:00.000Z"))))), is(true));
 
     }
 
 
     private Filter fromJSON(String json)
+    {
+        return fromJSON(this.transformer, json);
+    }
+
+    private Filter fromJSON(JavaFilterTransformer transformer, String json)
     {
         final Map<String, Object> map;
         if (json != null)
@@ -273,7 +284,7 @@ public class JavaFilterTransformerTest
         {
             map = null;
         }
-        return transformer.transform(JavaFilterTransformer.deserialize(domainQL, map, copy));
+        return transformer.transform(JavaFilterTransformer.deserialize(domainQL, map, false));
     }
 
     @Test
@@ -331,10 +342,13 @@ public class JavaFilterTransformerTest
     }
 
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void test_isDistinctFrom()
     {
-        testNumberOperation("isDistinctFrom", 10, 2, 0);
+        Assertions.assertThrows(
+            IllegalStateException.class,
+            () -> testNumberOperation("isDistinctFrom", 10, 2, 0)
+        );
     }
 
 
@@ -635,10 +649,10 @@ public class JavaFilterTransformerTest
     }
 
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void test_isNotDistinctFrom()
     {
-        testStringOperation("isNotDistinctFrom", "aaa", "bbb", true);
+        Assertions.assertThrows(IllegalStateException.class, () -> testStringOperation("isNotDistinctFrom", "aaa", "bbb", true));
     }
 
 
@@ -672,10 +686,10 @@ public class JavaFilterTransformerTest
             "}");
 
 
-        assertThat(filter.evaluate(new FilterContext(new FilterTestTarget("aaa", 0, true))), is(true));
-        assertThat(filter.evaluate(new FilterContext(new FilterTestTarget("bbb", 0, true))), is(true));
-        assertThat(filter.evaluate(new FilterContext(new FilterTestTarget("ccc", 0, true))), is(true));
-        assertThat(filter.evaluate(new FilterContext(new FilterTestTarget("ddd", 0, true))), is(false));
+        assertThat(filter.evaluate(new FilterEvaluationContext(new FilterTestTarget("aaa", 0, true))), is(true));
+        assertThat(filter.evaluate(new FilterEvaluationContext(new FilterTestTarget("bbb", 0, true))), is(true));
+        assertThat(filter.evaluate(new FilterEvaluationContext(new FilterTestTarget("ccc", 0, true))), is(true));
+        assertThat(filter.evaluate(new FilterEvaluationContext(new FilterTestTarget("ddd", 0, true))), is(false));
 
     }
 
@@ -714,5 +728,97 @@ public class JavaFilterTransformerTest
         final Object expected = listOfArgs.get(listOfArgs.size() - 1);
 
         assertThat( transformer.transform(ConditionBuilder.condition(name, operands)).evaluate(null), is(expected));
+    }
+
+    @Test
+    public void testFilterContext()
+    {
+
+        DefaultFilterContextRegistry registry = new DefaultFilterContextRegistry();
+
+        final AtomicInteger authCount = new AtomicInteger();
+
+        registry.register("test", "https://quinscape.de");
+        registry.register("auth", ctx -> {
+
+            authCount.incrementAndGet();
+
+            return AutomatonAuthentication.current();
+        });
+        registry.register("userId", ctx -> {
+
+            AutomatonAuthentication auth = ctx.resolveContext("auth");
+            return auth.getId();
+        });
+        registry.register("login", ctx -> {
+
+            AutomatonAuthentication auth = ctx.resolveContext("auth");
+            return auth.getLogin();
+        });
+
+
+
+        final JavaFilterTransformer transformer = new JavaFilterTransformer();
+
+        //language=JSON
+        final Filter filter = fromJSON(transformer, "{\n" +
+            "    \"type\": \"Condition\",\n" +
+            "    \"name\": \"or\",\n" +
+            "    \"operands\": [\n" +
+            "        {\n" +
+            "            \"type\": \"Condition\",\n" +
+            "            \"name\": \"eq\",\n" +
+            "            \"operands\": [\n" +
+            "                {\n" +
+            "                    \"type\": \"Field\",\n" +
+            "                    \"name\": \"userId\"\n" +
+            "                },\n" +
+            "                {\n" +
+            "                    \"type\": \"Context\",\n" +
+            "                    \"name\": \"userId\"\n" +
+            "                }\n" +
+            "            ]\n" +
+            "        },\n" +
+            "        {\n" +
+            "            \"type\": \"Condition\",\n" +
+            "            \"name\": \"eq\",\n" +
+            "            \"operands\": [\n" +
+            "                {\n" +
+            "                    \"type\": \"Field\",\n" +
+            "                    \"name\": \"login\"\n" +
+            "                },\n" +
+            "                {\n" +
+            "                    \"type\": \"Context\",\n" +
+            "                    \"name\": \"login\"\n" +
+            "                }\n" +
+            "            ]\n" +
+            "        },\n" +
+            "        {\n" +
+            "            \"type\": \"Condition\",\n" +
+            "            \"name\": \"eq\",\n" +
+            "            \"operands\": [\n" +
+            "                {\n" +
+            "                    \"type\": \"Field\",\n" +
+            "                    \"name\": \"url\"\n" +
+            "                },\n" +
+            "                {\n" +
+            "                    \"type\": \"Context\",\n" +
+            "                    \"name\": \"test\"\n" +
+            "                }\n" +
+            "            ]\n" +
+            "        }\n" +
+            "    ]\n" +
+            "}");
+
+        CachedFilterContextResolver resolver = new CachedFilterContextResolver(registry);
+
+        assertThat(filter.evaluate(new FilterEvaluationContext(resolver, new FilterContextTestTarget(AutomatonAuthentication.ANONYMOUS_ID, "", ""))), is(true));
+        assertThat(filter.evaluate(new FilterEvaluationContext(resolver, new FilterContextTestTarget("", AutomatonAuthentication.ANONYMOUS, ""))), is(true));
+        assertThat(filter.evaluate(new FilterEvaluationContext(resolver, new FilterContextTestTarget("", AutomatonAuthentication.ANONYMOUS, "https://quinscape.de"))), is(true));
+        assertThat(filter.evaluate(new FilterEvaluationContext(resolver, new FilterContextTestTarget("", "", ""))), is(false));
+
+        // auth was only called once due to the cached filter context resolver
+        assertThat(authCount.get(), is(1));
+
     }
 }

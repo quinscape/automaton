@@ -99,6 +99,9 @@ public final class ConditionCoercing
             case FIELD:
                 output = ConditionBuilder.field( ConditionBuilder.getName(input));
                 break;
+            case CONTEXT:
+                output = ConditionBuilder.context( ConditionBuilder.getName(input));
+                break;
             case VALUE:
             {
 

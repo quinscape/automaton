@@ -1,6 +1,8 @@
 package de.quinscape.automaton.runtime.pubsub;
 
 import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
+import de.quinscape.automaton.runtime.data.DefaultFilterContextRegistry;
+import de.quinscape.automaton.runtime.data.FilterContextRegistry;
 import de.quinscape.automaton.runtime.filter.Filter;
 import de.quinscape.automaton.runtime.filter.JavaFilterTransformer;
 import de.quinscape.automaton.runtime.util.Base32;
@@ -18,9 +20,11 @@ import org.svenson.util.JSONPathUtil;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static de.quinscape.automaton.runtime.scalar.ConditionBuilder.*;
 import static org.hamcrest.MatcherAssert.*;
@@ -35,7 +39,9 @@ public class PubSubServiceTest
     private final static JSONPathUtil pathUtil = new JSONPathUtil(JSONUtil.OBJECT_SUPPORT);
     private final static JSONBeanUtil util = JSONUtil.DEFAULT_UTIL;
 
-    private PubSubService pubSubSvc = new DefaultPubSubService();
+    private FilterContextRegistry registry = new DefaultFilterContextRegistry();
+
+    private PubSubService pubSubSvc = new DefaultPubSubService(registry);
 
     private JavaFilterTransformer javaFilterTransformer = new JavaFilterTransformer();
 
@@ -52,6 +58,7 @@ public class PubSubServiceTest
     @Test
     public void testPubSub() throws IOException
     {
+
 
         final String cid = Base32.uuid();
         TestWebSocketSession session = new TestWebSocketSession(cid);
@@ -132,11 +139,21 @@ public class PubSubServiceTest
         assertThat(test.getRegistrationsByConnection().size(), is(1));
         assertThat(test.getRegistrationsByConnection().get(0).size(), is(0));
         //assertThat(test.getRegistrationsByConnection().get(1).size(), is(0));
+
     }
 
     @Test
     public void testFilteredPubSub() throws IOException
     {
+
+        final AtomicInteger counter = new AtomicInteger(0);
+
+        registry.register("contextValue", ctx -> {
+
+            counter.incrementAndGet();
+
+            return 3456;
+        });
 
         final String cid = Base32.uuid();
         TestWebSocketSession session = new TestWebSocketSession(cid);
@@ -168,10 +185,18 @@ public class PubSubServiceTest
 
 
         final Filter filter2 = javaFilterTransformer.transform(
-            condition("eq", Arrays.asList(
-                field("num"),
-                value("Int", 3456)
-            ))
+            or(
+                Arrays.asList(
+                    condition("eq", Arrays.asList(
+                        field("num"),
+                        context("contextValue")
+                    )),
+                    condition("eq", Arrays.asList(
+                        field("name"),
+                        context("contextValue")
+                    ))
+                )
+            )
         );
 
         pubSubSvc.subscribe(topicListener, testTopic, filter2);
@@ -226,6 +251,8 @@ public class PubSubServiceTest
         assertThat(testPayload.getName(), is("bbb"));
         assertThat(testPayload.getNum(), is(3456));
 
+        // cached once per publish
+        assertThat(counter.get(), is(2));
 
     }
 }

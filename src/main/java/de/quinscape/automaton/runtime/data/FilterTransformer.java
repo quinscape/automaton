@@ -2,6 +2,7 @@ package de.quinscape.automaton.runtime.data;
 
 import com.esotericsoftware.reflectasm.MethodAccess;
 import de.quinscape.automaton.runtime.AutomatonException;
+import de.quinscape.automaton.runtime.filter.CachedFilterContextResolver;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
 import de.quinscape.automaton.runtime.scalar.ConditionScalar;
 import de.quinscape.automaton.runtime.scalar.FieldExpressionScalar;
@@ -37,12 +38,26 @@ public class FilterTransformer
 
     private static JSON JSON_GEN = JSONUtil.DEFAULT_GENERATOR;
 
+    private final FilterContextRegistry registry;
+
+    public FilterTransformer()
+    {
+        this(null);
+    }
+    public FilterTransformer(FilterContextRegistry registry)
+    {
+        this.registry = registry;
+    }
+
 
     public Condition transform(
         FieldResolver fieldResolver, ConditionScalar conditionScalar
     )
     {
-        final Object transformed = transformRecursive(fieldResolver, conditionScalar.getRoot());
+
+        final CachedFilterContextResolver resolver = new CachedFilterContextResolver(registry);
+
+        final Object transformed = transformRecursive(resolver, fieldResolver, conditionScalar.getRoot());
 
 //        if (!(transformed instanceof Condition))
 //        {
@@ -56,7 +71,9 @@ public class FilterTransformer
         FieldResolver fieldResolver, FieldExpressionScalar fieldExpressionScalar
     )
     {
-        final Object transformed = transformRecursive(fieldResolver, fieldExpressionScalar.getRoot());
+        final CachedFilterContextResolver resolver = new CachedFilterContextResolver(registry);
+
+        final Object transformed = transformRecursive(resolver, fieldResolver, fieldExpressionScalar.getRoot());
 
         if (transformed == null)
         {
@@ -72,42 +89,42 @@ public class FilterTransformer
 
 
     private Object transformRecursive(
-        FieldResolver fieldResolver,
-        Map<String, Object> condition
+        CachedFilterContextResolver resolver, FieldResolver fieldResolver,
+        Map<String, Object> node
     )
     {
-        if (condition == null)
+        if (node == null)
         {
             return DSL.trueCondition();
         }
 
         final NodeType nodeType = NodeType.forName(
-            ConditionBuilder.getType(condition)
+            ConditionBuilder.getType(node)
         );
 
         switch (nodeType)
         {
             case COMPONENT:
             {
-                final Map<String, Object> kid = ConditionBuilder.getCondition(condition);
-                return transformRecursive(fieldResolver, kid);
+                final Map<String, Object> kid = ConditionBuilder.getCondition(node);
+                return transformRecursive(resolver, fieldResolver, kid);
             }
             case CONDITION:
             {
 
-                final String name = ConditionBuilder.getName(condition);
-                final List<Map<String, Object>> operands = ConditionBuilder.getOperands(condition);
+                final String name = ConditionBuilder.getName(node);
+                final List<Map<String, Object>> operands = ConditionBuilder.getOperands(node);
 
                 if (name.equals("and"))
                 {
                     return DSL.and(
-                        transformOperands(fieldResolver, operands)
+                        transformOperands(resolver, fieldResolver, operands)
                     );
                 }
                 else if (name.equals("or"))
                 {
                     return DSL.or(
-                        transformOperands(fieldResolver, operands)
+                        transformOperands(resolver, fieldResolver, operands)
                     );
                 }
                 else if (name.equals("not"))
@@ -117,28 +134,28 @@ public class FilterTransformer
                         throw new IllegalStateException("Not has only one argument");
                     }
 
-                    final List<? extends Condition> conditions = transformOperands(fieldResolver, operands);
+                    final List<? extends Condition> conditions = transformOperands(resolver, fieldResolver, operands);
                     return DSL.not(
                         conditions.get(0)
                     );
                 }
                 else
                 {
-                    return invokeFieldMethod(fieldResolver, condition);
+                    return invokeFieldMethod(resolver,fieldResolver, node);
                 }
             }
             case FIELD:
             {
-                final String name = ConditionBuilder.getName(condition);
+                final String name = ConditionBuilder.getName(node);
                 return fieldResolver.resolveField(name);
             }
             case VALUE:
             {
-                return DSL.val(ConditionBuilder.getValue(condition));
+                return DSL.val(ConditionBuilder.getValue(node));
             }
             case VALUES:
             {
-                final Collection<?> values = ConditionBuilder.getValues(condition);
+                final Collection<?> values = ConditionBuilder.getValues(node);
                 final List<Object> vals = new ArrayList<>(values.size());
                 for (Object value : values)
                 {
@@ -148,7 +165,12 @@ public class FilterTransformer
             }
             case OPERATION:
             {
-                return invokeFieldMethod(fieldResolver, condition);
+                return invokeFieldMethod(resolver, fieldResolver, node);
+            }
+            case CONTEXT:
+            {
+                final String name = ConditionBuilder.getName(node);
+                return DSL.val(resolver.invokeProvider(resolver.resolveContext(name)));
             }
             default:
                 throw new AutomatonException("Unhandled node type: " + nodeType);
@@ -157,7 +179,7 @@ public class FilterTransformer
 
 
     private Object invokeFieldMethod(
-        FieldResolver fieldResolver,
+        CachedFilterContextResolver resolver, FieldResolver fieldResolver,
         Map<String, Object> condition
     )
     {
@@ -170,6 +192,7 @@ public class FilterTransformer
         }
 
         final Object value = transformRecursive(
+            resolver,
             fieldResolver,
             operands.get(0)
         );
@@ -194,11 +217,12 @@ public class FilterTransformer
         {
             holder = existing;
         }
-        return holder.invoke(field, transformRestOfOperands(fieldResolver, operands));
+        return holder.invoke(field, transformRestOfOperands(resolver, fieldResolver, operands));
     }
 
 
     private Object[] transformRestOfOperands(
+        CachedFilterContextResolver resolver,
         FieldResolver fieldResolver,
         List<Map<String, Object>> operands
     )
@@ -206,14 +230,14 @@ public class FilterTransformer
         Object[] array = new Object[operands.size() - 1];
         for (int i = 1; i < operands.size(); i++)
         {
-            array[i - 1] = transformRecursive(fieldResolver, operands.get(i));
+            array[i - 1] = transformRecursive(resolver, fieldResolver, operands.get(i));
         }
         return array;
     }
 
 
     private List<? extends Condition> transformOperands(
-        FieldResolver fieldResolver,
+        CachedFilterContextResolver resolver, FieldResolver fieldResolver,
         List<Map<String, Object>> operands
     )
     {
@@ -222,6 +246,7 @@ public class FilterTransformer
         for (Map<String, Object> operand : operands)
         {
             final Object value = transformRecursive(
+                resolver,
                 fieldResolver,
                 operand
             );

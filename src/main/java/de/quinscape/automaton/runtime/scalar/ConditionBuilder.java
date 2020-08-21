@@ -56,7 +56,7 @@ public class ConditionBuilder
 
     public static String getName(Map<String,Object> node)
     {
-        assertType(node, NodeType.CONDITION, NodeType.OPERATION, NodeType.FIELD, NodeType.VALUE);
+        assertType(node, NodeType.CONDITION, NodeType.OPERATION, NodeType.FIELD, NodeType.VALUE, NodeType.CONTEXT);
         return (String) node.get(NAME_FIELD);
     }
 
@@ -110,7 +110,7 @@ public class ConditionBuilder
 
     public static void setName(Map<String,Object> node, String name)
     {
-        assertType(node, NodeType.CONDITION, NodeType.OPERATION, NodeType.FIELD, NodeType.VALUE);
+        assertType(node, NodeType.CONDITION, NodeType.OPERATION, NodeType.FIELD, NodeType.VALUE, NodeType.CONTEXT);
 
         node.put(NAME_FIELD, name);
     }
@@ -358,5 +358,20 @@ public class ConditionBuilder
         mapImpl = cls;
     }
 
+
+    /**
+     * Create a context reference node the value of which will be resolved at filter transformation or execution time.
+     *
+     * @param name  context name, must match a field context declared in the application.
+     *
+     * @return  context node
+     */
+    public static Map<String, Object> context(String name)
+    {
+        final Map<String, Object> out = createMap();
+        setType(out ,NodeType.CONTEXT.getName());
+        setName(out, name);
+        return out;
+    }
 
 }

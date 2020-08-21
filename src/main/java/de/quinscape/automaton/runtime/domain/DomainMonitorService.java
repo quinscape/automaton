@@ -3,7 +3,7 @@ package de.quinscape.automaton.runtime.domain;
 import de.quinscape.automaton.model.domainmon.ActivityType;
 import de.quinscape.automaton.model.domainmon.DomainActivity;
 import de.quinscape.automaton.runtime.filter.Filter;
-import de.quinscape.automaton.runtime.filter.FilterContext;
+import de.quinscape.automaton.runtime.filter.FilterEvaluationContext;
 import de.quinscape.automaton.runtime.message.ConnectionListener;
 import de.quinscape.automaton.runtime.pubsub.PubSubService;
 import de.quinscape.automaton.runtime.pubsub.SubscriptionListener;
@@ -79,7 +79,7 @@ public class DomainMonitorService
 
                 for (DomainActivity activity : domainActivities)
                 {
-                    final FilterContext ctx = new FilterContext(activity);
+                    final FilterEvaluationContext ctx = new FilterEvaluationContext(activity);
                     if (filter == null || filter.evaluate(ctx).equals(Boolean.TRUE))
                     {
                         log.debug("Send to {}/id={}: {}", connection.getConnectionId(), id, activity);

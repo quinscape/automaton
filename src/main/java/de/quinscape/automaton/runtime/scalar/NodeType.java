@@ -7,7 +7,8 @@ public enum NodeType
     VALUE("Value"),
     VALUES("Values"),
     OPERATION("Operation"),
-    COMPONENT("Component");
+    COMPONENT("Component"),
+    CONTEXT("Context");
 
     private final String name;
 

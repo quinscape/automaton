@@ -1,12 +1,8 @@
 package de.quinscape.automaton.runtime.filter;
 
 import de.quinscape.automaton.runtime.AutomatonException;
-import de.quinscape.automaton.runtime.filter.impl.AndFilter;
-import de.quinscape.automaton.runtime.filter.impl.FieldValue;
-import de.quinscape.automaton.runtime.filter.impl.LiteralValue;
-import de.quinscape.automaton.runtime.filter.impl.NotFilter;
-import de.quinscape.automaton.runtime.filter.impl.OrFilter;
 import de.quinscape.automaton.runtime.filter.impl.AddFilter;
+import de.quinscape.automaton.runtime.filter.impl.AndFilter;
 import de.quinscape.automaton.runtime.filter.impl.BetweenFilter;
 import de.quinscape.automaton.runtime.filter.impl.BetweenSymmetricFilter;
 import de.quinscape.automaton.runtime.filter.impl.BitAndFilter;
@@ -18,10 +14,12 @@ import de.quinscape.automaton.runtime.filter.impl.BitXNorFilter;
 import de.quinscape.automaton.runtime.filter.impl.BitXorFilter;
 import de.quinscape.automaton.runtime.filter.impl.ContainsFilter;
 import de.quinscape.automaton.runtime.filter.impl.ContainsIgnoreCaseFilter;
+import de.quinscape.automaton.runtime.filter.impl.ContextValue;
 import de.quinscape.automaton.runtime.filter.impl.DivideFilter;
 import de.quinscape.automaton.runtime.filter.impl.EndsWithFilter;
 import de.quinscape.automaton.runtime.filter.impl.EqualFilter;
 import de.quinscape.automaton.runtime.filter.impl.EqualIgnoreCaseFilter;
+import de.quinscape.automaton.runtime.filter.impl.FieldValue;
 import de.quinscape.automaton.runtime.filter.impl.GreaterOrEqualFilter;
 import de.quinscape.automaton.runtime.filter.impl.GreaterThanFilter;
 import de.quinscape.automaton.runtime.filter.impl.InFilter;
@@ -34,6 +32,7 @@ import de.quinscape.automaton.runtime.filter.impl.IsTrueFilter;
 import de.quinscape.automaton.runtime.filter.impl.LessOrEqualFilter;
 import de.quinscape.automaton.runtime.filter.impl.LessThanFilter;
 import de.quinscape.automaton.runtime.filter.impl.LikeRegexFilter;
+import de.quinscape.automaton.runtime.filter.impl.LiteralValue;
 import de.quinscape.automaton.runtime.filter.impl.ModuloFilter;
 import de.quinscape.automaton.runtime.filter.impl.MultiplyFilter;
 import de.quinscape.automaton.runtime.filter.impl.NotBetweenFilter;
@@ -42,7 +41,9 @@ import de.quinscape.automaton.runtime.filter.impl.NotContainsFilter;
 import de.quinscape.automaton.runtime.filter.impl.NotContainsIgnoreCaseFilter;
 import de.quinscape.automaton.runtime.filter.impl.NotEqualFilter;
 import de.quinscape.automaton.runtime.filter.impl.NotEqualIgnoreCaseFilter;
+import de.quinscape.automaton.runtime.filter.impl.NotFilter;
 import de.quinscape.automaton.runtime.filter.impl.NotLikeRegexFilter;
+import de.quinscape.automaton.runtime.filter.impl.OrFilter;
 import de.quinscape.automaton.runtime.filter.impl.PowerFilter;
 import de.quinscape.automaton.runtime.filter.impl.ShlFilter;
 import de.quinscape.automaton.runtime.filter.impl.ShrFilter;
@@ -82,7 +83,6 @@ public class JavaFilterTransformer
         filters = createDefaultFilters();
         filters.putAll(extraFilters);
     }
-
 
     private static Map<String, Class<? extends ConfigurableFilter>> createDefaultFilters()
     {
@@ -154,6 +154,12 @@ public class JavaFilterTransformer
 
     public Filter transform(Map<String,Object> condition)
     {
+        return transformInternal(condition);
+    }
+
+
+    private Filter transformInternal(Map<String, Object> condition)
+    {
 
         if (condition == null)
         {
@@ -169,7 +175,7 @@ public class JavaFilterTransformer
             case COMPONENT:
             {
                 final Map<String, Object> kid = ConditionBuilder.getCondition(condition);
-                return transform(kid);
+                return transformInternal(kid);
             }
             case CONDITION:
             {
@@ -220,6 +226,12 @@ public class JavaFilterTransformer
             {
                 return transformByName(condition);
             }
+
+            case CONTEXT:
+            {
+                final String name = ConditionBuilder.getName(condition);
+                return new ContextValue(name);
+            }
             default:
                 throw new AutomatonException("Unhandled node type: " + nodeType);
         }
@@ -240,7 +252,9 @@ public class JavaFilterTransformer
     }
 
 
-    private Filter transformByName(Map<String, Object> condition)
+    private Filter transformByName(
+        Map<String, Object> condition
+    )
     {
         final String name = ConditionBuilder.getName(condition);
 
@@ -249,7 +263,7 @@ public class JavaFilterTransformer
             final Filter filter = filters.get(name).newInstance();
             if (filter instanceof ConfigurableFilter)
             {
-                ((ConfigurableFilter) filter).configure(this::transform, condition);
+                ((ConfigurableFilter) filter).configure(node -> transformInternal(node), condition);
             }
             return filter;
         }
@@ -261,12 +275,14 @@ public class JavaFilterTransformer
     }
 
 
-    private List<? extends Filter> transformOperands(List<Map<String, Object>> operands)
+    private List<? extends Filter> transformOperands(
+        List<Map<String, Object>> operands
+    )
     {
         List<Filter> list = new ArrayList<>(operands.size());
         for (Map<String, Object> operand : operands)
         {
-            final Filter value = transform(operand);
+            final Filter value = transformInternal(operand);
             if (value != null)
             {
                 list.add(value);
@@ -357,8 +373,9 @@ public class JavaFilterTransformer
                 return out;
             }
             case FIELD:
+            case CONTEXT:
             {
-                // filter can't contain values, never change
+                // filter and context can't contain values, never change
                 return filter;
             }
             case VALUE:

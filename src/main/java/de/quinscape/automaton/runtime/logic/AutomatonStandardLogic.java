@@ -8,11 +8,13 @@ import de.quinscape.automaton.model.merge.MergeResolution;
 import de.quinscape.automaton.model.merge.MergeResult;
 import de.quinscape.automaton.model.merge.EntityDeletion;
 import de.quinscape.automaton.runtime.AutomatonException;
+import de.quinscape.automaton.runtime.data.FilterContextRegistry;
 import de.quinscape.automaton.runtime.data.FilterTransformer;
 import de.quinscape.automaton.runtime.data.SimpleFieldResolver;
 import de.quinscape.automaton.runtime.domain.IdGenerator;
 import de.quinscape.automaton.runtime.domain.op.BatchStoreOperation;
 import de.quinscape.automaton.runtime.domain.op.StoreOperation;
+import de.quinscape.automaton.runtime.filter.CachedFilterContextResolver;
 import de.quinscape.automaton.runtime.merge.MergeService;
 import de.quinscape.automaton.runtime.scalar.ConditionScalar;
 import de.quinscape.automaton.runtime.util.GraphQLUtil;
@@ -55,6 +57,8 @@ public class AutomatonStandardLogic
 {
     private final static Logger log = LoggerFactory.getLogger(AutomatonStandardLogic.class);
 
+    private static final GenericScalar NULL = new GenericScalar("String", null);
+
     private final DSLContext dslContext;
 
     private final DomainQL domainQL;
@@ -69,6 +73,8 @@ public class AutomatonStandardLogic
 
     private final MergeService mergeService;
 
+    private final FilterContextRegistry registry;
+
     private final SimpleFieldResolver simpleFieldResolver = new SimpleFieldResolver();
 
 
@@ -79,7 +85,8 @@ public class AutomatonStandardLogic
         StoreOperation storeOperation,
         BatchStoreOperation batchStoreOperation,
         FilterTransformer filterTransformer,
-        MergeService mergeService
+        MergeService mergeService,
+        FilterContextRegistry registry
     )
     {
         this.dslContext = dslContext;
@@ -89,6 +96,7 @@ public class AutomatonStandardLogic
         this.batchStoreOperation = batchStoreOperation;
         this.filterTransformer = filterTransformer;
         this.mergeService = mergeService;
+        this.registry = registry;
     }
 
 
@@ -623,4 +631,44 @@ public class AutomatonStandardLogic
     {
         throw new UnsupportedOperationException("End-point exists only for documentation/schema purposes");
     }
+
+
+    /**
+     * Resolves filter context values without executing them in a filter. Only use this if you need the actual values of
+     * filter contexts on the client side. The normal usage of context values is to embed <code>context()</code> nodes
+     * in filters.
+     *
+     * @param names     Name of the filter context values to return
+     *
+     * @return list of resolved filter context values
+     */
+    @GraphQLQuery
+    public List<GenericScalar> resolveFilterContext(@NotNull List<String> names)
+    {
+        final CachedFilterContextResolver resolver = new CachedFilterContextResolver(registry);
+        return names
+            .stream()
+            .map(
+                name -> {
+                    final Object contextValue = resolver.invokeProvider(
+                        resolver.resolveContext(name)
+                    );
+
+                    if (contextValue == null)
+                    {
+                        return NULL;
+                    }
+                    else
+                    {
+                        final String scalarType = domainQL.getTypeRegistry()
+                            .getGraphQLScalarFor(contextValue.getClass(), null)
+                            .getName();
+
+                        return new GenericScalar(scalarType, contextValue);
+                    }
+                }
+            )
+            .collect(Collectors.toList());
+    }
+
 }

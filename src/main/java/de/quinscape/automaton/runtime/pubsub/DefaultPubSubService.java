@@ -2,8 +2,10 @@ package de.quinscape.automaton.runtime.pubsub;
 
 import de.quinscape.automaton.model.pubsub.TopicUpdate;
 import de.quinscape.automaton.runtime.AutomatonException;
+import de.quinscape.automaton.runtime.data.FilterContextRegistry;
 import de.quinscape.automaton.runtime.filter.Filter;
-import de.quinscape.automaton.runtime.filter.FilterContext;
+import de.quinscape.automaton.runtime.filter.FilterContextResolver;
+import de.quinscape.automaton.runtime.filter.FilterEvaluationContext;
 import de.quinscape.automaton.runtime.message.AutomatonWebSocketHandlerAware;
 import de.quinscape.automaton.runtime.message.ConnectionListener;
 import de.quinscape.automaton.runtime.ws.AutomatonClientConnection;
@@ -32,10 +34,15 @@ public final class DefaultPubSubService
 
     private final List<SubscriptionListener> subscriptionListeners;
 
+    private final FilterContextRegistry registry;
+
     private AutomatonWebSocketHandler webSocketHandler;
 
-    public DefaultPubSubService()
+    public DefaultPubSubService(
+        FilterContextRegistry registry
+    )
     {
+        this.registry = registry;
         subscriptionListeners = new CopyOnWriteArrayList<>();
     }
 
@@ -200,7 +207,7 @@ public final class DefaultPubSubService
         }
 
 
-        final FilterContext ctx = new FilterContext(payload);
+        final FilterEvaluationContext ctx = new FilterEvaluationContext(registry, payload);
 
         final List<Recipient> recipients = new ArrayList<>();
 

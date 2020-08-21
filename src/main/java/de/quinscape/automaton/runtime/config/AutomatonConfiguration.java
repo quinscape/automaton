@@ -4,7 +4,10 @@ import de.quinscape.automaton.model.js.StaticFunctionReferences;
 import de.quinscape.automaton.runtime.controller.GraphQLController;
 import de.quinscape.automaton.runtime.controller.ProcessController;
 import de.quinscape.automaton.runtime.controller.ScopeSyncController;
+import de.quinscape.automaton.runtime.data.DefaultFilterContextRegistry;
 import de.quinscape.automaton.runtime.data.DefaultInteractiveQueryService;
+import de.quinscape.automaton.runtime.data.FilterContextConfiguration;
+import de.quinscape.automaton.runtime.data.FilterContextRegistry;
 import de.quinscape.automaton.runtime.data.FilterTransformer;
 import de.quinscape.automaton.runtime.data.InteractiveQueryService;
 import de.quinscape.automaton.runtime.domain.IdGenerator;
@@ -27,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -40,6 +44,7 @@ import org.springframework.web.socket.config.annotation.EnableWebSocket;
 
 import javax.servlet.ServletContext;
 import java.io.IOException;
+import java.util.Map;
 
 
 /**
@@ -79,14 +84,17 @@ public class AutomatonConfiguration
     private final static Logger log = LoggerFactory.getLogger(AutomatonConfiguration.class);
 
 
+    private final ApplicationContext applicationContext;
     private final ServletContext servletContext;
 
 
     @Autowired
     public AutomatonConfiguration(
+        ApplicationContext applicationContext,
         ServletContext servletContext
     )
     {
+        this.applicationContext = applicationContext;
         this.servletContext = servletContext;
     }
 
@@ -99,6 +107,7 @@ public class AutomatonConfiguration
         StoreOperation storeOperation,
         BatchStoreOperation batchStoreOperation,
         FilterTransformer filterTransformer,
+        FilterContextRegistry registry,
         @Lazy @Autowired(required = false) MergeService mergeService
     )
     {
@@ -109,7 +118,8 @@ public class AutomatonConfiguration
             storeOperation,
             batchStoreOperation,
             filterTransformer,
-            mergeService
+            mergeService,
+            registry
         );
     }
 
@@ -138,6 +148,7 @@ public class AutomatonConfiguration
         ProcessInjectionService processInjectionService
     )
     {
+
         return new ProcessController(
             processInjectionService
         );
@@ -149,7 +160,11 @@ public class AutomatonConfiguration
         ResourceHandle<StaticFunctionReferences> handle
     ) 
     {
-        return new DefaultProcessInjectionService( handle, graphQL);
+
+        return new DefaultProcessInjectionService(
+            handle,
+            graphQL
+        );
     }
 
     @Bean
@@ -195,7 +210,24 @@ public class AutomatonConfiguration
     @Bean
     public FilterTransformer filterTransformer()
     {
-        return new FilterTransformer();
+        return new FilterTransformer(
+            filterContextRegistry()
+        );
+    }
+
+    @Bean
+    public FilterContextRegistry filterContextRegistry()
+    {
+        final Map<String, FilterContextConfiguration> configurationMap = applicationContext.getBeansOfType(
+            FilterContextConfiguration.class);
+
+        final DefaultFilterContextRegistry registry = new DefaultFilterContextRegistry();
+
+        configurationMap.values().forEach(
+            configuration -> configuration.configure(registry)
+        );
+
+        return registry;
     }
 
     @Bean
