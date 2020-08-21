@@ -8,7 +8,7 @@ import de.quinscape.automaton.runtime.ws.DefaultAutomatonClientConnection;
 import de.quinscape.automaton.runtime.ws.DefaultAutomatonWebSocketHandler;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.spring.jsview.util.JSONUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.TextMessage;

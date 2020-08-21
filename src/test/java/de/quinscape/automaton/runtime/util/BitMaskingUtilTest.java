@@ -1,7 +1,7 @@
 package de.quinscape.automaton.runtime.util;
 
 import com.google.common.math.BigIntegerMath;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

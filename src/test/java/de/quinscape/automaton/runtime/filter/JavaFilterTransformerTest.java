@@ -5,7 +5,10 @@ import de.quinscape.automaton.runtime.filter.impl.IsTrueFilter;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.spring.jsview.util.JSONUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -17,31 +20,14 @@ import java.util.stream.Collectors;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-
-@RunWith(Parameterized.class)
 public class JavaFilterTransformerTest
 {
     private final DomainQL domainQL = DomainQL.newDomainQL(null).build();
     private final JavaFilterTransformer transformer = new JavaFilterTransformer();
 
-    private final boolean copy;
+    private final DomainQL domainQL = DomainQL.newDomainQL(null).build();
 
-
-    /**
-     * Runs tests twice, once while copying deserialized filters, once deserializing filters in-place.
-     */
-    @Parameters(name = "copying: {0}")
-    public static Object[] data() {
-        return new Object[] { true, false };
-    }
-
-    public JavaFilterTransformerTest(boolean copy)
-    {
-        this.copy = copy;
-    }
+    private final JavaFilterTransformer transformer = new JavaFilterTransformer();
 
     @Test
     public void testIsTrue()

@@ -26,8 +26,8 @@ import org.jooq.Record4;
 import org.jooq.Result;
 import org.jooq.impl.DSL;
 import org.jooq.tools.jdbc.MockResult;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -40,7 +40,7 @@ import static org.hamcrest.Matchers.*;
 
 public class InteractiveQueryManyTest2
 {
-    @BeforeClass
+    @BeforeAll
     public static void initReproducibleConditions()
     {
         ConditionBuilder.setMapImpl(LinkedHashMap.class);

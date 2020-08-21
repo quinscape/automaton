@@ -1,7 +1,8 @@
 package de.quinscape.automaton.model.view;
 
 import de.quinscape.spring.jsview.util.JSONUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.svenson.JSONParser;
@@ -113,25 +114,31 @@ public class ComponentTest
     }
 
 
-    @Test(expected = SvensonRuntimeException.class)
+    @Test
     public void testRenderKidsFnAndKids()
     {
         // kids and kidsFn together -> BOOM
 
-        parser.parse(Component.class, "{\n" +
-            "    \"name\" : \"Blafasel\",\n" +
-            "    \"kidsFn\" : {\n" +
-            "        \"context\" : \"formConfig\",\n" +
-            "        \"declarations\" : [{\n" +
-            "            \"name\": \"formikProps\",\n" +
-            "            \"code\": \"formConfig.formikProps\"\n" +
-            "        }],\n" +
-            "        \"root\": {\n" +
-            "            \"name\" : \"ContextComp\"\n" +
-            "        }\n" +
-            "    },\n" +
-            "    \"kids\" : []\n" +
-            "}");
+        Assertions.assertThrows(
+            SvensonRuntimeException.class,
+            () -> parser.parse(
+                Component.class,
+                "{\n" +
+                "    \"name\" : \"Blafasel\",\n" +
+                "    \"kidsFn\" : {\n" +
+                "        \"context\" : \"formConfig\",\n" +
+                "        \"declarations\" : [{\n" +
+                "            \"name\": \"formikProps\",\n" +
+                "            \"code\": \"formConfig.formikProps\"\n" +
+                "        }],\n" +
+                "        \"root\": {\n" +
+                "            \"name\" : \"ContextComp\"\n" +
+                "        }\n" +
+                "    },\n" +
+                "    \"kids\" : []\n" +
+                "}"
+            )
+        );
     }
 
 

@@ -1,8 +1,8 @@
 package de.quinscape.automaton.runtime.scalar;
 
 import de.quinscape.spring.jsview.util.JSONUtil;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +18,7 @@ public class ConditionBuilderTest
 {
     private final static Logger log = LoggerFactory.getLogger(ConditionBuilderTest.class);
 
-    @BeforeClass
+    @BeforeAll
     public static void init()
     {
         // predictable JSON output
