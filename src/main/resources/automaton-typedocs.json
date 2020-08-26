@@ -1,5 +1,21 @@
 [
   {
+    "name":"QueryType",
+    "description":null,
+    "fieldDocs":[
+      {
+        "name":"resolveFilterContext",
+        "description":"Resolves filter context values without executing them in a filter. Only use this if you need the actual values of\nfilter contexts on the client side. The normal usage of context values is to embed <code>context()<\/code> nodes\nin filters.",
+        "paramDocs":[
+          {
+            "name":"names",
+            "description":"Name of the filter context values to return"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "name":"MutationType",
     "description":null,
     "fieldDocs":[
@@ -452,7 +468,7 @@
       },
       {
         "name":"status",
-        "description":"Field status for the conflict. If MergeOptions#isAllowAutoMerge() is enabled, this will always be MergeFieldStatus#UNDECIDED, if auto-merge\nis disabled, the system will report back successful merges with the respective choices made.",
+        "description":"Field status for the conflict.",
         "paramDocs":[
           
         ]
