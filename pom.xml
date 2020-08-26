@@ -119,7 +119,7 @@
         <dependency>
             <groupId>de.quinscape.domainql</groupId>
             <artifactId>domainql</artifactId>
-            <version>0.2.5</version>
+            <version>0.2.6</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -360,11 +360,13 @@
                         <argument>--output</argument>
                         <argument>${project.basedir}/src/main/resources/automaton-typedocs.json</argument>
 
+                        <argument>--merge</argument>
+                        <argument>${project.basedir}/src/main/resources/automaton-types.json</argument>
+
                         <argument>--pretty</argument>
                     </arguments>
                 </configuration>
             </plugin>
-
 
             <!-- Junit 5 support -->
             <plugin>
