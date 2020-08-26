@@ -7,6 +7,7 @@ import org.svenson.util.JSONBeanUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 public final class DomainObjectIdFilter
@@ -47,7 +48,7 @@ public final class DomainObjectIdFilter
             final Object lft = keyValues.get(i);
             final Object rgt = util.getProperty(source, sourceField);
 
-            if (!lft.equals(rgt))
+            if (!Objects.equals(lft,rgt))
             {
                 return false;
             }
