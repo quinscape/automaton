@@ -5,7 +5,6 @@ import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
 import de.quinscape.automaton.runtime.config.ClientCrsfToken;
 import de.quinscape.automaton.runtime.config.ScopeTableConfig;
 import de.quinscape.automaton.runtime.i18n.TranslationService;
-import de.quinscape.automaton.runtime.merge.MergeOptions;
 import de.quinscape.automaton.runtime.util.Base32;
 import de.quinscape.automaton.runtime.util.LocaleUtil;
 import de.quinscape.automaton.runtime.util.ProcessUtil;
@@ -24,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.web.csrf.CsrfToken;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collection;
 import java.util.Map;
 
 import static org.jooq.impl.DSL.*;
@@ -74,8 +74,6 @@ public final class AutomatonJsViewProvider
 
     private static final String CSRF_TOKEN = "csrfToken";
 
-    private static final String MERGE_OPTIONS = "mergeOptions";
-
     private final ProcessInjectionService processInjectionService;
 
     private final boolean websocketEnabled;
@@ -86,11 +84,11 @@ public final class AutomatonJsViewProvider
 
     private final ScopeTableConfig scopeTableConfig;
 
+    private final Collection<JsViewProvider> jsViewProviders;
+
     private final DSLContext dslContext;
 
     private final SchemaDataProvider schemaProvider;
-
-    private final MergeOptions mergeOptions;
 
 
     /**
@@ -101,7 +99,7 @@ public final class AutomatonJsViewProvider
      * @param translationService            translation service implementation
      * @param automatonWebSocketHandler     web socket handler, can be <code>null</code>
      * @param scopeTableConfig              scope table config
-     * @param mergeOptions                  options for the merge service if applicable
+     * @param jsViewProviders               Collection of additional js view providers defined as Spring Beans
      */
     public AutomatonJsViewProvider(
         DSLContext dslContext,
@@ -110,12 +108,14 @@ public final class AutomatonJsViewProvider
         TranslationService translationService,
         AutomatonWebSocketHandler automatonWebSocketHandler,
         ScopeTableConfig scopeTableConfig,
-        MergeOptions mergeOptions
+        Collection<JsViewProvider> jsViewProviders
         )
     {
+        log.info("Starting AutomatonJsViewProvider: additional providers registered as beans: {}", jsViewProviders);
+
         this.dslContext = dslContext;
         this.scopeTableConfig = scopeTableConfig;
-        this.mergeOptions = mergeOptions;
+        this.jsViewProviders = jsViewProviders;
         if (processInjectionService == null)
         {
             throw new IllegalArgumentException("processInjectionService can't be null");
@@ -155,18 +155,18 @@ public final class AutomatonJsViewProvider
         {
             provideProcessInjections(context);
             provideScopes(context);
-                provideMergeOptions(context);
+            invokeProviderBeans(context);
             schemaProvider.provide(context);
         }
         provideCommonData(context);
     }
 
 
-    private void provideMergeOptions(JsViewContext context)
+    private void invokeProviderBeans(JsViewContext context) throws Exception
     {
-        if (mergeOptions != null)
+        for (JsViewProvider provider : jsViewProviders)
         {
-            context.provideViewData(MERGE_OPTIONS, mergeOptions.getJson());
+            provider.provide(context);
         }
     }
 

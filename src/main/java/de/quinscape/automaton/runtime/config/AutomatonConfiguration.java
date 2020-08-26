@@ -1,6 +1,7 @@
 package de.quinscape.automaton.runtime.config;
 
 import de.quinscape.automaton.model.js.StaticFunctionReferences;
+import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
 import de.quinscape.automaton.runtime.controller.GraphQLController;
 import de.quinscape.automaton.runtime.controller.ProcessController;
 import de.quinscape.automaton.runtime.controller.ScopeSyncController;
@@ -14,11 +15,17 @@ import de.quinscape.automaton.runtime.domain.IdGenerator;
 import de.quinscape.automaton.runtime.domain.op.BatchStoreOperation;
 import de.quinscape.automaton.runtime.domain.op.StoreOperation;
 import de.quinscape.automaton.runtime.filter.JavaFilterTransformer;
+import de.quinscape.automaton.runtime.i18n.TranslationService;
 import de.quinscape.automaton.runtime.logic.AutomatonStandardLogic;
+import de.quinscape.automaton.runtime.merge.MergeOptions;
 import de.quinscape.automaton.runtime.merge.MergeService;
+import de.quinscape.automaton.runtime.provider.AutomatonJsViewProvider;
 import de.quinscape.automaton.runtime.provider.DefaultProcessInjectionService;
 import de.quinscape.automaton.runtime.provider.ProcessInjectionService;
+import de.quinscape.automaton.runtime.userinfo.UserInfoService;
+import de.quinscape.automaton.runtime.ws.AutomatonWebSocketHandler;
 import de.quinscape.domainql.DomainQL;
+import de.quinscape.spring.jsview.JsViewProvider;
 import de.quinscape.spring.jsview.loader.JSONResourceConverter;
 import de.quinscape.spring.jsview.loader.ResourceHandle;
 import de.quinscape.spring.jsview.loader.ResourceLoader;
@@ -30,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,6 +53,7 @@ import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import javax.servlet.ServletContext;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 
 
 /**
@@ -259,4 +268,39 @@ public class AutomatonConfiguration
         resourceLoader.shutDown();
     }
 
+    @Bean
+    public JsViewProvider mergeJsViewProvider(
+        @Autowired(required = false) MergeService mergeService
+    )
+    {
+        return ctx -> {
+            ctx.provideViewData("mergeOptions",
+                mergeService != null ? mergeService.getOptions().getJson() : MergeOptions.DEFAULT.getJson()
+            );
+        };
+    }
+
+
+    @Bean
+    public AutomatonJsViewProvider automatonJsViewProvider(
+        ProcessInjectionService processInjectionService,
+        TranslationService translationService,
+        DSLContext dslContext,
+        ScopeTableConfig scopeTableConfig,
+        @Lazy @Autowired(required = false) AutomatonWebSocketHandler automatonWebSocketHandler,
+        @Lazy DomainQL domainQL
+    )
+    {
+        final Map<String, JsViewProvider> jsViewProviderBeans = applicationContext.getBeansOfType(JsViewProvider.class);
+
+        return new AutomatonJsViewProvider(
+            dslContext,
+            domainQL,
+            processInjectionService,
+            translationService,
+            automatonWebSocketHandler,
+            scopeTableConfig,
+            jsViewProviderBeans.values()
+        );
+    }
 }
