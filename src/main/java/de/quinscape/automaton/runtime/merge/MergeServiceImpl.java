@@ -1322,7 +1322,17 @@ public class MergeServiceImpl
         // round up byte size
         final int byteSize = (size + 7) >> 3;
         final byte[] data = new byte[byteSize];
-        Arrays.fill(data, (byte) -1);
+
+        final int fullBytes = size >> 3;
+        Arrays.fill(data, data.length - fullBytes, data.length, (byte) -1);
+
+        final int rest = size & 7;
+        if (rest > 0)
+        {
+            data[0] = (byte)((1 << rest) -1);
+        }
+
+
         return data;
     }
 
