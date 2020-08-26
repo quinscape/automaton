@@ -280,6 +280,18 @@ public class AutomatonConfiguration
         };
     }
 
+    @Bean
+    public JsViewProvider userInfoServiceProvider(
+        @Autowired(required = false) UserInfoService userInfoService
+    )
+    {
+        return ctx -> {
+            ctx.provideViewData("userInfo",
+                userInfoService != null ? userInfoService.getUserInfo(AutomatonAuthentication.current().getId()): null
+            );
+        };
+    }
+
 
     @Bean
     public AutomatonJsViewProvider automatonJsViewProvider(
