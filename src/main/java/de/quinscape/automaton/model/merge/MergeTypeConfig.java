@@ -25,6 +25,19 @@ public class MergeTypeConfig
     private Set<String> ignoredSet;
 
 
+    public MergeTypeConfig()
+    {
+        this(null, null, null);
+    }
+    
+    public MergeTypeConfig(String name, List<MergeGroup> mergeGroups, List<String> ignored)
+    {
+        this.name = name;
+        this.mergeGroups = mergeGroups;
+        this.ignored = ignored;
+    }
+
+
     @NotNull
     public String getName()
     {

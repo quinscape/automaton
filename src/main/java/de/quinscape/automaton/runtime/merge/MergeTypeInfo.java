@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class MergeTypeInfo
+public class MergeTypeInfo
 {
     private final String domainType;
 

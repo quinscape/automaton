@@ -1,7 +1,6 @@
 package de.quinscape.automaton.model.merge;
 
 import de.quinscape.automaton.model.EntityReference;
-import de.quinscape.automaton.runtime.merge.MergeOptions;
 import de.quinscape.domainql.generic.GenericScalar;
 import org.svenson.JSONTypeHint;
 
@@ -116,8 +115,7 @@ public class MergeConflictField
 
 
     /**
-     * Field status for the conflict. If {@link MergeOptions#isAllowAutoMerge()} is enabled, this will always be {@link MergeFieldStatus#UNDECIDED}, if auto-merge
-     * is disabled, the system will report back successful merges with the respective choices made.
+     * Field status for the conflict. 
      */
     public MergeFieldStatus getStatus()
     {
