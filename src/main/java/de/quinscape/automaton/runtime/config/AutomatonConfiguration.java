@@ -1,7 +1,9 @@
 package de.quinscape.automaton.runtime.config;
 
 import de.quinscape.automaton.model.js.StaticFunctionReferences;
+import de.quinscape.automaton.runtime.attachment.AttachmentRepository;
 import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
+import de.quinscape.automaton.runtime.controller.AttachmentController;
 import de.quinscape.automaton.runtime.controller.GraphQLController;
 import de.quinscape.automaton.runtime.controller.ProcessController;
 import de.quinscape.automaton.runtime.controller.ScopeSyncController;
@@ -37,7 +39,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -53,7 +54,6 @@ import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import javax.servlet.ServletContext;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Optional;
 
 
 /**
@@ -160,6 +160,16 @@ public class AutomatonConfiguration
 
         return new ProcessController(
             processInjectionService
+        );
+    }
+
+    @Bean
+    public AttachmentController attachmentController(
+        @Autowired(required = false) AttachmentRepository attachmentRepository
+    )
+    {
+        return new AttachmentController(
+            attachmentRepository
         );
     }
 

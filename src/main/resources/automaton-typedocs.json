@@ -192,6 +192,13 @@
         "paramDocs":[
           
         ]
+      },
+      {
+        "name":"url",
+        "description":"Attachment url as alternative to binary content",
+        "paramDocs":[
+          
+        ]
       }
     ]
   },
@@ -456,6 +463,19 @@
       {
         "name":"prev",
         "description":"Previous version for that entity or null",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
+    "name":"Attachment",
+    "description":"Automaton-internal attachment class. Used as replacement of the yet unknown AppAttachment type within the\napplication.",
+    "fieldDocs":[
+      {
+        "name":"type",
+        "description":"Returns the content type / media type of the attachment",
         "paramDocs":[
           
         ]
