@@ -5,5 +5,5 @@ package de.quinscape.automaton.runtime.userinfo;
  */
 public interface UserInfoProvider
 {
-    Object provideUserInfo(String id);
+    UserInfo provideUserInfo(String id);
 }

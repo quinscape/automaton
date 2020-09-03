@@ -20,7 +20,7 @@ public class UserInfoService
     private final static Logger log = LoggerFactory.getLogger(UserInfoService.class);
 
 
-    private final ConcurrentMap<String,Object> userInfos = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, JSONHolder> userInfos = new ConcurrentHashMap<>();
 
     private final UserInfoProvider provider;
 
@@ -39,7 +39,7 @@ public class UserInfoService
         {
             AutomatonUserDetails userDetails = (AutomatonUserDetails) principal;
             final String id = userDetails.getId();
-            final Object userInfo = provider.provideUserInfo(id);
+            final UserInfo userInfo = provider.provideUserInfo(id);
 
             log.debug("Login from {}/id={}: Got user info = {}", userDetails.getUsername(), userDetails.getId(), userInfo);
 
@@ -56,7 +56,7 @@ public class UserInfoService
         }
     }
 
-    public Object getUserInfo(String id)
+    public JSONHolder getUserInfo(String id)
     {
         return userInfos.get(id);
     }

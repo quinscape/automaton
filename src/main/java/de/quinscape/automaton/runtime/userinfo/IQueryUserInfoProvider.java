@@ -1,9 +1,10 @@
 package de.quinscape.automaton.runtime.userinfo;
 
-import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import graphql.ExecutionResult;
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLType;
 import org.svenson.util.JSONBeanUtil;
 
 import java.util.Arrays;
@@ -65,7 +66,7 @@ public class IQueryUserInfoProvider
      * @return first row of the iQuery document
      */
     @Override
-    protected Object createUserInfo(ExecutionResult result)
+    protected UserInfo createUserInfo(ExecutionResult result)
     {
         final Map<String, Object> resultMap = result.getData();
         if (resultMap.size() != 1)
@@ -78,8 +79,24 @@ public class IQueryUserInfoProvider
         final Object rowValue = util.getProperty(iQuery, "rows");
         if (!(rowValue instanceof List))
         {
-            throw new IllegalStateException(".rows is no list");
+            throw new IllegalStateException("iQuery.rows is no list");
         }
+
+        final Object typeValue = util.getProperty(iQuery, "type");
+        if (!(typeValue instanceof String))
+        {
+            throw new IllegalStateException("iQuery.type is contains no type");
+        }
+
+        String type = (String) typeValue;
+
+        final GraphQLType graphQLType = domainQL.getGraphQLSchema().getType(type);
+
+        if (!(graphQLType instanceof GraphQLObjectType))
+        {
+            throw new IllegalStateException("Type '" + type + "' is not a valid GraphQL type: " + graphQLType);
+        }
+
         final List<?> rows = (List<?>) rowValue;
 
         if (rows.size() != 1)
@@ -91,6 +108,8 @@ public class IQueryUserInfoProvider
                     )
             );
         }
-        return rows.get(0);
+        return new UserInfo(type, rows.get(0));
     }
+
+
 }

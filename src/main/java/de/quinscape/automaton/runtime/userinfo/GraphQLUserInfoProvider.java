@@ -17,11 +17,11 @@ import java.util.Map;
 public abstract class GraphQLUserInfoProvider
     implements UserInfoProvider
 {
-    private final String query;
+    protected final String query;
 
-    private final GraphQL graphQL;
+    protected final GraphQL graphQL;
 
-    private final static JSONPathUtil util = new JSONPathUtil(JSONUtil.OBJECT_SUPPORT);
+    protected final DomainQL domainQL;
 
 
     /**
@@ -36,12 +36,13 @@ public abstract class GraphQLUserInfoProvider
     )
     {
         this.query = query;
+        this.domainQL = domainQL;
         this.graphQL = GraphQL.newGraphQL(domainQL.getGraphQLSchema()).build();
     }
 
 
     @Override
-    public Object provideUserInfo(String id)
+    public UserInfo provideUserInfo(String id)
     {
         final ExecutionResult result = GraphQLUtil.executeGraphQLQuery(
             graphQL,
@@ -83,5 +84,5 @@ public abstract class GraphQLUserInfoProvider
      *
      * @return user info
      */
-    protected abstract Object createUserInfo(ExecutionResult result);
+    protected abstract UserInfo createUserInfo(ExecutionResult result);
 }
