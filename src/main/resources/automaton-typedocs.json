@@ -524,6 +524,40 @@
     ]
   },
   {
+    "name":"DecimalPrecision",
+    "description":"Contains the decimal precision for one decimal field within the domain.",
+    "fieldDocs":[
+      {
+        "name":"domainType",
+        "description":"Returns the name of the corresponding table",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"fieldName",
+        "description":"Returns the column name",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"precision",
+        "description":"Returns the numeric precision for the field. (123.45 has a scale of 5)",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"scale",
+        "description":"Returns the numeric scale/number of fractional digits for the field",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
     "name":"DomainActivity",
     "description":"Topic payload type for the domain monitor topic.",
     "fieldDocs":[

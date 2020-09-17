@@ -1,5 +1,6 @@
 package de.quinscape.automaton.runtime.config;
 
+import de.quinscape.automaton.model.decimal.DecimalPrecision;
 import de.quinscape.automaton.model.js.StaticFunctionReferences;
 import de.quinscape.automaton.runtime.attachment.AttachmentRepository;
 import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
@@ -27,11 +28,14 @@ import de.quinscape.automaton.runtime.provider.ProcessInjectionService;
 import de.quinscape.automaton.runtime.userinfo.UserInfoService;
 import de.quinscape.automaton.runtime.ws.AutomatonWebSocketHandler;
 import de.quinscape.domainql.DomainQL;
+import de.quinscape.domainql.OutputType;
+import de.quinscape.domainql.util.JSONHolder;
 import de.quinscape.spring.jsview.JsViewProvider;
 import de.quinscape.spring.jsview.loader.JSONResourceConverter;
 import de.quinscape.spring.jsview.loader.ResourceHandle;
 import de.quinscape.spring.jsview.loader.ResourceLoader;
 import de.quinscape.spring.jsview.loader.ServletResourceLoader;
+import de.quinscape.spring.jsview.util.JSONUtil;
 import graphql.GraphQL;
 import org.jooq.DSLContext;
 import org.slf4j.Logger;
@@ -50,9 +54,17 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.svenson.info.JSONClassInfo;
+import org.svenson.info.JSONPropertyInfo;
 
+import javax.persistence.Column;
 import javax.servlet.ServletContext;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 
@@ -302,6 +314,47 @@ public class AutomatonConfiguration
         };
     }
 
+    @Bean
+    public JsViewProvider decimalPrecisionProvider(
+        @Lazy DomainQL domainQL
+    )
+    {
+        final List<DecimalPrecision> decimalPrecisions = new ArrayList<>();
+
+        for (OutputType outputType : domainQL.getTypeRegistry().getOutputTypes())
+        {
+            final Class<?> pojoType = outputType.getJavaType();
+
+            final JSONClassInfo classInfo = JSONUtil.getClassInfo(pojoType);
+
+            for (JSONPropertyInfo propertyInfo : classInfo.getPropertyInfos())
+            {
+                final Class<Object> type = propertyInfo.getType();
+                if (propertyInfo.isReadable() && (type.equals(BigDecimal.class) || type.equals(BigInteger.class)))
+                {
+                    final Column columnAnno = JSONUtil.findAnnotation(propertyInfo, Column.class);
+                    if (columnAnno != null)
+                    {
+                        decimalPrecisions.add(
+                            new DecimalPrecision(
+                                outputType.getName(),
+                                propertyInfo.getJsonName(),
+                                columnAnno.precision(),
+                                columnAnno.scale()
+                            )
+                        );
+                    }
+                }
+            }
+        }
+
+        final JSONHolder decimalPrecision = new JSONHolder(decimalPrecisions);
+
+        return ctx -> {
+            ctx.provideViewData("decimalPrecision", decimalPrecision);
+        };
+    }
+
 
     @Bean
     public AutomatonJsViewProvider automatonJsViewProvider(
@@ -325,4 +378,7 @@ public class AutomatonConfiguration
             jsViewProviderBeans.values()
         );
     }
+
+    
+
 }
