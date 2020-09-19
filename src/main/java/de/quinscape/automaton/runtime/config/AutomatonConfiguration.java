@@ -8,6 +8,7 @@ import de.quinscape.automaton.runtime.controller.AttachmentController;
 import de.quinscape.automaton.runtime.controller.GraphQLController;
 import de.quinscape.automaton.runtime.controller.ProcessController;
 import de.quinscape.automaton.runtime.controller.ScopeSyncController;
+import de.quinscape.automaton.runtime.controller.TranslationFlushController;
 import de.quinscape.automaton.runtime.data.DefaultFilterContextRegistry;
 import de.quinscape.automaton.runtime.data.DefaultInteractiveQueryService;
 import de.quinscape.automaton.runtime.data.FilterContextConfiguration;
@@ -48,6 +49,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.ContextStoppedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.TaskScheduler;
@@ -182,6 +184,16 @@ public class AutomatonConfiguration
     {
         return new AttachmentController(
             attachmentRepository
+        );
+    }
+    @Bean
+    @Profile("dev")
+    public TranslationFlushController translationFlushController(
+        @Autowired(required = false) TranslationService translationService
+    )
+    {
+        return new TranslationFlushController(
+            translationService
         );
     }
 
