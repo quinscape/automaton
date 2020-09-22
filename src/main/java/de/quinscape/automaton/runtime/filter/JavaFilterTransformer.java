@@ -19,6 +19,7 @@ import de.quinscape.automaton.runtime.filter.impl.DivideFilter;
 import de.quinscape.automaton.runtime.filter.impl.EndsWithFilter;
 import de.quinscape.automaton.runtime.filter.impl.EqualFilter;
 import de.quinscape.automaton.runtime.filter.impl.EqualIgnoreCaseFilter;
+import de.quinscape.automaton.runtime.filter.impl.FalseFilter;
 import de.quinscape.automaton.runtime.filter.impl.FieldValue;
 import de.quinscape.automaton.runtime.filter.impl.GreaterOrEqualFilter;
 import de.quinscape.automaton.runtime.filter.impl.GreaterThanFilter;
@@ -49,6 +50,7 @@ import de.quinscape.automaton.runtime.filter.impl.ShlFilter;
 import de.quinscape.automaton.runtime.filter.impl.ShrFilter;
 import de.quinscape.automaton.runtime.filter.impl.StartsWithFilter;
 import de.quinscape.automaton.runtime.filter.impl.SubtractFilter;
+import de.quinscape.automaton.runtime.filter.impl.TrueFilter;
 import de.quinscape.automaton.runtime.filter.impl.UnaryMinusFilter;
 import de.quinscape.automaton.runtime.filter.impl.UnaryPlusFilter;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
@@ -200,6 +202,14 @@ public class JavaFilterTransformer
                         transformOperands(operands).get(0)
                     );
                 }
+                else if (name.equals("true"))
+                {
+                    return TrueFilter.INSTANCE;
+                }
+                else if (name.equals("false"))
+                {
+                    return FalseFilter.INSTANCE;
+                }
                 else
                 {
                     return transformByName(condition);
@@ -283,10 +293,7 @@ public class JavaFilterTransformer
         for (Map<String, Object> operand : operands)
         {
             final Filter value = transformInternal(operand);
-            if (value != null)
-            {
-                list.add(value);
-            }
+            list.add(value);
         }
         return list;
     }

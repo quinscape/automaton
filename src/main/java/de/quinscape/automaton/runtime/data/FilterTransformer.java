@@ -9,6 +9,7 @@ import de.quinscape.automaton.runtime.scalar.FieldExpressionScalar;
 import de.quinscape.automaton.runtime.scalar.NodeType;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.jooq.Condition;
+import org.jooq.False;
 import org.jooq.Field;
 import org.jooq.OrderField;
 import org.jooq.impl.DSL;
@@ -138,6 +139,14 @@ public class FilterTransformer
                     return DSL.not(
                         conditions.get(0)
                     );
+                }
+                else if (name.equals("true"))
+                {
+                    return DSL.trueCondition();
+                }
+                else if (name.equals("false"))
+                {
+                    return DSL.falseCondition();
                 }
                 else
                 {

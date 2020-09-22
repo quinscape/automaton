@@ -2,8 +2,10 @@ package de.quinscape.automaton.runtime.filter;
 
 import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
 import de.quinscape.automaton.runtime.data.DefaultFilterContextRegistry;
+import de.quinscape.automaton.runtime.filter.impl.FalseFilter;
 import de.quinscape.automaton.runtime.filter.impl.IsFalseFilter;
 import de.quinscape.automaton.runtime.filter.impl.IsTrueFilter;
+import de.quinscape.automaton.runtime.filter.impl.TrueFilter;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.spring.jsview.util.JSONUtil;
@@ -14,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -820,5 +823,30 @@ public class JavaFilterTransformerTest
         // auth was only called once due to the cached filter context resolver
         assertThat(authCount.get(), is(1));
 
+    }
+
+
+    @Test
+    void testNotNull()
+    {
+        //language=JSON
+        final Filter filter = fromJSON(transformer, "{\n" +
+            "    \"type\": \"Condition\",\n" +
+            "    \"name\": \"false\"," +
+            "    \"operands\": []" +
+            "}");
+
+
+        assertThat(filter,is(instanceOf(FalseFilter.class)));
+        //language=JSON
+
+        final Filter filter2 = fromJSON(transformer, "{\n" +
+            "    \"type\": \"Condition\",\n" +
+            "    \"name\": \"true\"," +
+            "    \"operands\": []" +
+            "}");
+
+
+        assertThat(filter2,is(instanceOf(TrueFilter.class)));
     }
 }

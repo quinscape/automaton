@@ -4,6 +4,7 @@ import de.quinscape.automaton.runtime.AutomatonException;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -186,7 +187,11 @@ public class ConditionBuilder
         final Map<String, Object> out = createMap();
         setType(out, NodeType.CONDITION.getName());
         setName(out, name);
-        if (operands != null && operands.size() > 0)
+        if (operands == null)
+        {
+            setOperands(out, Collections.emptyList());
+        }
+        else
         {
             setOperands(out, operands);
         }
