@@ -55,6 +55,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -1180,7 +1181,7 @@ public class MergeServiceImpl
                             // if the value of a conflicting edit is actually the same, it's no conflict.
                             // if it's a list we can't compare it yet, so we assume a conflict here and validate that later
                             // when we have loaded the values.
-                            if (!theirValue.equals(ourValue) || isList)
+                            if (!Objects.equals(ourValue, theirValue) || isList)
                             {
                                 log.debug("Conflicting field '{}' does not match (isList = {})", field, isList);
 
