@@ -11,7 +11,6 @@ import de.quinscape.automaton.model.merge.MergeConflictField;
 import de.quinscape.automaton.model.merge.MergeFieldStatus;
 import de.quinscape.automaton.model.merge.MergeResult;
 import de.quinscape.automaton.model.merge.MergeTypeConfig;
-import de.quinscape.automaton.runtime.AutomatonException;
 import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
 import de.quinscape.automaton.runtime.util.BitMaskingUtil;
 import de.quinscape.domainql.DomainQL;
@@ -53,6 +52,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -61,6 +61,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.jooq.impl.DSL.*;
@@ -233,6 +234,9 @@ public class MergeServiceImpl
             MergeConfig mergeConfig
         )
         {
+
+            changes = resolveChangeDependencies(changes);
+
             // We need to separate normal entity changes and changes to link types
             // as link type changes always go through without conflict and mess
             // with the error reporting for the artificial entity changes we introduce
@@ -279,6 +283,76 @@ public class MergeServiceImpl
             versionRecords = new ArrayList<>(changes.size());
             foreignKeyEntities = new HashMap<>();
             manyToManyEntities = new HashMap<>();
+        }
+
+
+        private List<EntityChange> resolveChangeDependencies(List<EntityChange> changes)
+        {
+            final Map<EntityChange, Boolean> resolved = new IdentityHashMap<>();
+            final List<EntityChange> changesInCorrectOrder = new ArrayList<>();
+
+            for (EntityChange entityChange : changes)
+            {
+                insertChange(changesInCorrectOrder::add, entityChange, changes, resolved);
+            }
+
+            return changesInCorrectOrder;
+        }
+
+
+        private void insertChange(
+            Consumer<EntityChange> changeConsumer,
+            EntityChange change,
+            List<EntityChange> changes,
+            Map<EntityChange, Boolean> resolved
+        )
+        {
+            if (!resolved.containsKey(change))
+            {
+                resolved.put(change, Boolean.TRUE);
+
+                final MergeTypeInfo mergeTypeInfo = getMergeTypeInfo(change.getType());
+
+                for (EntityFieldChange c : change.getChanges())
+                {
+                    final GenericScalar genericScalar = c.getValue();
+                    if (genericScalar.getValue() != null)
+                    {
+                        final RelationModel relationModel = mergeTypeInfo.getForeignKeysMap().get(c.getField());
+                        if (relationModel != null)
+                        {
+                            final EntityChange changeOnTarget = findEntityChange(
+                                changes,
+                                relationModel.getTargetType(),
+                                genericScalar
+                            );
+
+                            if (changeOnTarget != null)
+                            {
+                                // make sure to insert our target before us (and potentially their targets before them etc pp)
+                                insertChange(changeConsumer, changeOnTarget, changes, resolved);
+                            }
+                        }
+                    }
+                }
+
+                // insert after all dependencies have been inserted
+                changeConsumer.accept(change);
+            }
+       }
+
+
+        private EntityChange findEntityChange(List<EntityChange> changes, String domainType, GenericScalar id)
+        {
+            for (int i = 0, numberOfChanges = changes.size(); i < numberOfChanges; i++)
+            {
+                EntityChange change = changes.get(i);
+                if (change.getType().equals(domainType) && change.getId().equals(id))
+                {
+                    return change;
+                }
+            }
+            return null;
         }
 
 
@@ -1340,8 +1414,7 @@ public class MergeServiceImpl
 
             return conflict;
         }
-    }
-
+    } // end class MergeOperation
 
     private static byte[] getAllChangedMask(int size)
     {
