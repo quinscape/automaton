@@ -156,16 +156,39 @@ public class MergeServiceImpl
         MergeConfig mergeConfig
     )
     {
+        final MergeResult result = mergeInternal(changes, deletions, mergeConfig);
+
+        if (!result.isDone())
+        {
+            // we have unresolved merge conflicts / resolved conflicts with auto-merge disabled, so our transaction has failed
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+        }
+
+        return result;
+    }
+
+
+    /**
+     * Internal entry-point for testing without declarative transaction. Is replaced by the test instrumentation transaction
+     * there and would otherwise conflict with it
+     *
+     * @param changes       entity changes
+     * @param deletions     entity deletions
+     * @param mergeConfig   merge config
+     *
+     * @return merge result
+     */
+    public MergeResult mergeInternal(List<EntityChange> changes, List<EntityDeletion> deletions, MergeConfig mergeConfig)
+    {
         MergeOperation op = new MergeOperation(
             changes,
             deletions,
             mergeConfig
         );
 
-        return op.execute();
+        final MergeResult result = op.execute();
+        return result;
     }
-
-
 
 
     private VersionHolder getVersionHolder(String domainType, Object id)
@@ -370,9 +393,6 @@ public class MergeServiceImpl
             }
             else
             {
-                // we have unresolved merge conflicts / resolved conflicts with auto-merge disabled, so our transaction has failed
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-
                 final List<MergeConflict> mergeConflicts = new ArrayList<>(
                     changeCount + deleteCount
                 );

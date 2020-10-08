@@ -11,8 +11,17 @@ import java.util.List;
 
 public interface MergeService
 {
+    /**
+     * Executes an entity merge with the given changes and deletions.
+     *
+     * @param changes       entity changes
+     * @param deletions     entity deletions
+     * @param mergeConfig   merge config
+     *
+     * @return merge result
+     */
     MergeResult merge(
-        List<EntityChange> domainObjects,
+        List<EntityChange> changes,
         List<EntityDeletion> deletions,
         MergeConfig mergeConfig
     );
