@@ -84,14 +84,24 @@ final class VersionHolder
 
     private EntityVersion findVersionByPrevious(String version)
     {
-        for (EntityVersion entityVersion : entityVersions)
+        EntityVersion entityVersion = null;
+        for (EntityVersion curr : entityVersions)
         {
-            if (entityVersion.getPrev().equals(version))
+            if (curr.getPrev().equals(version))
             {
-                return entityVersion;
+                entityVersion = curr;
+                break;
             }
         }
-        return null;
+
+        if (!loaded && entityVersion == null)
+        {
+            load();
+            // retry
+            return findEntityVersion(version);
+        }
+
+        return entityVersion;
     }
 
 
@@ -106,12 +116,7 @@ final class VersionHolder
 
         if (!loaded)
         {
-            final List<EntityVersion> versions = EntityVersion.load(dslContext, getEntityType(), getEntityId());
-            entityVersions.addAll(versions);
-            entityVersions.sort(VersionComparator.INSTANCE);
-
-            loaded = true;
-
+            load();
             // search again after loading
             return findEntityVersion(version);
         }
@@ -119,6 +124,16 @@ final class VersionHolder
 
 
         return null;
+    }
+
+
+    void load()
+    {
+        final List<EntityVersion> versions = EntityVersion.load(dslContext, getEntityType(), getEntityId());
+        entityVersions.addAll(versions);
+        entityVersions.sort(VersionComparator.INSTANCE);
+
+        loaded = true;
     }
 
 
