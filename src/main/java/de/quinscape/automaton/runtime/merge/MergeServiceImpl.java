@@ -427,6 +427,11 @@ public class MergeServiceImpl
 
                 String ourVersion = domainObjectChange.getVersion();
 
+                if (isNew && ourVersion != null)
+                {
+                    throw new MergeException("A change for a new entity change cannot refer to a previous version: " + ourVersion);
+                }
+
                 final MergeTypeConfig typeConfig = mergeConfig.getTypeConfig(domainType);
                 boolean repeat;
                 do
