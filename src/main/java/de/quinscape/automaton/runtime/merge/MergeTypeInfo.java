@@ -130,7 +130,14 @@ public class MergeTypeInfo
 
     public int getFieldIndex(String field)
     {
-        return fieldIndexMap.get(field);
+        final Integer integer = fieldIndexMap.get(field);
+
+        if (integer == null)
+        {
+            throw new IllegalArgumentException("No field '" + field + "' in " + domainType);
+        }
+
+        return integer;
     }
 
 
