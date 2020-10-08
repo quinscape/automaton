@@ -310,13 +310,13 @@ public class MergeServiceImpl
                     final List<MergeConflict> conflicts = executeChanges(linkTypeChanges);
                     if (!conflicts.isEmpty())
                     {
-                        throw new IllegalStateException("Got conflicts for link type changes. This shouldn't happen:" + conflicts);
+                        throw new MergeException("Got conflicts for link type changes. This shouldn't happen:" + conflicts);
                     }
 
                     final List<MergeConflict> delConflicts = executeDeletes(linkTypeDeletions);
                     if (!delConflicts.isEmpty())
                     {
-                        throw new IllegalStateException("Got conflicts for link type changes. This shouldn't happen:" + conflicts);
+                        throw new MergeException("Got conflicts for link type changes. This shouldn't happen:" + conflicts);
                     }
                 }
                 else
@@ -347,7 +347,7 @@ public class MergeServiceImpl
                             if (changeForConflict == null)
                             {
                                 // should not happen
-                                throw new IllegalStateException(
+                                throw new MergeException(
                                     "Could not find change with type " + conflict.getType() +
                                         " and id " + conflict.getId().getValue()
                                 );
@@ -597,7 +597,7 @@ public class MergeServiceImpl
 
                         if (version == null)
                         {
-                            throw new IllegalStateException("No version prop provided to delete versioned domaintype");
+                            throw new MergeException("No version prop provided to delete versioned domaintype");
                         }
 
                         deleteQuery.addConditions(
@@ -819,7 +819,7 @@ public class MergeServiceImpl
 
                 if (!result.isPresent())
                 {
-                    throw new AutomatonException("Could not find merge conflict with id '" + sourceId + "' in " + conflictsForType);
+                    throw new MergeException("Could not find merge conflict with id '" + sourceId + "' in " + conflictsForType);
                 }
 
                 final MergeConflict mergeConflict = result.get();
@@ -977,7 +977,7 @@ public class MergeServiceImpl
 
                 if (!result.isPresent())
                 {
-                    throw new AutomatonException("Could not find merge conflict with id '" + sourceId + "' in " + conflictsForType);
+                    throw new MergeException("Could not find merge conflict with id '" + sourceId + "' in " + conflictsForType);
                 }
                 final MergeConflict mergeConflict = result.get();
 
@@ -1013,7 +1013,7 @@ public class MergeServiceImpl
                 }
             }
 
-            throw new IllegalStateException("Could not find merge conflict field for '" + fieldName + "'");
+            throw new MergeException("Could not find merge conflict field for '" + fieldName + "'");
         }
 
         private MergeConflictField find(MergeConflict mergeConflict, String fieldName)
@@ -1026,7 +1026,7 @@ public class MergeServiceImpl
                 }
             }
 
-            throw new IllegalStateException("Could not find merge conflict field for '" + fieldName + "'");
+            throw new MergeException("Could not find merge conflict field for '" + fieldName + "'");
         }
 
         private MergeConflict createMergeConflict(
@@ -1092,7 +1092,7 @@ public class MergeServiceImpl
             {
                 if (results.size() > 1)
                 {
-                    throw new IllegalStateException("Got more than one result for an id query:" + results);
+                    throw new MergeException("Got more than one result for an id query:" + results);
                 }
 
                 final List<MergeConflictField> conflictFields = new ArrayList<>();
