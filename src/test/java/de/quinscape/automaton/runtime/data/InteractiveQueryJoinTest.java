@@ -24,6 +24,7 @@ import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.jooq.tools.jdbc.MockResult;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -33,6 +34,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.TimeZone;
 
 import static de.quinscape.automaton.testdomain.Tables.*;
 import static org.hamcrest.MatcherAssert.*;
@@ -40,6 +42,12 @@ import static org.hamcrest.Matchers.*;
 
 public class InteractiveQueryJoinTest
 {
+    @BeforeEach
+    public void init()
+    {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+    }
+
     @BeforeAll
     public static void initReproducibleConditions()
     {

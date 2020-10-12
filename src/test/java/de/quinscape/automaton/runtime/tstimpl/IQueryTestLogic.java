@@ -65,7 +65,7 @@ public class IQueryTestLogic
             final Foo foo = (Foo) query.getRows().get(0);
 
             assertThat(foo.getCreated(), is(notNullValue()));
-            assertThat(foo.getCreated().toString(), is("2018-11-16 21:58:59.0"));
+            assertThat(foo.getCreated().toString(), is("2018-11-16 20:58:59.0"));
 
         }
 

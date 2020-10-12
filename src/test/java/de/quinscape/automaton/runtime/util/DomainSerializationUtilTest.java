@@ -4,10 +4,13 @@ import de.quinscape.automaton.testdomain.Public;
 import de.quinscape.automaton.testdomain.tables.pojos.Foo;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.spring.jsview.util.JSONUtil;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -16,6 +19,11 @@ import static org.hamcrest.MatcherAssert.*;
 
 class DomainSerializationUtilTest
 {
+    @BeforeEach
+    public void init()
+    {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+    }
 
     @Test
     void serializeList()
