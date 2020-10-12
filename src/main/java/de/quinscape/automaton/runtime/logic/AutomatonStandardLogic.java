@@ -39,7 +39,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,6 +49,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import static org.jooq.impl.DSL.*;
@@ -671,4 +674,9 @@ public class AutomatonStandardLogic
             .collect(Collectors.toList());
     }
 
+    @PostConstruct
+    public void setUTCTimezone()
+    {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+    }
 }
