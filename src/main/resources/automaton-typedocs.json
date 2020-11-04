@@ -735,6 +735,13 @@
     ]
   },
   {
+    "name":"InteractiveQueryDefinition",
+    "description":"Container for user-editable interactive query definition. Wraps a query string and a default query config.",
+    "fieldDocs":[
+      
+    ]
+  },
+  {
     "name":"MergeConflict",
     "description":"A merge conflict for one entity.",
     "fieldDocs":[

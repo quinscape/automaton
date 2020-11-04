@@ -1,6 +1,7 @@
 package de.quinscape.automaton.runtime.logic;
 
 import com.google.common.collect.Maps;
+import de.quinscape.automaton.model.data.InteractiveQueryDefinition;
 import de.quinscape.automaton.model.merge.EntityChange;
 import de.quinscape.automaton.model.merge.MergeConfig;
 import de.quinscape.automaton.model.merge.MergeConflict;
@@ -632,7 +633,7 @@ public class AutomatonStandardLogic
         MergeConflict mergeConflict
     )
     {
-        throw new UnsupportedOperationException("End-point exists only for documentation/schema purposes");
+        throw new IllegalQueryOperation("End-point exists only for documentation/schema purposes");
     }
 
 
@@ -678,5 +679,12 @@ public class AutomatonStandardLogic
     public void setUTCTimezone()
     {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+    }
+
+
+    @GraphQLQuery
+    public InteractiveQueryDefinition _interactiveQueryDefinition(InteractiveQueryDefinition def)
+    {
+        throw new IllegalQueryOperation("Operation only exists for schema purporses");
     }
 }
