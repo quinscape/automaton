@@ -68,12 +68,10 @@ public class MergeTypeInfo
                     }
                 }
 
-                if (lft == null || rgt == null)
+                if (lft != null && rgt != null)
                 {
-                    throw new IllegalStateException("Could not find both relations for field '" + name + "': found " + lft + " and " + rgt);
+                    relations.put(name, new ManyToManyRelation(lft, rgt));
                 }
-
-                relations.put(name, new ManyToManyRelation(lft, rgt));
             }
             else if (fieldType instanceof GraphQLObjectType)
             {
