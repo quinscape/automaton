@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -153,8 +154,15 @@ public class InteractiveQuery<T>
             throw new IllegalStateException("Query Document should access only one end point, but it accesses " + endPoints);
         }
 
-        final List<SelectedField> fields = env.getSelectionSet()
-            .getField("rows")
+        final SelectedField rowsField = env.getSelectionSet()
+            .getField("rows");
+
+        if (rowsField == null)
+        {
+            return Collections.emptyList();
+        }
+
+        final List<SelectedField> fields = rowsField
             .getSelectionSet()
             .getFields();
 
