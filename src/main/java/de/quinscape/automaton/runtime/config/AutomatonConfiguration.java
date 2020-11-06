@@ -1,6 +1,7 @@
 package de.quinscape.automaton.runtime.config;
 
-import de.quinscape.automaton.model.decimal.DecimalPrecision;
+import de.quinscape.automaton.model.domain.DecimalPrecision;
+import de.quinscape.automaton.model.domain.FieldLength;
 import de.quinscape.automaton.model.js.StaticFunctionReferences;
 import de.quinscape.automaton.runtime.attachment.AttachmentRepository;
 import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
@@ -61,11 +62,11 @@ import org.svenson.info.JSONPropertyInfo;
 
 import javax.persistence.Column;
 import javax.servlet.ServletContext;
+import javax.validation.constraints.Size;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -326,12 +327,21 @@ public class AutomatonConfiguration
         };
     }
 
+
+    /**
+     * Provides additional domain information from the JOOQ generated classes which are not part of the GraphQL schema.
+     *
+     * @param domainQL      DomainQL instance
+     *
+     * @return js view provider
+     */
     @Bean
-    public JsViewProvider decimalPrecisionProvider(
+    public JsViewProvider extendedDomainInfoProvider(
         @Lazy DomainQL domainQL
     )
     {
         final List<DecimalPrecision> decimalPrecisions = new ArrayList<>();
+        final List<FieldLength> fieldLengths = new ArrayList<>();
 
         for (OutputType outputType : domainQL.getTypeRegistry().getOutputTypes())
         {
@@ -342,28 +352,47 @@ public class AutomatonConfiguration
             for (JSONPropertyInfo propertyInfo : classInfo.getPropertyInfos())
             {
                 final Class<Object> type = propertyInfo.getType();
-                if (propertyInfo.isReadable() && (type.equals(BigDecimal.class) || type.equals(BigInteger.class)))
+                if (propertyInfo.isReadable())
                 {
-                    final Column columnAnno = JSONUtil.findAnnotation(propertyInfo, Column.class);
-                    if (columnAnno != null)
+                    if (type.equals(BigDecimal.class) || type.equals(BigInteger.class))
                     {
-                        decimalPrecisions.add(
-                            new DecimalPrecision(
-                                outputType.getName(),
-                                propertyInfo.getJsonName(),
-                                columnAnno.precision(),
-                                columnAnno.scale()
-                            )
-                        );
+                        final Column columnAnno = JSONUtil.findAnnotation(propertyInfo, Column.class);
+                        if (columnAnno != null)
+                        {
+                            decimalPrecisions.add(
+                                new DecimalPrecision(
+                                    outputType.getName(),
+                                    propertyInfo.getJsonName(),
+                                    columnAnno.precision(),
+                                    columnAnno.scale()
+                                )
+                            );
+                        }
+                    }
+                    else if (type.equals(String.class))
+                    {
+                        final Size sizeAnno = JSONUtil.findAnnotation(propertyInfo, Size.class);
+                        if (sizeAnno != null)
+                        {
+                            fieldLengths.add(
+                                new FieldLength(
+                                    outputType.getName(),
+                                    propertyInfo.getJsonName(),
+                                    sizeAnno.max()
+                                )
+                            );
+                        }
                     }
                 }
             }
         }
 
-        final JSONHolder decimalPrecision = new JSONHolder(decimalPrecisions);
+        final JSONHolder decimalPrecisionsHolder = new JSONHolder(decimalPrecisions);
+        final JSONHolder fieldLengthsHolder = new JSONHolder(fieldLengths);
 
         return ctx -> {
-            ctx.provideViewData("decimalPrecision", decimalPrecision);
+            ctx.provideViewData("decimalPrecision", decimalPrecisionsHolder);
+            ctx.provideViewData("fieldLengths", fieldLengthsHolder);
         };
     }
 

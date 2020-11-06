@@ -1,4 +1,4 @@
-package de.quinscape.automaton.model.decimal;
+package de.quinscape.automaton.model.domain;
 
 /**
  * Contains the decimal precision for one decimal field within the domain.
