@@ -808,7 +808,7 @@ public final class RuntimeQuery<T>
     }
 
     /**
-     * Creates a new query execution for the selected GrapQL fields
+     * Creates a new query execution for the selected GraphQL fields
      *
      * @param queries         list of collected query executions
      * @param fieldRoot       field root for the query execution
