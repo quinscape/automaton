@@ -118,14 +118,26 @@ public class FilterTransformer
 
                 if (name.equals("and"))
                 {
+                    final List<? extends Condition> conditions = transformOperands(resolver, fieldResolver, operands);
+                    if (conditions.size() == 0)
+                    {
+                        return DSL.trueCondition();
+                    }
+
                     return DSL.and(
-                        transformOperands(resolver, fieldResolver, operands)
+                        conditions
                     );
                 }
                 else if (name.equals("or"))
                 {
+                    final List<? extends Condition> conditions = transformOperands(resolver, fieldResolver, operands);
+                    if (conditions.size() == 0)
+                    {
+                        return DSL.trueCondition();
+                    }
+
                     return DSL.or(
-                        transformOperands(resolver, fieldResolver, operands)
+                        conditions
                     );
                 }
                 else if (name.equals("not"))
