@@ -687,6 +687,33 @@
     ]
   },
   {
+    "name":"FieldLength",
+    "description":"Encapsulates maximum field length information for a single field of an entity.",
+    "fieldDocs":[
+      {
+        "name":"domainType",
+        "description":"Returns the name of the corresponding table",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"fieldName",
+        "description":"Returns the column name",
+        "paramDocs":[
+          
+        ]
+      },
+      {
+        "name":"length",
+        "description":"Returns the field length for the given domain field. Will only be available for String\nfields / columns.",
+        "paramDocs":[
+          
+        ]
+      }
+    ]
+  },
+  {
     "name":"IncomingMessage",
     "description":"Container for incoming messages.",
     "fieldDocs":[
