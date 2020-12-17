@@ -34,6 +34,8 @@ import de.quinscape.automaton.runtime.filter.impl.LessOrEqualFilter;
 import de.quinscape.automaton.runtime.filter.impl.LessThanFilter;
 import de.quinscape.automaton.runtime.filter.impl.LikeRegexFilter;
 import de.quinscape.automaton.runtime.filter.impl.LiteralValue;
+import de.quinscape.automaton.runtime.filter.impl.LowerFilter;
+import de.quinscape.automaton.runtime.filter.impl.UpperFilter;
 import de.quinscape.automaton.runtime.filter.impl.ModuloFilter;
 import de.quinscape.automaton.runtime.filter.impl.MultiplyFilter;
 import de.quinscape.automaton.runtime.filter.impl.NotBetweenFilter;
@@ -150,6 +152,8 @@ public class JavaFilterTransformer
         filters.put("power", PowerFilter.class );
         filters.put("multiply", MultiplyFilter.class );
         filters.put("unaryPlus", UnaryPlusFilter.class );
+        filters.put("lower", LowerFilter.class );
+        filters.put("upper", UpperFilter.class );
         return filters;
     }
 

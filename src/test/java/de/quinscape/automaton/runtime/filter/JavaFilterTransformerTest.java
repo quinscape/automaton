@@ -666,6 +666,18 @@ public class JavaFilterTransformerTest
         testStringOperation("startsWith", "bull", "aa", false);
     }
 
+    @Test
+    public void test_lower()
+    {
+        testStringOperation("lower", "ÄBC", "äbc");
+    }
+
+    @Test
+    public void test_upper()
+    {
+        testStringOperation("upper", "äbc", "ÄBC");
+    }
+
 
     @Test
     public void testInFilter()
