@@ -74,6 +74,8 @@ public final class AutomatonJsViewProvider
 
     private static final String CSRF_TOKEN = "csrfToken";
 
+    private static final String VIEW_PREFIX = "v-";
+
     private final ProcessInjectionService processInjectionService;
 
     private final boolean websocketEnabled;
@@ -151,7 +153,7 @@ public final class AutomatonJsViewProvider
     @Override
     public void provide(JsViewContext context) throws Exception
     {
-        if (!context.getJsView().getEntryPoint().equals("login"))
+        if (!context.getJsView().getEntryPoint().startsWith(VIEW_PREFIX))
         {
             provideProcessInjections(context);
             provideScopes(context);

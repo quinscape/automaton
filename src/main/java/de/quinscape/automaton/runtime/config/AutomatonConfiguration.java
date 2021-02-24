@@ -10,6 +10,7 @@ import de.quinscape.automaton.runtime.controller.GraphQLController;
 import de.quinscape.automaton.runtime.controller.ProcessController;
 import de.quinscape.automaton.runtime.controller.ScopeSyncController;
 import de.quinscape.automaton.runtime.controller.TranslationFlushController;
+import de.quinscape.automaton.runtime.controller.ViewController;
 import de.quinscape.automaton.runtime.data.DefaultFilterContextRegistry;
 import de.quinscape.automaton.runtime.data.DefaultInteractiveQueryService;
 import de.quinscape.automaton.runtime.data.FilterContextConfiguration;
@@ -196,6 +197,12 @@ public class AutomatonConfiguration
         return new TranslationFlushController(
             translationService
         );
+    }
+
+    @Bean
+    public ViewController viewController()
+    {
+        return new ViewController();
     }
 
     @Bean
