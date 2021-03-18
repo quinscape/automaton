@@ -861,4 +861,29 @@ public class JavaFilterTransformerTest
 
         assertThat(filter2,is(instanceOf(TrueFilter.class)));
     }
+
+
+    @Test
+    void testToString()
+    {
+        //language=JSON
+        final Filter filter = fromJSON(transformer, "{\n" +
+            "    \"type\": \"Operation\",\n" +
+            "    \"name\": \"toString\",\n" +
+            "    \"operands\": [\n" +
+            "        {\n" +
+            "            \"type\": \"Value\",\n" +
+            "            \"scalarType\": \"Int\",\n" +
+            "            \"value\": 37834\n" +
+            "        " +
+            "}\n" +
+            "    ]\n" +
+            "}");
+
+        DefaultFilterContextRegistry registry = new DefaultFilterContextRegistry();
+        CachedFilterContextResolver resolver = new CachedFilterContextResolver(registry);
+
+        assertThat(filter.evaluate(new FilterEvaluationContext(resolver, null)),is("37834"));
+
+    }
 }

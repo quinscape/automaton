@@ -83,7 +83,7 @@ public class FilterTransformer
 
         if (!(transformed instanceof OrderField))
         {
-            throw new AutomatonException("Transformed condition scalar returns no field: " + transformed);
+            throw new FilterTransformationException("Transformed condition scalar returns no field: " + transformed);
         }
         return (OrderField<?>) transformed;
     }
@@ -144,7 +144,7 @@ public class FilterTransformer
                 {
                     if (operands.size() > 1)
                     {
-                        throw new IllegalStateException("Not has only one argument");
+                        throw new FilterTransformationException("Not has only one argument");
                     }
 
                     final List<? extends Condition> conditions = transformOperands(resolver, fieldResolver, operands);
@@ -186,6 +186,24 @@ public class FilterTransformer
             }
             case OPERATION:
             {
+                final String name = ConditionBuilder.getName(node);
+                if (name.equals("toString"))
+                {
+                    final List<Map<String, Object>> operands = ConditionBuilder.getOperands(node);
+                    final Object value = transformRecursive(
+                        resolver,
+                        fieldResolver,
+                        operands.get(0)
+                    );
+
+                    if (!(value instanceof Field))
+                    {
+                        throw new FilterTransformationException("Argument to toString() is not a field:" + value);
+                    }
+
+                    return ((Field<?>) value).cast(String.class);
+                }
+
                 return invokeFieldMethod(resolver, fieldResolver, node);
             }
             case CONTEXT:
