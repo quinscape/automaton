@@ -56,7 +56,7 @@ public class ProcessController
         method = RequestMethod.POST,
         produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<String> syncScope(
+    public ResponseEntity<String> getProcessInjections(
         HttpServletRequest request,
         @PathVariable("appName") String appName,
         @PathVariable("processName") String processName,
