@@ -166,11 +166,10 @@ public class InteractiveQuery<T>
             return Collections.emptyList();
         }
 
-        final Set<SelectedField> fields = new LinkedHashSet<>(
+        final List<SelectedField> fields =
             rowsField.get(0)
                 .getSelectionSet()
-                .getFields()
-        );
+                .getFields();
 
         final GraphQLSchema schema = env.getGraphQLSchema();
 
