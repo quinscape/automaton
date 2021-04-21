@@ -540,14 +540,14 @@ public final class RuntimeQuery<T>
                 continue;
             }
 
-            final SelectedField field = env.getSelectionSet().getField(columnState.getGraphQLName());
+            final SelectedField field = env.getSelectionSet().getFields(columnState.getGraphQLName()).get(0);
 
             if (field == null)
             {
                 throw new RuntimeQueryException("Could not find field '" + columnState.getGraphQLName());
             }
 
-            final DataFetcher dataFetcher = field.getFieldDefinition().getDataFetcher();
+            final DataFetcher<?> dataFetcher = domainQL.getGraphQLSchema().getCodeRegistry().getDataFetcher(field.getObjectType(), field.getFieldDefinition());
             if (dataFetcher instanceof FieldFetcher)
             {
                 final String parentLocation = QueryExecution.getParent(field.getQualifiedName());
@@ -870,7 +870,7 @@ public final class RuntimeQuery<T>
     {
         for (SelectedField field : fields)
         {
-            final DataFetcher dataFetcher = field.getFieldDefinition().getDataFetcher();
+            final DataFetcher<?> dataFetcher = domainQL.getGraphQLSchema().getCodeRegistry().getDataFetcher(field.getObjectType(), field.getFieldDefinition());
             final String parentLocation = field.getQualifiedName();
             if (dataFetcher instanceof BackReferenceFetcher)
             {

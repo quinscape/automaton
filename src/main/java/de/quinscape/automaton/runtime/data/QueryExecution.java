@@ -76,8 +76,8 @@ public final class QueryExecution
         // we need to make sure that we declare the queries in insertion order
         joins = new LinkedHashMap<>();
 
-        final GraphQLUnmodifiedType type = GraphQLTypeUtil.unwrapAll(env.getSelectionSet().getField(
-            fieldRoot).getFieldDefinition().getType());
+        final GraphQLUnmodifiedType type = GraphQLTypeUtil.unwrapAll(env.getSelectionSet().getFields(
+            fieldRoot).get(0).getFieldDefinition().getType());
 
 
         final String domainTypeName = type.getName();
@@ -158,7 +158,7 @@ public final class QueryExecution
     @Override
     public Field<?> resolveField(String fieldName)
     {
-        final SelectedField field = env.getSelectionSet().getField(RuntimeQuery.ROWS_PREFIX + fieldName.replace('.', '/'));
+        final SelectedField field = env.getSelectionSet().getFields(RuntimeQuery.ROWS_PREFIX + fieldName.replace('.', '/')).get(0);
 
         if (field == null)
         {
@@ -166,7 +166,7 @@ public final class QueryExecution
         }
 
         final String parentLocation = getParent(field.getQualifiedName());
-        final SelectedField parentField = env.getSelectionSet().getField(parentLocation);
+        final SelectedField parentField = env.getSelectionSet().getFields(parentLocation).get(0);
 
         final Field<?> dbField = domainQL.lookupField(GraphQLTypeUtil.unwrapAll(parentField.getFieldDefinition()
             .getType()).getName(), field.getName());

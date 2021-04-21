@@ -3,6 +3,7 @@ package de.quinscape.automaton.runtime.tstimpl;
 import de.quinscape.automaton.model.data.InteractiveQuery;
 import de.quinscape.automaton.model.data.QueryConfig;
 import de.quinscape.automaton.runtime.data.InteractiveQueryService;
+import de.quinscape.automaton.runtime.data.RuntimeQuery;
 import de.quinscape.automaton.testdomain.tables.pojos.AppUser;
 import de.quinscape.automaton.testdomain.tables.pojos.Baz;
 import de.quinscape.automaton.testdomain.tables.pojos.BazLink;
@@ -57,8 +58,8 @@ public class IQueryTestLogic
 
         log.info("iQuery<{}>, config = {}", type, config);
 
-        final InteractiveQuery<T> query = interactiveQueryService.buildInteractiveQuery(type, env, config)
-            .execute();
+        final RuntimeQuery<T> rtQuery = interactiveQueryService.buildInteractiveQuery(type, env, config);
+        final InteractiveQuery<T> query = rtQuery.execute();
 
         if (type.equals(Foo.class) && query.getRows().size() > 0)
         {

@@ -4,6 +4,7 @@ import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.OutputType;
 import de.quinscape.domainql.config.RelationModel;
 import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeUtil;
@@ -299,7 +300,7 @@ public final class MergeServiceBuilder
             {
                 if (((GraphQLObjectType) type).getFieldDefinition(versionField) != null)
                 {
-                    types.add(type.getName());
+                    types.add(((GraphQLNamedType)type).getName());
                 }
             }
         }

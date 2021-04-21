@@ -20,6 +20,7 @@ import de.quinscape.domainql.generic.GenericDomainObject;
 import de.quinscape.domainql.generic.GenericScalar;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLTypeUtil;
@@ -1014,9 +1015,9 @@ public class MergeServiceImpl
 
             Map<String, Field<Object>> fieldLookup = new HashMap<>();
 
-            final String idTypeName = GraphQLTypeUtil.unwrapNonNull(
-                    targetGraphQLType.getFieldDefinition("id").getType()
-                ).getName();
+            final String idTypeName = ((GraphQLNamedType)GraphQLTypeUtil.unwrapNonNull(
+                targetGraphQLType.getFieldDefinition("id").getType()
+            )).getName();
 
             // Add all non-null scalar fields
             targetGraphQLType.getFieldDefinitions()

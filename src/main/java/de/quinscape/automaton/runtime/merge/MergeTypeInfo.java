@@ -4,6 +4,7 @@ import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.config.RelationModel;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLList;
+import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLTypeUtil;
@@ -38,7 +39,7 @@ public class MergeTypeInfo
             final GraphQLType fieldType = GraphQLTypeUtil.unwrapNonNull(fieldDef.getType());
             if (fieldType instanceof GraphQLList)
             {
-                final String wrappedType = ((GraphQLList) fieldType).getWrappedType().getName();
+                final String wrappedType = ((GraphQLNamedType)((GraphQLList) fieldType).getWrappedType()).getName();
 
                 RelationModel lft = null;
                 RelationModel rgt = null;

@@ -4,13 +4,16 @@ import de.quinscape.domainql.fetcher.FieldFetcher;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLSchema;
 import graphql.schema.SelectedField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Interactive Query with [T] payload.
@@ -147,29 +150,35 @@ public class InteractiveQuery<T>
      */
     public static List<ColumnState> configFromEnv(DataFetchingEnvironment env, Class<?> type)
     {
-        final List<Field> endPoints = env.getFields();
+
+        final List<Field> endPoints = env.getMergedField().getFields();
 
         if (endPoints.size() != 1)
         {
             throw new IllegalStateException("Query Document should access only one end point, but it accesses " + endPoints);
         }
 
-        final SelectedField rowsField = env.getSelectionSet()
-            .getField("rows");
+        final List<SelectedField> rowsField = env.getSelectionSet()
+            .getFields("rows");
 
-        if (rowsField == null)
+        if (rowsField.size() == 0)
         {
             return Collections.emptyList();
         }
 
-        final List<SelectedField> fields = rowsField
-            .getSelectionSet()
-            .getFields();
+        final Set<SelectedField> fields = new LinkedHashSet<>(
+            rowsField.get(0)
+                .getSelectionSet()
+                .getFields()
+        );
+
+        final GraphQLSchema schema = env.getGraphQLSchema();
 
         final List<ColumnState> columnStates = new ArrayList<>(fields.size());
         for (SelectedField field : fields)
         {
-            final DataFetcher dataFetcher = field.getFieldDefinition().getDataFetcher();
+            final DataFetcher<?> dataFetcher = schema.getCodeRegistry().getDataFetcher(field.getObjectType(), field.getFieldDefinition());
+
             if (dataFetcher instanceof FieldFetcher)
             {
                 final ColumnState state = new ColumnState();

@@ -8,6 +8,7 @@ import graphql.GraphQL;
 import graphql.GraphQLError;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -88,7 +89,8 @@ public final class GraphQLUtil
 
     public static Map<String,Object> getVariables(Map<String,Object> parameters)
     {
-        return (Map<String,Object>) parameters.get(VARIABLES);
+        final Map<String, Object> map = (Map<String, Object>) parameters.get(VARIABLES);
+        return map == null ? Collections.emptyMap() : map;
     }
 
 }
