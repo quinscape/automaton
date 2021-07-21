@@ -6,64 +6,24 @@ package de.quinscape.automaton.model.domain;
 public class DecimalPrecision
 {
 
-    private String domainType;
-
-    private String fieldName;
-
     private int precision;
 
     private int scale;
 
+
     public DecimalPrecision()
     {
-        this(null, null, 0, 0);
+        this(0, 0);
     }
 
+
     public DecimalPrecision(
-        String domainType,
-        String fieldName,
         int precision,
         int scale
     )
     {
-        this.domainType = domainType;
-        this.fieldName = fieldName;
         this.precision = precision;
         this.scale = scale;
-    }
-
-
-    /**
-     * Returns the name of the corresponding table
-     *
-     * @return name of the corresponding table
-     */
-    public String getDomainType()
-    {
-        return domainType;
-    }
-
-
-    public void setDomainType(String domainType)
-    {
-        this.domainType = domainType;
-    }
-
-
-    /**
-     * Returns the column name
-     *
-     * @return column name
-     */
-    public String getFieldName()
-    {
-        return fieldName;
-    }
-
-
-    public void setFieldName(String fieldName)
-    {
-        this.fieldName = fieldName;
     }
 
 
@@ -105,7 +65,6 @@ public class DecimalPrecision
     public String toString()
     {
         return super.toString() + ": "
-            + domainType + "." + fieldName + ":"
             + " precision = " + precision
             + ", scale = " + scale
             ;

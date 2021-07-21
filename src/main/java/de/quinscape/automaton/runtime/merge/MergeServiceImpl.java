@@ -18,6 +18,7 @@ import de.quinscape.domainql.config.RelationModel;
 import de.quinscape.domainql.generic.DomainObject;
 import de.quinscape.domainql.generic.GenericDomainObject;
 import de.quinscape.domainql.generic.GenericScalar;
+import de.quinscape.domainql.meta.DomainQLMeta;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLNamedType;
@@ -877,12 +878,16 @@ public class MergeServiceImpl
 
 
             // Add all name fields if exists (the default "id" is already selected as targetIdField)
-            domainQL.getNameFields().getOrDefault(targetType, Collections.emptyList())
-                .forEach(name -> {
-                    final Field<Object> field = (Field<Object>) domainQL.lookupField(targetType, name);
-                    fieldLookup.put(name, field);
-                    query.addSelect(field);
-                });
+            final List<String> nameFields = domainQL.getMetaData().getTypeMeta(targetType).getMeta(DomainQLMeta.NAME_FIELDS);
+            if (nameFields != null)
+            {
+                nameFields
+                    .forEach(name -> {
+                        final Field<Object> field = (Field<Object>) domainQL.lookupField(targetType, name);
+                        fieldLookup.put(name, field);
+                        query.addSelect(field);
+                    });
+            }
 
 
             query.fetch(record -> {
@@ -1035,13 +1040,16 @@ public class MergeServiceImpl
 
 
             // Add all name fields if exists (the default "id" is already selected as targetIdField)
-            domainQL.getNameFields().getOrDefault(targetType, Collections.emptyList())
-                .forEach(name -> {
-                    final Field<Object> field = (Field<Object>) domainQL.lookupField(targetType, name);
-                    fieldLookup.put(name, field);
-                    query.addSelect(field);
-                });
-
+            final List<String> nameFields = domainQL.getMetaData().getTypeMeta(targetType).getMeta(DomainQLMeta.NAME_FIELDS);
+            if (nameFields != null)
+            {
+                nameFields
+                    .forEach(name -> {
+                        final Field<Object> field = (Field<Object>) domainQL.lookupField(targetType, name);
+                        fieldLookup.put(name, field);
+                        query.addSelect(field);
+                    });
+            }
 
             query.fetch(record -> {
 

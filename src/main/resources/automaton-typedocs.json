@@ -528,20 +528,6 @@
     "description":"Contains the decimal precision for one decimal field within the domain.",
     "fieldDocs":[
       {
-        "name":"domainType",
-        "description":"Returns the name of the corresponding table",
-        "paramDocs":[
-          
-        ]
-      },
-      {
-        "name":"fieldName",
-        "description":"Returns the column name",
-        "paramDocs":[
-          
-        ]
-      },
-      {
         "name":"precision",
         "description":"Returns the numeric precision for the field. (123.45 has a scale of 5)",
         "paramDocs":[
@@ -684,33 +670,6 @@
     "description":"Reference to a specific entity or entity version",
     "fieldDocs":[
       
-    ]
-  },
-  {
-    "name":"FieldLength",
-    "description":"Encapsulates maximum field length information for a single field of an entity.",
-    "fieldDocs":[
-      {
-        "name":"domainType",
-        "description":"Returns the name of the corresponding table",
-        "paramDocs":[
-          
-        ]
-      },
-      {
-        "name":"fieldName",
-        "description":"Returns the column name",
-        "paramDocs":[
-          
-        ]
-      },
-      {
-        "name":"length",
-        "description":"Returns the field length for the given domain field. Will only be available for String\nfields / columns.",
-        "paramDocs":[
-          
-        ]
-      }
     ]
   },
   {

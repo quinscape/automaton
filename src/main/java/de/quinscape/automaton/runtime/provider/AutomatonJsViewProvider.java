@@ -133,7 +133,7 @@ public final class AutomatonJsViewProvider
         this.automatonWebSocketHandler = automatonWebSocketHandler;
         this.translationService = translationService;
 
-        this.schemaProvider = new SchemaDataProvider(domainQL);
+        this.schemaProvider = new SchemaDataProvider(domainQL, "domainQL");
     }
 
 

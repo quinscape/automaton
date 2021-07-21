@@ -1,7 +1,5 @@
 package de.quinscape.automaton.runtime.config;
 
-import de.quinscape.automaton.model.domain.DecimalPrecision;
-import de.quinscape.automaton.model.domain.FieldLength;
 import de.quinscape.automaton.model.js.StaticFunctionReferences;
 import de.quinscape.automaton.runtime.attachment.AttachmentRepository;
 import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
@@ -31,14 +29,12 @@ import de.quinscape.automaton.runtime.provider.ProcessInjectionService;
 import de.quinscape.automaton.runtime.userinfo.UserInfoService;
 import de.quinscape.automaton.runtime.ws.AutomatonWebSocketHandler;
 import de.quinscape.domainql.DomainQL;
-import de.quinscape.domainql.OutputType;
-import de.quinscape.domainql.util.JSONHolder;
+import de.quinscape.domainql.meta.MetadataProvider;
 import de.quinscape.spring.jsview.JsViewProvider;
 import de.quinscape.spring.jsview.loader.JSONResourceConverter;
 import de.quinscape.spring.jsview.loader.ResourceHandle;
 import de.quinscape.spring.jsview.loader.ResourceLoader;
 import de.quinscape.spring.jsview.loader.ServletResourceLoader;
-import de.quinscape.spring.jsview.util.JSONUtil;
 import graphql.GraphQL;
 import org.jooq.DSLContext;
 import org.slf4j.Logger;
@@ -58,17 +54,9 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
-import org.svenson.info.JSONClassInfo;
-import org.svenson.info.JSONPropertyInfo;
 
-import javax.persistence.Column;
 import javax.servlet.ServletContext;
-import javax.validation.constraints.Size;
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 
@@ -338,69 +326,11 @@ public class AutomatonConfiguration
     /**
      * Provides additional domain information from the JOOQ generated classes which are not part of the GraphQL schema.
      *
-     * @param domainQL      DomainQL instance
-     *
-     * @return js view provider
      */
     @Bean
-    public JsViewProvider extendedDomainInfoProvider(
-        @Lazy DomainQL domainQL
-    )
+    public MetadataProvider automatonMetaDataProvider()
     {
-        final List<DecimalPrecision> decimalPrecisions = new ArrayList<>();
-        final List<FieldLength> fieldLengths = new ArrayList<>();
-
-        for (OutputType outputType : domainQL.getTypeRegistry().getOutputTypes())
-        {
-            final Class<?> pojoType = outputType.getJavaType();
-
-            final JSONClassInfo classInfo = JSONUtil.getClassInfo(pojoType);
-
-            for (JSONPropertyInfo propertyInfo : classInfo.getPropertyInfos())
-            {
-                final Class<Object> type = propertyInfo.getType();
-                if (propertyInfo.isReadable())
-                {
-                    if (type.equals(BigDecimal.class) || type.equals(BigInteger.class))
-                    {
-                        final Column columnAnno = JSONUtil.findAnnotation(propertyInfo, Column.class);
-                        if (columnAnno != null)
-                        {
-                            decimalPrecisions.add(
-                                new DecimalPrecision(
-                                    outputType.getName(),
-                                    propertyInfo.getJsonName(),
-                                    columnAnno.precision(),
-                                    columnAnno.scale()
-                                )
-                            );
-                        }
-                    }
-                    else if (type.equals(String.class))
-                    {
-                        final Size sizeAnno = JSONUtil.findAnnotation(propertyInfo, Size.class);
-                        if (sizeAnno != null)
-                        {
-                            fieldLengths.add(
-                                new FieldLength(
-                                    outputType.getName(),
-                                    propertyInfo.getJsonName(),
-                                    sizeAnno.max()
-                                )
-                            );
-                        }
-                    }
-                }
-            }
-        }
-
-        final JSONHolder decimalPrecisionsHolder = new JSONHolder(decimalPrecisions);
-        final JSONHolder fieldLengthsHolder = new JSONHolder(fieldLengths);
-
-        return ctx -> {
-            ctx.provideViewData("decimalPrecision", decimalPrecisionsHolder);
-            ctx.provideViewData("fieldLengths", fieldLengthsHolder);
-        };
+        return new AutomatonMetadataProvider();
     }
 
 
