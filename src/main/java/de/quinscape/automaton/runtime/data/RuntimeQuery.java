@@ -528,11 +528,13 @@ public final class RuntimeQuery<T>
     }
 
 
-    private Collection<? extends SelectField<?>> createSelectFields(QueryExecution query)
+    private SelectedFields createSelectFields(QueryExecution query)
     {
         final List<SelectField<?>> selectedDBFields = new ArrayList<>();
 
-        Set<String> fieldsSelected = new HashSet<>();
+        final Set<String> fieldsSelected = new HashSet<>();
+        final List<ColumnState> selectedColumns = new ArrayList<>();
+
         for (ColumnState columnState : query.getQueryColumns())
         {
             if (!columnState.isEnabled())
@@ -540,17 +542,17 @@ public final class RuntimeQuery<T>
                 continue;
             }
 
-            final SelectedField field = env.getSelectionSet().getFields(columnState.getGraphQLName()).get(0);
+            final SelectedField selectedField = env.getSelectionSet().getFields(columnState.getGraphQLName()).get(0);
 
-            if (field == null)
+            if (selectedField == null)
             {
                 throw new RuntimeQueryException("Could not find field '" + columnState.getGraphQLName());
             }
 
-            final DataFetcher<?> dataFetcher = domainQL.getGraphQLSchema().getCodeRegistry().getDataFetcher(field.getObjectType(), field.getFieldDefinition());
+            final DataFetcher<?> dataFetcher = domainQL.getGraphQLSchema().getCodeRegistry().getDataFetcher(selectedField.getObjectType(), selectedField.getFieldDefinition());
             if (dataFetcher instanceof FieldFetcher)
             {
-                final String parentLocation = QueryExecution.getParent(field.getQualifiedName());
+                final String parentLocation = QueryExecution.getParent(selectedField.getQualifiedName());
                 final QueryJoin join = query.getJoin(parentLocation);
                 if (join == null)
                 {
@@ -561,20 +563,26 @@ public final class RuntimeQuery<T>
 
                 FieldFetcher fieldFetcher = (FieldFetcher) dataFetcher;
 
-                final String dbFieldName = domainQL.lookupField(
+                final Field<?> field = domainQL.lookupField(
                     fieldFetcher.getDomainType(),
                     fieldFetcher.getFieldName()
-                ).getName();
-                final Field<Object> aliasedField = field(
-                    name(
-                        alias, dbFieldName
-                    )
                 );
-                selectedDBFields.add(
-                    aliasedField
-                );
+                if (field != null)
+                {
+                    final String dbFieldName = field.getName();
+                    final Field<Object> aliasedField = field(
+                        name(
+                            alias, dbFieldName
+                        )
+                    );
+                    selectedDBFields.add(
+                        aliasedField
+                    );
 
-                fieldsSelected.add(aliasedField.getQualifiedName().toString());
+                    fieldsSelected.add(aliasedField.getQualifiedName().toString());
+
+                    selectedColumns.add(columnState);
+                }
             }
         }
 
@@ -597,33 +605,39 @@ public final class RuntimeQuery<T>
 
                 for (String sourceField : sourceFields)
                 {
-                    final Field<?> sourceDBFieldName = (Field<Object>) domainQL.lookupField(
+                    final Field<?> sourceDBField = (Field<Object>) domainQL.lookupField(
                         sourceType,
                         sourceField
                     );
-                    final Field<Object> aliasedField = field(
-                        name(
-                            queryJoin.getSourceTableAlias(), sourceDBFieldName.getName()
-                        )
-                    );
 
-                    final String qualifiedSourceName = aliasedField.getQualifiedName().toString();
-                    addSelectField(
-                        query,
-                        selectedDBFields,
-                        fieldsSelected,
-                        queryJoin.getParentJoin(),
-                        sourceField,
-                        aliasedField,
-                        qualifiedSourceName
-                    );
+                    if (sourceDBField != null)
+                    {
+                        final Field<Object> aliasedField = field(
+                            name(
+                                queryJoin.getSourceTableAlias(), sourceDBField.getName()
+                            )
+                        );
 
+                        final String qualifiedSourceName = aliasedField.getQualifiedName().toString();
+                        addSelectField(
+                            query,
+                            selectedDBFields,
+                            fieldsSelected,
+                            queryJoin.getParentJoin(),
+                            sourceField,
+                            aliasedField,
+                            qualifiedSourceName,
+                            selectedColumns
+                        );
+                    }
                 }
 
                 for (String targetField : targetFields)
                 {
 
                     final Field<?> targetDBFieldName = (Field<Object>) domainQL.lookupField(targetType, targetField);
+                    if (targetDBFieldName != null)
+                    {
                     final Field<Object> aliasedField = field(
                         name(
                             queryJoin.getAlias(), targetDBFieldName.getName()
@@ -638,13 +652,15 @@ public final class RuntimeQuery<T>
                         queryJoin,
                         targetField,
                         aliasedField,
-                        qualifiedTargetName
+                            qualifiedTargetName,
+                            selectedColumns
                     );
                 }
             }
         }
+        }
 
-        // id values needed to filter secondqary query execution results in-memory from the list of all results
+        // id values needed to filter secondary query execution results in-memory from the list of all results
         // these is the result of many-to-* relations
 
         // relations dependent queries have on us.
@@ -677,7 +693,8 @@ public final class RuntimeQuery<T>
                     queryJoin,
                     targetField,
                     aliasedField,
-                    qualifiedSourceName
+                    qualifiedSourceName,
+                    selectedColumns
                 );
 
             }
@@ -713,7 +730,8 @@ public final class RuntimeQuery<T>
                     query.getRootJoin(),
                     sourceField,
                     aliasedField,
-                    qualifiedSourceName
+                    qualifiedSourceName,
+                    selectedColumns
                 );
 
             }
@@ -724,7 +742,7 @@ public final class RuntimeQuery<T>
 
         log.debug("selected fields: {}", selectedDBFields);
 
-        return selectedDBFields;
+        return new SelectedFields(selectedColumns, selectedDBFields);
     }
 
 
@@ -735,14 +753,17 @@ public final class RuntimeQuery<T>
         QueryJoin queryJoin,
         String targetField,
         Field<Object> aliasedField,
-        String qualifiedTargetName
+        String qualifiedTargetName,
+        List<ColumnState> selectedColumns
     )
     {
         if (!fields.contains(qualifiedTargetName))
         {
             selectedDBFields.add(aliasedField);
             fields.add(qualifiedTargetName);
-            query.getQueryColumns().add(new ColumnState(queryJoin.getColumnName(targetField)));
+            final ColumnState newState = new ColumnState(queryJoin.getColumnName(targetField));
+            query.getQueryColumns().add(newState);
+            selectedColumns.add(newState);
         }
     }
 
@@ -1023,9 +1044,10 @@ public final class RuntimeQuery<T>
 
         final SelectQuery<?> selectQuery = dslContext.selectQuery(table);
 
-        final Collection<? extends SelectField<?>> jooqFields = createSelectFields(
+        final SelectedFields selectedFields = createSelectFields(
             query
         );
+        final Collection<? extends SelectField<?>> jooqFields = selectedFields.selectedDBFields;
 
         selectQuery.addSelect(jooqFields);
 
@@ -1056,7 +1078,7 @@ public final class RuntimeQuery<T>
 
             int columnIndex = 0;
 
-            for (ColumnState columnState : query.getQueryColumns())
+            for (ColumnState columnState : selectedFields.selectedColumns)
             {
                 String columnName = columnState.getGraphQLName();
                 DomainObject current = rowObject;
@@ -1225,5 +1247,22 @@ public final class RuntimeQuery<T>
         map.put(BigInteger.class, new BigInteger("0"));
 
         return map;
+    }
+
+
+    private class SelectedFields
+    {
+        public final List<ColumnState> selectedColumns;
+
+        public final List<SelectField<?>> selectedDBFields;
+
+        public SelectedFields(
+            List<ColumnState> selectedColumns,
+            List<SelectField<?>> selectedDBFields
+        )
+        {
+            this.selectedColumns = selectedColumns;
+            this.selectedDBFields = selectedDBFields;
+        }
     }
 }

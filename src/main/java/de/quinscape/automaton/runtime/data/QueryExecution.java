@@ -168,8 +168,17 @@ public final class QueryExecution
         final String parentLocation = getParent(field.getQualifiedName());
         final SelectedField parentField = env.getSelectionSet().getFields(parentLocation).get(0);
 
-        final Field<?> dbField = domainQL.lookupField(GraphQLTypeUtil.unwrapAll(parentField.getFieldDefinition()
-            .getType()).getName(), field.getName());
+        final String domainType = GraphQLTypeUtil.unwrapAll(parentField.getFieldDefinition()
+            .getType()).getName();
+        final Field<?> dbField = domainQL.lookupField(domainType, field.getName());
+
+        if (dbField == null)
+        {
+            throw new RuntimeQueryException(
+                "Field " + domainType + "." + field.getName() + " exists but is not backed by a database field and therefore cannot be filtered in a database query"
+            );
+        }
+
         final String dbFieldName = dbField.getName();
 
         final QueryJoin join = getJoin(parentLocation);
