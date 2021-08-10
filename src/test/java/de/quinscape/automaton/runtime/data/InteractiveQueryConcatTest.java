@@ -21,6 +21,7 @@ import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import org.jooq.DSLContext;
+import org.jooq.Record5;
 import org.jooq.Record6;
 import org.jooq.Result;
 import org.jooq.impl.DSL;
@@ -57,16 +58,15 @@ public class InteractiveQueryConcatTest
     public void testComputedAndVarArgs() throws IOException
     {
         final DSLContext dslContext = TestProvider.create(ImmutableMap.of(
-            "select \"foo\".\"id\", \"foo\".\"name\", \"foo\".\"description\", \"foo\".\"created\", \"foo\".\"type\"," +
-                " \"foo\".\"owner_id\" from \"public\".\"foo\" as \"foo\" where (\"foo\".\"name\" || \"foo\"" +
-                ".\"owner_id\") = ? order by \"foo\".\"id\" limit ?",
+            "select \"foo\".\"id\", \"foo\".\"name\", \"foo\".\"description\", \"foo\".\"type\", \"foo\".\"owner_id\"" +
+                " from \"public\".\"foo\" as \"foo\" where (\"foo\".\"name\" || \"foo\".\"owner_id\") = ? order by " +
+                "\"foo\".\"id\" limit ?",
             (dsl, ctx) -> {
 
-                final Result<Record6<String, String, String, Timestamp, String, String>> result = dsl.newResult(
+                final Result<Record5<String, String, String, String, String>> result = dsl.newResult(
                     FOO.ID,
                     FOO.NAME,
                     FOO.DESCRIPTION,
-                    FOO.CREATED,
                     FOO.TYPE,
                     FOO.OWNER_ID
                 );
@@ -76,7 +76,6 @@ public class InteractiveQueryConcatTest
                             FOO.ID,
                             FOO.NAME,
                             FOO.DESCRIPTION,
-                            FOO.CREATED,
                             FOO.TYPE,
                             FOO.OWNER_ID
                         )
@@ -84,9 +83,6 @@ public class InteractiveQueryConcatTest
                             "fd457b7d-c8c2-44dd-abb6-0f15717ab05c",
                             "AA",
                             "desc AA",
-                            Timestamp.from(
-                                Instant.parse("2018-11-16T20:58:59Z")
-                            ),
                             "TYPE_A",
                             "10db963b-9ecc-4b81-9a2a-edecb540d212"
                         )
@@ -175,7 +171,6 @@ public class InteractiveQueryConcatTest
                 "            id\n" +
                 "            name\n" +
                 "            description\n" +
-                "            created\n" +
                 "            type\n" +
                 "            ownerId\n" +
                 "            extra\n" +
@@ -235,11 +230,6 @@ public class InteractiveQueryConcatTest
                     "        \"sortable\":true\n" +
                     "      },\n" +
                     "      {\n" +
-                    "        \"name\":\"created\",\n" +
-                    "        \"enabled\":true,\n" +
-                    "        \"sortable\":true\n" +
-                    "      },\n" +
-                    "      {\n" +
                     "        \"name\":\"type\",\n" +
                     "        \"enabled\":true,\n" +
                     "        \"sortable\":true\n" +
@@ -294,7 +284,6 @@ public class InteractiveQueryConcatTest
                     "        \"id\":\"fd457b7d-c8c2-44dd-abb6-0f15717ab05c\",\n" +
                     "        \"name\":\"AA\",\n" +
                     "        \"description\":\"desc AA\",\n" +
-                    "        \"created\":\"2018-11-16T21:58:59.000Z\",\n" +
                     "        \"type\":\"TYPE_A\",\n" +
                     "        \"ownerId\":\"10db963b-9ecc-4b81-9a2a-edecb540d212\",\n" +
                     "        \"extra\":\"AA10db963b-9ecc-4b81-9a2a-edecb540d212\"\n" +
