@@ -12,6 +12,7 @@ import de.quinscape.automaton.runtime.filter.impl.BitNotFilter;
 import de.quinscape.automaton.runtime.filter.impl.BitOrFilter;
 import de.quinscape.automaton.runtime.filter.impl.BitXNorFilter;
 import de.quinscape.automaton.runtime.filter.impl.BitXorFilter;
+import de.quinscape.automaton.runtime.filter.impl.ConcatFilter;
 import de.quinscape.automaton.runtime.filter.impl.ContainsFilter;
 import de.quinscape.automaton.runtime.filter.impl.ContainsIgnoreCaseFilter;
 import de.quinscape.automaton.runtime.filter.impl.ContextValue;
@@ -156,6 +157,7 @@ public class JavaFilterTransformer
         filters.put("lower", LowerFilter.class );
         filters.put("upper", UpperFilter.class );
         filters.put("toString", ToStringFilter.class );
+        filters.put("concat", ConcatFilter.class );
         return filters;
     }
 

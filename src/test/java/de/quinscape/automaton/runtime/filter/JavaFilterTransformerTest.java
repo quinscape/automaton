@@ -886,4 +886,61 @@ public class JavaFilterTransformerTest
         assertThat(filter.evaluate(new FilterEvaluationContext(resolver, null)),is("37834"));
 
     }
+
+
+    @Test
+    public void test_concat()
+    {
+        {
+            //language=JSON
+            final Filter filter = fromJSON(transformer, "{\n" +
+                "    \"type\": \"Operation\",\n" +
+                "    \"name\": \"concat\",\n" +
+                "    \"operands\": [\n" +
+                "        {\n" +
+                "            \"type\": \"Value\",\n" +
+                "            \"scalarType\": \"String\",\n" +
+                "            \"value\": \"aaa\"\n" +
+                "        " +
+                "},\n" +
+                "        {\n" +
+                "            \"type\": \"Value\",\n" +
+                "            \"scalarType\": \"Int\",\n" +
+                "            \"value\": 8957\n" +
+                "        }\n" +
+                "    ]\n" +
+                "}");
+
+            DefaultFilterContextRegistry registry = new DefaultFilterContextRegistry();
+            CachedFilterContextResolver resolver = new CachedFilterContextResolver(registry);
+
+            assertThat(filter.evaluate(new FilterEvaluationContext(resolver, null)),is("aaa8957"));
+        }
+        {
+            //language=JSON
+            final Filter filter = fromJSON(transformer, "{\n" +
+                "    \"type\": \"Operation\",\n" +
+                "    \"name\": \"concat\",\n" +
+                "    \"operands\": [\n" +
+                "        {\n" +
+                "            \"type\": \"Value\",\n" +
+                "            \"scalarType\": \"String\",\n" +
+                "            \"value\": \"bbb\"\n" +
+                "        " +
+                "},\n" +
+                "        {\n" +
+                "            \"type\": \"Value\",\n" +
+                "            \"scalarType\": \"Int\",\n" +
+                "            \"value\": null\n" +
+                "        }\n" +
+                "    ]\n" +
+                "}");
+
+            DefaultFilterContextRegistry registry = new DefaultFilterContextRegistry();
+            CachedFilterContextResolver resolver = new CachedFilterContextResolver(registry);
+
+            // we follow SQL conventions and concat null as empty string
+            assertThat(filter.evaluate(new FilterEvaluationContext(resolver, null)),is("bbb"));
+        }
+    }
 }
