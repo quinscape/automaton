@@ -9,7 +9,6 @@ import de.quinscape.automaton.runtime.scalar.FieldExpressionScalar;
 import de.quinscape.automaton.runtime.scalar.NodeType;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.jooq.Condition;
-import org.jooq.False;
 import org.jooq.Field;
 import org.jooq.OrderField;
 import org.jooq.impl.DSL;
@@ -37,7 +36,7 @@ public class FilterTransformer
 
     private static MethodAccess fieldAccess = MethodAccess.get(Field.class);
 
-    private static JSON JSON_GEN = JSONUtil.DEFAULT_GENERATOR;
+    private final static JSON JSON_GEN = JSONUtil.DEFAULT_GENERATOR;
 
     private final FilterContextRegistry registry;
 
@@ -308,7 +307,7 @@ public class FilterTransformer
 
         private final int numArgs;
 
-        private volatile Integer methodIndex;
+        private volatile MethodRegistration methodRegistration;
 
 
         public AccessHolder(String name, int numArgs)
@@ -321,35 +320,62 @@ public class FilterTransformer
 
         public Object invoke(Field field, Object... operands)
         {
-            if (methodIndex == null)
+            if (methodRegistration == null)
             {
                 synchronized (this)
                 {
-                    if (methodIndex == null)
+                    if (methodRegistration == null)
                     {
-                        methodIndex = findMethodIndex();
+                        methodRegistration = findMethodIndex();
                     }
                 }
             }
-            return fieldAccess.invoke(field, methodIndex, operands);
+
+            if (methodRegistration.isVarArgs)
+            {
+                return field.concat((Field<?>) operands[0]);
+            }
+            else
+            {
+                return fieldAccess.invoke(field, methodRegistration.methodIndex, operands);
+            }
         }
 
 
-        private int findMethodIndex()
+        private MethodRegistration findMethodIndex()
         {
             for (Method method : Field.class.getMethods())
             {
                 if (method.getName().equals(name))
                 {
                     final Class<?>[] parameterTypes = method.getParameterTypes();
+
+                    // matching field or collection parameter
                     if (parameterTypes.length == numArgs && Arrays.stream(parameterTypes)
                         .allMatch(t -> Field.class.isAssignableFrom(t) || t.equals(Collection.class)))
                     {
-                        return fieldAccess.getIndex(name, method.getParameterTypes());
+                        return new MethodRegistration(fieldAccess.getIndex(name, method.getParameterTypes()), false);
+                    }
+                    else if (numArgs == 1 && method.isVarArgs() && method.getParameterTypes().length == 1 && method.getParameterTypes()[0].getComponentType().equals(Field.class))
+                    {
+                        return new MethodRegistration(fieldAccess.getIndex(name, method.getParameterTypes()), true);
                     }
                 }
             }
             throw new AutomatonException("Could not find method with name '" + name + "' and " + numArgs + " Field parameters");
+        }
+    }
+
+    private static class MethodRegistration
+    {
+        public final int methodIndex;
+        public final boolean isVarArgs;
+
+
+        private MethodRegistration(int methodIndex, boolean isVarArgs)
+        {
+            this.methodIndex = methodIndex;
+            this.isVarArgs = isVarArgs;
         }
     }
 }
