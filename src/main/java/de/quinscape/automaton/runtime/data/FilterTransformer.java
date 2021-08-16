@@ -1,8 +1,11 @@
 package de.quinscape.automaton.runtime.data;
 
 import com.esotericsoftware.reflectasm.MethodAccess;
+import com.google.common.collect.ImmutableMap;
 import de.quinscape.automaton.runtime.AutomatonException;
 import de.quinscape.automaton.runtime.filter.CachedFilterContextResolver;
+import de.quinscape.automaton.runtime.filter.transformer.ConcatTransformer;
+import de.quinscape.automaton.runtime.filter.transformer.ToStringTransformer;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
 import de.quinscape.automaton.runtime.scalar.ConditionScalar;
 import de.quinscape.automaton.runtime.scalar.FieldExpressionScalar;
@@ -39,6 +42,11 @@ public class FilterTransformer
     private final static JSON JSON_GEN = JSONUtil.DEFAULT_GENERATOR;
 
     private final FilterContextRegistry registry;
+
+    private Map<String, JOOQTransformer> transformers = ImmutableMap.of(
+        "toString", new ToStringTransformer(),
+        "concat", new ConcatTransformer()
+    );
 
     public FilterTransformer()
     {
@@ -186,21 +194,17 @@ public class FilterTransformer
             case OPERATION:
             {
                 final String name = ConditionBuilder.getName(node);
-                if (name.equals("toString"))
+
+                final JOOQTransformer transformer = transformers.get(name);
+                if (transformer != null)
                 {
-                    final List<Map<String, Object>> operands = ConditionBuilder.getOperands(node);
-                    final Object value = transformRecursive(
-                        resolver,
-                        fieldResolver,
-                        operands.get(0)
+                    return transformer.filter(node, kid ->
+                        transformRecursive(
+                            resolver,
+                            fieldResolver,
+                            kid
+                        )
                     );
-
-                    if (!(value instanceof Field))
-                    {
-                        throw new FilterTransformationException("Argument to toString() is not a field:" + value);
-                    }
-
-                    return ((Field<?>) value).cast(String.class);
                 }
 
                 return invokeFieldMethod(resolver, fieldResolver, node);
