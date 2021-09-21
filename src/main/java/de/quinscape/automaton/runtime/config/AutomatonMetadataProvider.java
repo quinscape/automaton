@@ -31,7 +31,7 @@ public class AutomatonMetadataProvider
         {
             final Class<?> pojoType = outputType.getJavaType();
 
-            if (Enum.class.isAssignableFrom(pojoType))
+            if (Enum.class.isAssignableFrom(pojoType) || pojoType.getName().startsWith("java"))
             {
                 continue;
             }
@@ -39,7 +39,6 @@ public class AutomatonMetadataProvider
             final String typeName = outputType.getName();
 
             final DomainQLTypeMeta typeMeta = meta.getTypeMeta(typeName);
-
 
             final JSONClassInfo classInfo = JSONUtil.getClassInfo(pojoType);
 
