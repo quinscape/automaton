@@ -311,7 +311,7 @@ public class FilterTransformer
 
         private final int numArgs;
 
-        private volatile MethodRegistration methodRegistration;
+        private volatile Integer methodIndex;
 
 
         public AccessHolder(String name, int numArgs)
@@ -324,62 +324,35 @@ public class FilterTransformer
 
         public Object invoke(Field field, Object... operands)
         {
-            if (methodRegistration == null)
+            if (methodIndex == null)
             {
                 synchronized (this)
                 {
-                    if (methodRegistration == null)
+                    if (methodIndex == null)
                     {
-                        methodRegistration = findMethodIndex();
+                        methodIndex = findMethodIndex();
                     }
                 }
             }
-
-            if (methodRegistration.isVarArgs)
-            {
-                return field.concat((Field<?>) operands[0]);
-            }
-            else
-            {
-                return fieldAccess.invoke(field, methodRegistration.methodIndex, operands);
-            }
+            return fieldAccess.invoke(field, methodIndex, operands);
         }
 
 
-        private MethodRegistration findMethodIndex()
+        private int findMethodIndex()
         {
             for (Method method : Field.class.getMethods())
             {
                 if (method.getName().equals(name))
                 {
                     final Class<?>[] parameterTypes = method.getParameterTypes();
-
-                    // matching field or collection parameter
                     if (parameterTypes.length == numArgs && Arrays.stream(parameterTypes)
                         .allMatch(t -> Field.class.isAssignableFrom(t) || t.equals(Collection.class)))
                     {
-                        return new MethodRegistration(fieldAccess.getIndex(name, method.getParameterTypes()), false);
-                    }
-                    else if (numArgs == 1 && method.isVarArgs() && method.getParameterTypes().length == 1 && method.getParameterTypes()[0].getComponentType().equals(Field.class))
-                    {
-                        return new MethodRegistration(fieldAccess.getIndex(name, method.getParameterTypes()), true);
+                        return fieldAccess.getIndex(name, method.getParameterTypes());
                     }
                 }
             }
             throw new AutomatonException("Could not find method with name '" + name + "' and " + numArgs + " Field parameters");
-        }
-    }
-
-    private static class MethodRegistration
-    {
-        public final int methodIndex;
-        public final boolean isVarArgs;
-
-
-        private MethodRegistration(int methodIndex, boolean isVarArgs)
-        {
-            this.methodIndex = methodIndex;
-            this.isVarArgs = isVarArgs;
         }
     }
 }
