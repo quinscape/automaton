@@ -2,6 +2,7 @@ package de.quinscape.automaton.runtime.filter.transformer;
 
 import de.quinscape.automaton.runtime.data.FilterTransformationException;
 import de.quinscape.automaton.runtime.data.JOOQTransformer;
+import de.quinscape.automaton.runtime.data.NodeTransformer;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
 import org.jooq.Field;
 
@@ -13,10 +14,10 @@ public class ToStringTransformer
     implements JOOQTransformer
 {
     @Override
-    public Object filter(Map<String, Object> node, Function<Map<String, Object>, Object> transformer)
+    public Object filter(Map<String, Object> node, NodeTransformer transformer)
     {
         final List<Map<String, Object>> operands = ConditionBuilder.getOperands(node);
-        final Object value = transformer.apply(operands.get(0));
+        final Object value = transformer.transform(operands.get(0));
 
         if (!(value instanceof Field))
         {
