@@ -23,8 +23,11 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -37,6 +40,27 @@ public class FilterTransformer
 
     private ConcurrentMap<String, AccessHolder> fieldAccessHolders = new ConcurrentHashMap<>();
 
+    /**
+     * Positive list for secure DSL condition and operation names. Should be kept in synch with
+     * FilterDSL.js in @quinscape/automaton.js.
+     *
+     * Should be disjoint to the interface based implementations in {@link #transformers}
+     */
+    private final static Set<String> POSITIVE_LIST = Collections.unmodifiableSet(
+        new HashSet<>(
+            Arrays.asList(
+                "greaterOrEqual", "lessOrEqual", "lt", "notBetweenSymmetric", "notEqualIgnoreCase", "betweenSymmetric",
+                "lessThan", "equalIgnoreCase", "isDistinctFrom", "between", "ge", "greaterThan", "isNotNull", "notLikeRegex",
+                "notBetween", "notEqual", "isFalse", "containsIgnoreCase", "eq", "gt", "equal", "likeRegex", "isTrue",
+                "contains", "notContainsIgnoreCase", "notContains", "ne", "isNull", "endsWith", "le", "isNotDistinctFrom",
+                "startsWith", "in", "not", "or", "orNot", "and", "andNot", "bitNand", "mod", "div", "neg", "rem", "add",
+                "subtract", "plus", "bitAnd", "bitXor", "shl", "unaryMinus", "bitNor", "shr", "modulo", "bitXNor", "bitNot",
+                "sub", "minus", "mul", "bitOr", "times", "pow", "divide", "power", "multiply", "unaryPlus", "lower",
+                "upper", "asc", "desc"
+            )
+        )
+    );
+
     private static MethodAccess fieldAccess = MethodAccess.get(Field.class);
 
     private final static JSON JSON_GEN = JSONUtil.DEFAULT_GENERATOR;
@@ -48,10 +72,13 @@ public class FilterTransformer
         "concat", new ConcatTransformer()
     );
 
+
     public FilterTransformer()
     {
         this(null);
     }
+
+
     public FilterTransformer(FilterContextRegistry registry)
     {
         this.registry = registry;
@@ -74,6 +101,7 @@ public class FilterTransformer
 
         return (Condition) transformed;
     }
+
 
     public OrderField<?> transform(
         FieldResolver fieldResolver, FieldExpressionScalar fieldExpressionScalar
@@ -169,7 +197,7 @@ public class FilterTransformer
                 }
                 else
                 {
-                    return invokeFieldMethod(resolver,fieldResolver, node);
+                    return invokeFieldMethod(resolver, fieldResolver, node);
                 }
             }
             case FIELD:
@@ -205,6 +233,11 @@ public class FilterTransformer
                             kid
                         )
                     );
+                }
+
+                if (!POSITIVE_LIST.contains(name))
+                {
+                    throw new FilterTransformationException("'" + name + "' is not in the positive list of allowed names." );
                 }
 
                 return invokeFieldMethod(resolver, fieldResolver, node);
@@ -352,7 +385,8 @@ public class FilterTransformer
                     }
                 }
             }
-            throw new AutomatonException("Could not find method with name '" + name + "' and " + numArgs + " Field parameters");
+            throw new AutomatonException("Could not find method with name '" + name + "' and " + numArgs + " Field " +
+                "parameters");
         }
     }
 }
