@@ -183,6 +183,10 @@ public class FilterTransformer
                     }
 
                     final List<? extends Condition> conditions = transformOperands(resolver, fieldResolver, operands);
+                    if(conditions.size()==0) {
+                        return DSL.trueCondition();
+                    }
+
                     return DSL.not(
                         conditions.get(0)
                     );
