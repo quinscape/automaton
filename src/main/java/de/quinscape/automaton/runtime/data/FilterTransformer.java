@@ -9,7 +9,9 @@ import de.quinscape.automaton.runtime.filter.transformer.ToStringTransformer;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
 import de.quinscape.automaton.runtime.scalar.ConditionScalar;
 import de.quinscape.automaton.runtime.scalar.FieldExpressionScalar;
+import de.quinscape.automaton.runtime.scalar.FilterFunctionScalar;
 import de.quinscape.automaton.runtime.scalar.NodeType;
+import de.quinscape.domainql.generic.GenericScalar;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -70,6 +72,12 @@ public class FilterTransformer
     private Map<String, JOOQTransformer> transformers = ImmutableMap.of(
         "toString", new ToStringTransformer(),
         "concat", new ConcatTransformer()
+    );
+
+
+    private Map<String, FilterFunction> filterFunctions = ImmutableMap.of(
+        "now", new CurrentTimeStampFunction(),
+        "today", new CurrentDateFunction()
     );
 
 
@@ -211,7 +219,14 @@ public class FilterTransformer
             }
             case VALUE:
             {
-                return DSL.val(ConditionBuilder.getValue(node));
+                final Object value = ConditionBuilder.getValue(node);
+                if (value instanceof FilterFunctionScalar)
+                {
+                    final FilterFunctionScalar scalar = (FilterFunctionScalar) value;
+                    return invokeFilterFunction(scalar.getName(),scalar.getArgs());
+                }
+
+                return DSL.val(value);
             }
             case VALUES:
             {
@@ -254,6 +269,13 @@ public class FilterTransformer
             default:
                 throw new AutomatonException("Unhandled node type: " + nodeType);
         }
+    }
+
+
+    private Object invokeFilterFunction(String name, List<GenericScalar> args)
+    {
+        return filterFunctions.get(name).evaluate(name, args);
+
     }
 
 

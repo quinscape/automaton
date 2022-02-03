@@ -41,7 +41,7 @@
         <dependency>
             <groupId>de.quinscape.domainql</groupId>
             <artifactId>domainql</artifactId>
-            <version>0.2.14</version>
+            <version>0.2.15</version>
         </dependency>
 
         <dependency>

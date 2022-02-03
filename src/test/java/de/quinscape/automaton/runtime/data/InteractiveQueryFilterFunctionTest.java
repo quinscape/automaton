@@ -7,6 +7,7 @@ import de.quinscape.automaton.runtime.scalar.ConditionScalar;
 import de.quinscape.automaton.runtime.scalar.ConditionType;
 import de.quinscape.automaton.runtime.scalar.FieldExpressionScalar;
 import de.quinscape.automaton.runtime.scalar.FieldExpressionType;
+import de.quinscape.automaton.runtime.scalar.FilterFunctionScalar;
 import de.quinscape.automaton.runtime.tstimpl.DelegatingInteractiveQueryService;
 import de.quinscape.automaton.runtime.tstimpl.IQueryTestLogic;
 import de.quinscape.automaton.runtime.tstimpl.TestProvider;
@@ -26,6 +27,8 @@ import org.jooq.impl.DSL;
 import org.jooq.tools.jdbc.MockResult;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -37,8 +40,11 @@ import static de.quinscape.automaton.testdomain.Tables.*;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 
-public class InteractiveQueryConditionTest
+public class InteractiveQueryFilterFunctionTest
 {
+    private final static Logger log = LoggerFactory.getLogger(InteractiveQueryFilterFunctionTest.class);
+
+
     @BeforeAll
     public static void initReproducibleConditions()
     {
@@ -47,14 +53,14 @@ public class InteractiveQueryConditionTest
 
 
     @Test
-    public void testCondition() throws IOException
+    public void testFilterFunction() throws IOException
     {
         final DSLContext dslContext = TestProvider.create(ImmutableMap.of(
-            "select \"foo\".\"id\", \"foo\".\"name\", \"foo\".\"num\", \"foo\".\"description\", \"foo\".\"created\", " +
-                "\"foo\".\"type\", \"foo\".\"flag\", \"owner\".\"id\", \"owner\".\"login\", \"foo\".\"owner_id\" from" +
-                " \"public\".\"foo\" as \"foo\" left outer join \"public\".\"app_user\" as \"owner\" on \"owner\"" +
-                ".\"id\" = \"foo\".\"owner_id\" where (\"foo\".\"name\" = ? and \"owner\".\"login\" = ?) order by " +
-                "\"foo\".\"id\" limit ?",
+"select \"foo\".\"id\", \"foo\".\"name\", \"foo\".\"num\", \"foo\".\"description\", \"foo\".\"created\", \"foo\"" +
+    ".\"type\", \"foo\".\"flag\", \"owner\".\"id\", \"owner\".\"login\", \"foo\".\"owner_id\" from \"public\".\"foo\"" +
+    " as \"foo\" left outer join \"public\".\"app_user\" as \"owner\" on \"owner\".\"id\" = \"foo\".\"owner_id\" " +
+    "where (\"foo\".\"created\" < current_timestamp and \"foo\".\"created\" > current_date) order by \"foo\".\"id\" " +
+    "limit ?",
             (dsl, ctx) -> new MockResult[]{
                 new MockResult(
                     0,
@@ -71,8 +77,9 @@ public class InteractiveQueryConditionTest
                     )
                 )
             },
-            "select count(*) from \"public\".\"foo\" as \"foo\" left outer join \"public\".\"app_user\" as \"owner\" on " +
-                "\"owner\".\"id\" = \"foo\".\"owner_id\" where (\"foo\".\"name\" = ? and \"owner\".\"login\" = ?)",
+"select count(*) from \"public\".\"foo\" as \"foo\" left outer join \"public\".\"app_user\" as \"owner\" on \"owner\"" +
+    ".\"id\" = \"foo\".\"owner_id\" where (\"foo\".\"created\" < current_timestamp and \"foo\".\"created\" > " +
+    "current_date)",
             (dsl, ctx) -> new MockResult[]{
                 new MockResult(
                     dsl.newRecord(
@@ -98,11 +105,6 @@ public class InteractiveQueryConditionTest
                     )
                 )
             )
-
-
-            .withAdditionalScalar(ConditionScalar.class, ConditionType.newConditionType())
-            .withAdditionalScalar(FieldExpressionScalar.class, FieldExpressionType.newFieldExpressionType())
-
             .withAdditionalInputTypes(
                 Foo.class, Node.class, AppUser.class
             )
@@ -169,17 +171,23 @@ public class InteractiveQueryConditionTest
                         and(
                             Arrays.asList(
                                 condition(
-                                    "eq",
+                                    "lessThan",
                                     Arrays.asList(
-                                        field("name"),
-                                        value("String", "Test Foo")
+                                        field("created"),
+                                        value(AutomatonDomain.FILTER_FUNCTION_TYPE, ImmutableMap.of(
+                                            "name", "now",
+                                            "args", Collections.emptyList()
+                                        ))
                                     )
                                 ),
                                 condition(
-                                    "eq",
+                                    "greaterThan",
                                     Arrays.asList(
-                                        field("owner.login"),
-                                        value("String", "OtherUser")
+                                        field("created"),
+                                        value("FilterFunction", ImmutableMap.of(
+                                            "name", "today",
+                                            "args", Collections.emptyList()
+                                        ))
                                     )
                                 )
                             )
@@ -193,110 +201,122 @@ public class InteractiveQueryConditionTest
 
         assertThat(executionResult.getErrors(), is(Collections.emptyList()));
 
+        log.info(JSONUtil.DEFAULT_GENERATOR.dumpObjectFormatted(executionResult.getData()));
+
         assertThat(
             JSONUtil.DEFAULT_GENERATOR.dumpObjectFormatted(executionResult.getData()),
             is(
-                "{\n" +
-                    "  \"iQueryFoo\":{\n" +
-                    "    \"type\":\"Foo\",\n" +
-                    "    \"columnStates\":[\n" +
-                    "      {\n" +
-                    "        \"name\":\"id\",\n" +
-                    "        \"enabled\":true,\n" +
-                    "        \"sortable\":true\n" +
-                    "      },\n" +
-                    "      {\n" +
-                    "        \"name\":\"name\",\n" +
-                    "        \"enabled\":true,\n" +
-                    "        \"sortable\":true\n" +
-                    "      },\n" +
-                    "      {\n" +
-                    "        \"name\":\"num\",\n" +
-                    "        \"enabled\":true,\n" +
-                    "        \"sortable\":true\n" +
-                    "      },\n" +
-                    "      {\n" +
-                    "        \"name\":\"description\",\n" +
-                    "        \"enabled\":true,\n" +
-                    "        \"sortable\":true\n" +
-                    "      },\n" +
-                    "      {\n" +
-                    "        \"name\":\"created\",\n" +
-                    "        \"enabled\":true,\n" +
-                    "        \"sortable\":true\n" +
-                    "      },\n" +
-                    "      {\n" +
-                    "        \"name\":\"type\",\n" +
-                    "        \"enabled\":true,\n" +
-                    "        \"sortable\":true\n" +
-                    "      },\n" +
-                    "      {\n" +
-                    "        \"name\":\"flag\",\n" +
-                    "        \"enabled\":true,\n" +
-                    "        \"sortable\":true\n" +
-                    "      },\n" +
-                    "      {\n" +
-                    "        \"name\":\"owner.id\",\n" +
-                    "        \"enabled\":true,\n" +
-                    "        \"sortable\":true\n" +
-                    "      },\n" +
-                    "      {\n" +
-                    "        \"name\":\"owner.login\",\n" +
-                    "        \"enabled\":true,\n" +
-                    "        \"sortable\":true\n" +
-                    "      }\n" +
-                    "    ],\n" +
-                    "    \"queryConfig\":{\n" +
-                    "      \"id\":null,\n" +
-                    "      \"condition\":{\n" +
-                    "        \"type\":\"Condition\",\n" +
-                    "        \"name\":\"and\",\n" +
-                    "        \"operands\":[\n" +
-                    "          {\n" +
-                    "            \"type\":\"Condition\",\n" +
-                    "            \"name\":\"eq\",\n" +
-                    "            \"operands\":[\n" +
-                    "              {\n" +
-                    "                \"type\":\"Field\",\n" +
-                    "                \"name\":\"name\"\n" +
-                    "              },\n" +
-                    "              {\n" +
-                    "                \"type\":\"Value\",\n" +
-                    "                \"scalarType\":\"String\",\n" +
-                    "                \"name\":null,\n" +
-                    "                \"value\":\"Test Foo\"\n" +
-                    "              }\n" +
-                    "            ]\n" +
-                    "          },\n" +
-                    "          {\n" +
-                    "            \"type\":\"Condition\",\n" +
-                    "            \"name\":\"eq\",\n" +
-                    "            \"operands\":[\n" +
-                    "              {\n" +
-                    "                \"type\":\"Field\",\n" +
-                    "                \"name\":\"owner.login\"\n" +
-                    "              },\n" +
-                    "              {\n" +
-                    "                \"type\":\"Value\",\n" +
-                    "                \"scalarType\":\"String\",\n" +
-                    "                \"name\":null,\n" +
-                    "                \"value\":\"OtherUser\"\n" +
-                    "              }\n" +
-                    "            ]\n" +
-                    "          }\n" +
-                    "        ]\n" +
-                    "      },\n" +
-                    "      \"offset\":0,\n" +
-                    "      \"pageSize\":10,\n" +
-                    "      \"sortFields\":[\n" +
-                    "        \"id\"\n" +
-                    "      ]\n" +
-                    "    },\n" +
-                    "    \"rows\":[\n" +
-                    "      \n" +
-                    "    ]\n" +
-                    "  }\n" +
-                    "}")
+"{\n" +
+    "  \"iQueryFoo\":{\n" +
+    "    \"type\":\"Foo\",\n" +
+    "    \"columnStates\":[\n" +
+    "      {\n" +
+    "        \"name\":\"id\",\n" +
+    "        \"enabled\":true,\n" +
+    "        \"sortable\":true\n" +
+    "      },\n" +
+    "      {\n" +
+    "        \"name\":\"name\",\n" +
+    "        \"enabled\":true,\n" +
+    "        \"sortable\":true\n" +
+    "      },\n" +
+    "      {\n" +
+    "        \"name\":\"num\",\n" +
+    "        \"enabled\":true,\n" +
+    "        \"sortable\":true\n" +
+    "      },\n" +
+    "      {\n" +
+    "        \"name\":\"description\",\n" +
+    "        \"enabled\":true,\n" +
+    "        \"sortable\":true\n" +
+    "      },\n" +
+    "      {\n" +
+    "        \"name\":\"created\",\n" +
+    "        \"enabled\":true,\n" +
+    "        \"sortable\":true\n" +
+    "      },\n" +
+    "      {\n" +
+    "        \"name\":\"type\",\n" +
+    "        \"enabled\":true,\n" +
+    "        \"sortable\":true\n" +
+    "      },\n" +
+    "      {\n" +
+    "        \"name\":\"flag\",\n" +
+    "        \"enabled\":true,\n" +
+    "        \"sortable\":true\n" +
+    "      },\n" +
+    "      {\n" +
+    "        \"name\":\"owner.id\",\n" +
+    "        \"enabled\":true,\n" +
+    "        \"sortable\":true\n" +
+    "      },\n" +
+    "      {\n" +
+    "        \"name\":\"owner.login\",\n" +
+    "        \"enabled\":true,\n" +
+    "        \"sortable\":true\n" +
+    "      }\n" +
+    "    ],\n" +
+    "    \"queryConfig\":{\n" +
+    "      \"id\":null,\n" +
+    "      \"condition\":{\n" +
+    "        \"type\":\"Condition\",\n" +
+    "        \"name\":\"and\",\n" +
+    "        \"operands\":[\n" +
+    "          {\n" +
+    "            \"type\":\"Condition\",\n" +
+    "            \"name\":\"lessThan\",\n" +
+    "            \"operands\":[\n" +
+    "              {\n" +
+    "                \"type\":\"Field\",\n" +
+    "                \"name\":\"created\"\n" +
+    "              },\n" +
+    "              {\n" +
+    "                \"type\":\"Value\",\n" +
+    "                \"scalarType\":\"FilterFunction\",\n" +
+    "                \"name\":null,\n" +
+    "                \"value\":{\n" +
+    "                  \"args\":[\n" +
+    "                    \n" +
+    "                  ],\n" +
+    "                  \"name\":\"now\"\n" +
+    "                }\n" +
+    "              }\n" +
+    "            ]\n" +
+    "          },\n" +
+    "          {\n" +
+    "            \"type\":\"Condition\",\n" +
+    "            \"name\":\"greaterThan\",\n" +
+    "            \"operands\":[\n" +
+    "              {\n" +
+    "                \"type\":\"Field\",\n" +
+    "                \"name\":\"created\"\n" +
+    "              },\n" +
+    "              {\n" +
+    "                \"type\":\"Value\",\n" +
+    "                \"scalarType\":\"FilterFunction\",\n" +
+    "                \"name\":null,\n" +
+    "                \"value\":{\n" +
+    "                  \"args\":[\n" +
+    "                    \n" +
+    "                  ],\n" +
+    "                  \"name\":\"today\"\n" +
+    "                }\n" +
+    "              }\n" +
+    "            ]\n" +
+    "          }\n" +
+    "        ]\n" +
+    "      },\n" +
+    "      \"offset\":0,\n" +
+    "      \"pageSize\":10,\n" +
+    "      \"sortFields\":[\n" +
+    "        \"id\"\n" +
+    "      ]\n" +
+    "    },\n" +
+    "    \"rows\":[\n" +
+    "      \n" +
+    "    ]\n" +
+    "  }\n" +
+    "}")
         );
 
     }

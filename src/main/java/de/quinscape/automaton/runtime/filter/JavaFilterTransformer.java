@@ -58,6 +58,7 @@ import de.quinscape.automaton.runtime.filter.impl.TrueFilter;
 import de.quinscape.automaton.runtime.filter.impl.UnaryMinusFilter;
 import de.quinscape.automaton.runtime.filter.impl.UnaryPlusFilter;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
+import de.quinscape.automaton.runtime.scalar.FilterFunctionScalar;
 import de.quinscape.automaton.runtime.scalar.NodeType;
 import de.quinscape.domainql.DomainQL;
 import graphql.schema.Coercing;
@@ -78,6 +79,7 @@ import java.util.Map;
 public class JavaFilterTransformer
 {
     private final Map<String, Class<? extends ConfigurableFilter>> filters;
+    private final Map<String, JavaFilterFunction> filterFunctions;
 
     public JavaFilterTransformer()
     {
@@ -88,7 +90,10 @@ public class JavaFilterTransformer
     {
         filters = createDefaultFilters();
         filters.putAll(extraFilters);
+
+        filterFunctions = createDefaultFilterFunctions();
     }
+
 
     private static Map<String, Class<? extends ConfigurableFilter>> createDefaultFilters()
     {
@@ -162,6 +167,15 @@ public class JavaFilterTransformer
     }
 
 
+
+    private Map<String, JavaFilterFunction> createDefaultFilterFunctions()
+    {
+        final Map<String, JavaFilterFunction> filters = new HashMap<>();
+        filters.put("now", new CurrentTimestampFilterFunction() );
+        filters.put("today", new CurrentDateFilterFunction() );
+        return filters;
+    }
+
     public Filter transform(Map<String,Object> condition)
     {
         return transformInternal(condition);
@@ -232,6 +246,14 @@ public class JavaFilterTransformer
             {
                 final String scalarType = ConditionBuilder.getScalarType(condition);
                 final Object value = ConditionBuilder.getValue(condition);
+                if (value instanceof FilterFunctionScalar)
+                {
+                    final FilterFunctionScalar scalar = (FilterFunctionScalar) value;
+                    final JavaFilterFunction javaFilterFunction =
+                        filterFunctions.get(scalar.getName());
+
+                    return javaFilterFunction.evaluate(scalar.getName(), scalar.getArgs());
+                }
                 return new LiteralValue(scalarType, value);
             }
             case VALUES:

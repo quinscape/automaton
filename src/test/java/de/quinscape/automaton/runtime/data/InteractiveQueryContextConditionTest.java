@@ -2,6 +2,7 @@ package de.quinscape.automaton.runtime.data;
 
 import com.google.common.collect.ImmutableMap;
 import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
+import de.quinscape.automaton.runtime.domain.builder.AutomatonDomain;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
 import de.quinscape.automaton.runtime.scalar.ConditionScalar;
 import de.quinscape.automaton.runtime.scalar.ConditionType;
@@ -116,7 +117,7 @@ public class InteractiveQueryContextConditionTest
         final DelegatingInteractiveQueryService svc =
             new DelegatingInteractiveQueryService();
 
-        final DomainQL domainQL = DomainQL.newDomainQL(dslContext)
+        final DomainQL domainQL = AutomatonDomain.newDomain(dslContext, Collections.emptyList())
             .objectTypes(Public.PUBLIC)
             .logicBeans(
                 Arrays.asList(
@@ -126,10 +127,6 @@ public class InteractiveQueryContextConditionTest
                     )
                 )
             )
-
-
-            .withAdditionalScalar(ConditionScalar.class, ConditionType.newConditionType())
-            .withAdditionalScalar(FieldExpressionScalar.class, FieldExpressionType.newFieldExpressionType())
 
             .withAdditionalInputTypes(
                 Foo.class, Node.class, AppUser.class
