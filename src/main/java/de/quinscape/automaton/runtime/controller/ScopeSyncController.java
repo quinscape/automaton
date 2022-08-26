@@ -75,10 +75,10 @@ public class ScopeSyncController
         }
         else
         {
-            return error("Invalid kind '" + kind + "'");
+            return UnifiedResponse. errors(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid kind '" + kind + "'");
         }
 
-        return OK;
+        return UnifiedResponse.OK;
     }
 
 
