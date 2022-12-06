@@ -2,6 +2,7 @@ package de.quinscape.automaton.runtime.filter;
 
 import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
 import de.quinscape.automaton.runtime.data.DefaultFilterContextRegistry;
+import de.quinscape.automaton.runtime.domain.builder.AutomatonDomain;
 import de.quinscape.automaton.runtime.filter.impl.FalseFilter;
 import de.quinscape.automaton.runtime.filter.impl.IsFalseFilter;
 import de.quinscape.automaton.runtime.filter.impl.IsTrueFilter;
@@ -14,10 +15,12 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,7 +33,7 @@ public class JavaFilterTransformerTest
 {
     private final static Logger log = LoggerFactory.getLogger(JavaFilterTransformerTest.class);
 
-    private final DomainQL domainQL = DomainQL.newDomainQL(null).build();
+    private final DomainQL domainQL = AutomatonDomain.newDomain(null, Collections.emptyList()).build();
 
     private final JavaFilterTransformer transformer = new JavaFilterTransformer();
 
@@ -942,5 +945,54 @@ public class JavaFilterTransformerTest
             // we follow SQL conventions and concat null as empty string
             assertThat(filter.evaluate(new FilterEvaluationContext(resolver, null)),is("bbb"));
         }
+    }
+
+
+    @Test
+    void testNow()
+    {
+        //language=JSON
+        final Filter filter = fromJSON(
+            "{\n" +
+                "            \"name\": null,\n" +
+                "            \"scalarType\": \"FilterFunction\",\n" +
+                "            \"type\": \"Value\",\n" +
+                "            \"value\": {\n" +
+                "                \"args\": [],\n" +
+                "                \"name\": \"now\"\n" +
+                "            }\n" +
+                "        }\n"
+        );
+
+        final FilterEvaluationContext ctx = new FilterEvaluationContext(null);
+        final Timestamp result = (Timestamp) filter.evaluate(ctx);
+
+        assertThat(Timestamp.from(Instant.now()).getTime() - result.getTime(), is(lessThan(10L)));
+
+        log.info("{}", result);
+    }
+
+    @Test
+    void testToday()
+    {
+        //language=JSON
+        final Filter filter = fromJSON(
+            "{\n" +
+            "    \"name\": null,\n" +
+            "    \"scalarType\": \"FilterFunction\",\n" +
+            "    \"type\": \"Value\",\n" +
+            "    \"value\": {\n" +
+            "        \"args\": [],\n" +
+            "        \"name\": \"today\"\n" +
+            "    }\n" +
+            "}\n"
+        );
+
+        final FilterEvaluationContext ctx = new FilterEvaluationContext(null);
+        final Date result = (Date) filter.evaluate(ctx);
+
+        assertThat(Date.from(Instant.now()).getTime() - result.getTime(), is(lessThan(10L)));
+
+        log.info("{}", result);
     }
 }

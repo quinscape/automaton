@@ -490,6 +490,13 @@
     ]
   },
   {
+    "name":"AutomatonRelation",
+    "description":"Contains standardized Automaton relation tags.",
+    "fieldDocs":[
+      
+    ]
+  },
+  {
     "name":"ColumnState",
     "description":"The state of a column within an interactive query.",
     "fieldDocs":[

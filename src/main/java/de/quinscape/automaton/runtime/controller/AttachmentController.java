@@ -89,7 +89,7 @@ public class AttachmentController
             data
         );
 
-        return OK;
+        return UnifiedResponse.OK;
     }
 
 
@@ -101,7 +101,7 @@ public class AttachmentController
         ensureRepositoryInjected();
 
         attachmentRepository.delete(attachmentId);
-        return OK;
+        return UnifiedResponse.OK;
     }
 
 

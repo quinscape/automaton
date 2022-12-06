@@ -73,23 +73,16 @@ public class ProcessController
                 input
             );
 
-            return new ResponseEntity<>(
+            return UnifiedResponse.successJSON(
                 JSONBuilder.buildObject(JSONUtil.DEFAULT_GENERATOR)
                     .property("injections", data)
                     .property("input", input)
-                    .output(),
-                HttpStatus.OK
-            );
+                    .output()
+                );
         }
         catch(ProcessNotFoundException e)
         {
-            return new ResponseEntity<>(
-                JSONBuilder.buildObject(JSONUtil.DEFAULT_GENERATOR)
-                    .property("error", e.getMessage())
-                    .output(),
-                HttpStatus.NOT_FOUND
-            );
+            return UnifiedResponse.errors(HttpStatus.NOT_FOUND, e.getMessage());
         }
-
     }
 }

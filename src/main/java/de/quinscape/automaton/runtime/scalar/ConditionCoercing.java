@@ -209,7 +209,7 @@ public final class ConditionCoercing
     public ConditionScalar parseLiteral(Object input) throws CoercingParseLiteralException
     {
         // XXX: is this possible?
-        throw new CoercingParseLiteralException("Cannot coerce GenericScalarType from literal");
+        throw new CoercingParseLiteralException("Cannot coerce ConditionScalar from literal");
     }
 }
 

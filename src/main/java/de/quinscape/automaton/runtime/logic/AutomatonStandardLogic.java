@@ -18,6 +18,7 @@ import de.quinscape.automaton.runtime.domain.op.StoreOperation;
 import de.quinscape.automaton.runtime.filter.CachedFilterContextResolver;
 import de.quinscape.automaton.runtime.merge.MergeService;
 import de.quinscape.automaton.runtime.scalar.ConditionScalar;
+import de.quinscape.automaton.runtime.scalar.FilterFunctionScalar;
 import de.quinscape.automaton.runtime.util.GraphQLUtil;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.TypeRegistry;
@@ -684,6 +685,12 @@ public class AutomatonStandardLogic
 
     @GraphQLQuery
     public InteractiveQueryDefinition _interactiveQueryDefinition(InteractiveQueryDefinition def)
+    {
+        throw new IllegalQueryOperation("Operation only exists for schema purporses");
+    }
+
+    @GraphQLQuery
+    public FilterFunctionScalar _filterFnScalar(FilterFunctionScalar def)
     {
         throw new IllegalQueryOperation("Operation only exists for schema purporses");
     }

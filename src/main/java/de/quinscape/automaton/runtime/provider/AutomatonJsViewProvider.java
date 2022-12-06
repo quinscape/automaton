@@ -1,6 +1,7 @@
 package de.quinscape.automaton.runtime.provider;
 
 import com.google.common.collect.Maps;
+import de.quinscape.automaton.model.domain.AutomatonRelation;
 import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
 import de.quinscape.automaton.runtime.config.ClientCrsfToken;
 import de.quinscape.automaton.runtime.config.ScopeTableConfig;
@@ -11,6 +12,7 @@ import de.quinscape.automaton.runtime.util.ProcessUtil;
 import de.quinscape.automaton.runtime.ws.AutomatonWebSocketHandler;
 import de.quinscape.automaton.runtime.ws.DefaultAutomatonClientConnection;
 import de.quinscape.domainql.DomainQL;
+import de.quinscape.domainql.config.RelationModel;
 import de.quinscape.domainql.jsonb.JSONB;
 import de.quinscape.domainql.schema.SchemaDataProvider;
 import de.quinscape.spring.jsview.JsViewContext;
@@ -23,7 +25,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.web.csrf.CsrfToken;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.jooq.impl.DSL.*;
@@ -133,8 +138,50 @@ public final class AutomatonJsViewProvider
         this.automatonWebSocketHandler = automatonWebSocketHandler;
         this.translationService = translationService;
 
+        validate(domainQL);
         this.schemaProvider = new SchemaDataProvider(domainQL, "domainQL");
     }
+
+    /**
+     * Does some additional Automaton specific validation on the created DomainQL instance
+     * @param domainQL
+     */
+    private void validate(DomainQL domainQL)
+    {
+        final Map<String, List<RelationModel>> counts = new HashMap<>();
+
+        for (RelationModel relationModel : domainQL.getRelationModels())
+        {
+            final boolean isMarkedManyToMany = relationModel.getMetaTags().contains(AutomatonRelation.MANY_TO_MANY);
+
+            if (isMarkedManyToMany)
+            {
+                final String sourceType = relationModel.getSourceType();
+                List<RelationModel> value = counts.get(sourceType);
+                if (value == null)
+                {
+                    value = new ArrayList<>();
+                }
+                value.add(relationModel);
+                counts.put(sourceType, value);
+            }
+        }
+
+        for (Map.Entry<String, List<RelationModel>> e : counts.entrySet())
+        {
+            List<RelationModel> relationModels = e.getValue();
+            if (relationModels.size() != 0 && relationModels.size() != 2)
+            {
+                final String domainType = e.getKey();
+                throw new IllegalStateException(
+                    "Invalid number of 'ManyToMany' tags on the relations coming from type '" + domainType + "': count = " + relationModels.size() + " " + relationModels +".\n" +
+                        "If '" + domainType + "' is supposed to be a many-to-many link type it has to have exactly 2 relations tagged as 'ManyToMany'."
+                );
+            }
+        }
+
+    }
+
 
 
     private static Map<String, Object> userConfigAsMap(Record userConfigRecord)
