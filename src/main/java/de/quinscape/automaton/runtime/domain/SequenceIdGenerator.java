@@ -4,7 +4,7 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Sequence;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

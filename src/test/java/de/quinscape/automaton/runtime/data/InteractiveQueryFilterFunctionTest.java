@@ -60,7 +60,7 @@ public class InteractiveQueryFilterFunctionTest
     ".\"type\", \"foo\".\"flag\", \"owner\".\"id\", \"owner\".\"login\", \"foo\".\"owner_id\" from \"public\".\"foo\"" +
     " as \"foo\" left outer join \"public\".\"app_user\" as \"owner\" on \"owner\".\"id\" = \"foo\".\"owner_id\" " +
     "where (\"foo\".\"created\" < current_timestamp and \"foo\".\"created\" > current_date) order by \"foo\".\"id\" " +
-    "limit ?",
+    "offset ? rows fetch next ? rows only",
             (dsl, ctx) -> new MockResult[]{
                 new MockResult(
                     0,

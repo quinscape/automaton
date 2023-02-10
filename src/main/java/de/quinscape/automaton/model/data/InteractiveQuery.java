@@ -4,6 +4,9 @@ import de.quinscape.domainql.fetcher.FieldFetcher;
 import graphql.language.Field;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLList;
+import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.SelectedField;
 import org.slf4j.Logger;
@@ -166,8 +169,9 @@ public class InteractiveQuery<T>
             return Collections.emptyList();
         }
 
+        final SelectedField objectField = rowsField.get(0);
         final Set<SelectedField> fields = new LinkedHashSet<>(
-            rowsField.get(0)
+            objectField
                 .getSelectionSet()
                 .getFields()
         );
@@ -175,9 +179,16 @@ public class InteractiveQuery<T>
         final GraphQLSchema schema = env.getGraphQLSchema();
 
         final List<ColumnState> columnStates = new ArrayList<>(fields.size());
+
         for (SelectedField field : fields)
         {
-            final DataFetcher<?> dataFetcher = schema.getCodeRegistry().getDataFetcher(field.getObjectType(), field.getFieldDefinition());
+            GraphQLObjectType objectType = field.getObjectTypes().get(0);
+            final GraphQLFieldDefinition fieldDefinition = objectType.getFieldDefinition(field.getName());
+            if (fieldDefinition == null)
+            {
+                throw new IllegalStateException("No fieldDefinition for " + field.getName());
+            }
+            final DataFetcher<?> dataFetcher = schema.getCodeRegistry().getDataFetcher(objectType, fieldDefinition);
 
             if (dataFetcher instanceof FieldFetcher)
             {

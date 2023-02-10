@@ -5,7 +5,7 @@ import org.svenson.JSONTypeHint;
 import org.svenson.JSONable;
 import org.svenson.util.JSONBuilder;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
 

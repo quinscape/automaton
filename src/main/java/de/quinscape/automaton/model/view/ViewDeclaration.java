@@ -1,6 +1,6 @@
 package de.quinscape.automaton.model.view;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;

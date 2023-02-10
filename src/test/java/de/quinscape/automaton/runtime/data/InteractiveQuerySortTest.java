@@ -63,7 +63,8 @@ public class InteractiveQuerySortTest
         final DSLContext dslContext = TestProvider.create(ImmutableMap.of(
         "select \"foo\".\"id\", \"foo\".\"name\", \"foo\".\"created\", \"owner\".\"id\", \"owner\".\"login\", \"foo\"" +
             ".\"owner_id\" from \"public\".\"foo\" as \"foo\" left outer join \"public\".\"app_user\" as \"owner\" on" +
-            " \"owner\".\"id\" = \"foo\".\"owner_id\" order by \"owner\".\"login\" desc, \"foo\".\"name\" limit ?", (dsl, ctx) -> {
+            " \"owner\".\"id\" = \"foo\".\"owner_id\" order by \"owner\".\"login\" desc, \"foo\".\"name\" offset ? " +
+            "rows fetch next ? rows only", (dsl, ctx) -> {
 
                 final Result<Record6<String, String, Timestamp, String, String, String>> result = dsl.newResult(
                     FOO.ID,

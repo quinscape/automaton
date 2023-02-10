@@ -1,6 +1,6 @@
 package de.quinscape.automaton.model.merge;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 /**

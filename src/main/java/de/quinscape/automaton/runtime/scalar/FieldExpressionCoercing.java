@@ -1,6 +1,6 @@
 package de.quinscape.automaton.runtime.scalar;
 
-import de.quinscape.domainql.DomainQL;
+import graphql.schema.Coercing;
 import graphql.schema.CoercingParseLiteralException;
 import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
@@ -10,15 +10,14 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 
 public final class FieldExpressionCoercing
-    extends DomainQLAwareCoercing<FieldExpressionScalar, Object>
+    implements Coercing<FieldExpressionScalar, Object>
 {
     private final static Logger log = LoggerFactory.getLogger(FieldExpressionCoercing.class);
 
 
 
-    public FieldExpressionCoercing(DomainQL domainQL)
+    public FieldExpressionCoercing()
     {
-        super(domainQL);
     }
 
 

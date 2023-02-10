@@ -2,6 +2,7 @@ package de.quinscape.automaton.model.data;
 
 import de.quinscape.automaton.runtime.scalar.ConditionScalar;
 import de.quinscape.automaton.runtime.scalar.FieldExpressionScalar;
+import de.quinscape.domainql.annotation.GraphQLField;
 
 import java.util.List;
 
@@ -42,6 +43,7 @@ public final class QueryConfig
      *
      * @return
      */
+    @GraphQLField(defaultValue = "0")
     public int getOffset()
     {
         return offset;
@@ -58,11 +60,11 @@ public final class QueryConfig
      * Maximum number of paginated results.,
      * @return
      */
+    @GraphQLField(defaultValue = "10")
     public int getPageSize()
     {
         return pageSize;
     }
-
 
     public void setPageSize(int pageSize)
     {

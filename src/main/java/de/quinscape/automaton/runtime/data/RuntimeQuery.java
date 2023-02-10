@@ -18,6 +18,8 @@ import de.quinscape.domainql.generic.DomainObject;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLOutputType;
 import graphql.schema.SelectedField;
 import org.apache.commons.beanutils.ConstructorUtils;
 import org.jooq.Condition;
@@ -549,7 +551,8 @@ public final class RuntimeQuery<T>
                 throw new RuntimeQueryException("Could not find field '" + columnState.getGraphQLName());
             }
 
-            final DataFetcher<?> dataFetcher = domainQL.getGraphQLSchema().getCodeRegistry().getDataFetcher(selectedField.getObjectType(), selectedField.getFieldDefinition());
+            final GraphQLObjectType objectType = (GraphQLObjectType) selectedField.getObjectTypes().get(0);
+            final DataFetcher<?> dataFetcher = domainQL.getGraphQLSchema().getCodeRegistry().getDataFetcher(objectType, objectType.getFieldDefinition(selectedField.getName()));
             if (dataFetcher instanceof FieldFetcher)
             {
                 final String parentLocation = QueryExecution.getParent(selectedField.getQualifiedName());
@@ -891,7 +894,8 @@ public final class RuntimeQuery<T>
     {
         for (SelectedField field : fields)
         {
-            final DataFetcher<?> dataFetcher = domainQL.getGraphQLSchema().getCodeRegistry().getDataFetcher(field.getObjectType(), field.getFieldDefinition());
+            final GraphQLObjectType objectType = field.getObjectTypes().get(0);
+            final DataFetcher<?> dataFetcher = domainQL.getGraphQLSchema().getCodeRegistry().getDataFetcher(objectType, objectType.getFieldDefinition(field.getName()));
             final String parentLocation = field.getQualifiedName();
             if (dataFetcher instanceof BackReferenceFetcher)
             {

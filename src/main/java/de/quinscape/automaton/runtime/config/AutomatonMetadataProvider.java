@@ -10,8 +10,8 @@ import de.quinscape.spring.jsview.util.JSONUtil;
 import org.svenson.info.JSONClassInfo;
 import org.svenson.info.JSONPropertyInfo;
 
-import javax.persistence.Column;
-import javax.validation.constraints.Size;
+import jakarta.persistence.Column;
+import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 

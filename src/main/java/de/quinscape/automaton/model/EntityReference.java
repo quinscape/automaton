@@ -2,7 +2,7 @@ package de.quinscape.automaton.model;
 
 import de.quinscape.domainql.generic.GenericScalar;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * Reference to a specific entity or entity version

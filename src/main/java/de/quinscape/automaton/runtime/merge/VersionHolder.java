@@ -2,7 +2,7 @@ package de.quinscape.automaton.runtime.merge;
 
 import org.jooq.DSLContext;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.time.Instant;

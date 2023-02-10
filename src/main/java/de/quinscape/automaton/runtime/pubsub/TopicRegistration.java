@@ -5,7 +5,7 @@ import de.quinscape.automaton.runtime.filter.Filter;
 import de.quinscape.automaton.runtime.ws.AutomatonClientConnection;
 import de.quinscape.spring.jsview.util.JSONUtil;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * Encapsulates a single registration within the pubsub service. Registrations can be either for websocket connections

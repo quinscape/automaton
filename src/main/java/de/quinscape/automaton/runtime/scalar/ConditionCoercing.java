@@ -2,11 +2,13 @@ package de.quinscape.automaton.runtime.scalar;
 
 import de.quinscape.automaton.runtime.AutomatonException;
 import de.quinscape.domainql.DomainQL;
+import de.quinscape.domainql.schema.DomainQLAware;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import graphql.schema.CoercingParseLiteralException;
 import graphql.schema.CoercingParseValueException;
 import graphql.schema.CoercingSerializeException;
 import graphql.schema.GraphQLScalarType;
+import graphql.schema.GraphQLType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.svenson.JSON;
@@ -17,15 +19,18 @@ import java.util.List;
 import java.util.Map;
 
 public final class ConditionCoercing
-    extends DomainQLAwareCoercing<ConditionScalar, Map<String, Object>>
+    implements graphql.schema.Coercing<ConditionScalar, Map<String, Object>>, DomainQLAware
 {
 
 
     private final static Logger log = LoggerFactory.getLogger(ConditionCoercing.class);
 
-    public ConditionCoercing(DomainQL domainQL)
+    private DomainQL domainQL;
+
+
+    public ConditionCoercing()
     {
-        super(domainQL);
+
     }
 
 
@@ -210,6 +215,25 @@ public final class ConditionCoercing
     {
         // XXX: is this possible?
         throw new CoercingParseLiteralException("Cannot coerce ConditionScalar from literal");
+    }
+
+
+    protected GraphQLScalarType getScalarType(String scalarTypeName)
+    {
+        final GraphQLType type = domainQL.getGraphQLSchema().getType(scalarTypeName);
+
+        if (!(type instanceof GraphQLScalarType))
+        {
+            throw new IllegalStateException("Type '" + scalarTypeName + "' is not a scalar type: " + type);
+        }
+        return (GraphQLScalarType) type;
+    }
+
+
+    @Override
+    public void setDomainQL(DomainQL domainQL)
+    {
+        this.domainQL = domainQL;
     }
 }
 

@@ -4,7 +4,7 @@ import de.quinscape.automaton.model.EntityReference;
 import de.quinscape.domainql.generic.GenericScalar;
 import org.svenson.JSONTypeHint;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 

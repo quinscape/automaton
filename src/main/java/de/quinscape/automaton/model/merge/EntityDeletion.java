@@ -2,7 +2,7 @@ package de.quinscape.automaton.model.merge;
 
 import de.quinscape.domainql.generic.GenericScalar;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * Encapsulates the type and id of on object deletion in a working set.

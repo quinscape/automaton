@@ -54,7 +54,7 @@ public class InteractiveQueryManyTest2
             ImmutableMap.of(
                 "select \"baz\".\"name\", \"owner\".\"login\", \"baz\".\"owner_id\", \"owner\".\"id\" from \"public\"" +
                     ".\"baz\" as \"baz\" left outer join \"public\".\"app_user\" as \"owner\" on \"owner\".\"id\" = " +
-                    "\"baz\".\"owner_id\" order by \"baz\".\"name\" limit ?", (dsl, ctx) -> {
+                    "\"baz\".\"owner_id\" order by \"baz\".\"name\" offset ? rows fetch next ? rows only", (dsl, ctx) -> {
                     final Result<Record4<String, String, String, String>> result = dsl.newResult(
                         BAZ.NAME,
                         APP_USER.LOGIN,

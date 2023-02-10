@@ -4,7 +4,7 @@ import de.quinscape.automaton.runtime.filter.Filter;
 import de.quinscape.automaton.runtime.ws.AutomatonClientConnection;
 import de.quinscape.automaton.runtime.ws.AutomatonWebSocketHandler;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * Provides Publish/Subscribe services for websocket messages and connections.

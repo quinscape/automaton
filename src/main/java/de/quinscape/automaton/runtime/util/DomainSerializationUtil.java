@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.svenson.util.JSONBeanUtil;
 import org.svenson.util.JSONBuilder;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 

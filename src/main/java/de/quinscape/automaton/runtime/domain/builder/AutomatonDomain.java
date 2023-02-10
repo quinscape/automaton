@@ -45,11 +45,11 @@ public class AutomatonDomain
 
         return DomainQL.newDomainQL(dslContext)
             .withAdditionalScalar(DomainObject.class, DomainObjectScalar.newDomainObjectScalar())
-            .withAdditionalScalar(JSONB.class, new JSONBScalar())
+            .withAdditionalScalar(JSONB.class, JSONBScalar.newScalar())
             .withAdditionalScalar(ConditionScalar.class, ConditionType.newConditionType())
             .withAdditionalScalar(FieldExpressionScalar.class, FieldExpressionType.newFieldExpressionType())
             .withAdditionalScalar(GenericScalar.class, GenericScalarType.newGenericScalar())
-            .withAdditionalScalar(BigDecimal.class, new BigDecimalScalar())
+            .withAdditionalScalar(BigDecimal.class, BigDecimalScalar.newScalar())
 
             .withAdditionalScalar(
                 FilterFunctionScalar.class,

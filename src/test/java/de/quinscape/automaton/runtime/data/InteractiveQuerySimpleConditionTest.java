@@ -63,7 +63,7 @@ public class InteractiveQuerySimpleConditionTest
                     ".\"created\", \"foo\".\"type\", \"foo\".\"flag\", \"owner\".\"id\", \"owner\".\"login\", \"foo\"" +
                     ".\"owner_id\" from \"public\".\"foo\" as \"foo\" left outer join \"public\".\"app_user\" as " +
                     "\"owner\" on \"owner\".\"id\" = \"foo\".\"owner_id\" where \"foo\".\"name\" = ? order by \"foo\"" +
-                    ".\"id\" limit ?", (dsl, ctx) -> new MockResult[]{
+                    ".\"id\" offset ? rows fetch next ? rows only", (dsl, ctx) -> new MockResult[]{
                 new MockResult(
                     dsl.newRecord(
                         FOO.ID,
@@ -196,6 +196,7 @@ public class InteractiveQuerySimpleConditionTest
         assertThat(
             JSONUtil.DEFAULT_GENERATOR.dumpObjectFormatted(executionResult.getData()),
             is(
+                // language=JSON
                 "{\n" +
                     "  \"iQueryFoo\":{\n" +
                     "    \"type\":\"Foo\",\n" +

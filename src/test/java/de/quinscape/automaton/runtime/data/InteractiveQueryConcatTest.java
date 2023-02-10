@@ -61,7 +61,7 @@ public class InteractiveQueryConcatTest
         final DSLContext dslContext = TestProvider.create(ImmutableMap.of(
             "select \"foo\".\"id\", \"foo\".\"name\", \"foo\".\"description\", \"foo\".\"type\", \"foo\".\"owner_id\"" +
                 " from \"public\".\"foo\" as \"foo\" where (\"foo\".\"name\" || \"foo\".\"owner_id\") = ? order by " +
-                "\"foo\".\"id\" limit ?",
+                "\"foo\".\"id\" offset ? rows fetch next ? rows only",
             (dsl, ctx) -> {
 
                 final Result<Record5<String, String, String, String, String>> result = dsl.newResult(

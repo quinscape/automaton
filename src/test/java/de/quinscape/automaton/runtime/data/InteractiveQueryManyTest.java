@@ -56,7 +56,7 @@ public class InteractiveQueryManyTest
         final DSLContext dslContext = TestProvider.create(
             ImmutableMap.of(
                 "select \"baz\".\"name\", \"baz\".\"id\" from \"public\".\"baz\" as \"baz\" order by \"baz\".\"name\"" +
-                    " limit ?", (dsl, ctx) -> {
+                    " offset ? rows fetch next ? rows only", (dsl, ctx) -> {
 
                     final Result<Record2<String, String>> result = dsl.newResult(
                         BAZ.NAME,

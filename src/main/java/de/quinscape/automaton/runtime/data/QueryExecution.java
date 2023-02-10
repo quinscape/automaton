@@ -9,8 +9,8 @@ import graphql.schema.GraphQLTypeUtil;
 import graphql.schema.GraphQLUnmodifiedType;
 import graphql.schema.SelectedField;
 import org.jooq.Field;
+import org.svenson.util.IntrospectionUtil;
 
-import java.beans.Introspector;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -77,7 +77,7 @@ public final class QueryExecution
         joins = new LinkedHashMap<>();
 
         final GraphQLUnmodifiedType type = GraphQLTypeUtil.unwrapAll(env.getSelectionSet().getFields(
-            fieldRoot).get(0).getFieldDefinition().getType());
+            fieldRoot).get(0).getType());
 
 
         final String domainTypeName = type.getName();
@@ -89,7 +89,7 @@ public final class QueryExecution
                 lookup.getTable(),
                 lookup.getPojoType(),
                 // first value, is always  unique within map
-                Introspector.decapitalize(domainTypeName)
+                IntrospectionUtil.decapitalize(domainTypeName)
             )
         );
 
@@ -168,8 +168,7 @@ public final class QueryExecution
         final String parentLocation = getParent(field.getQualifiedName());
         final SelectedField parentField = env.getSelectionSet().getFields(parentLocation).get(0);
 
-        final String domainType = GraphQLTypeUtil.unwrapAll(parentField.getFieldDefinition()
-            .getType()).getName();
+        final String domainType = GraphQLTypeUtil.unwrapAll(parentField.getType()).getName();
         final Field<?> dbField = domainQL.lookupField(domainType, field.getName());
 
         if (dbField == null)

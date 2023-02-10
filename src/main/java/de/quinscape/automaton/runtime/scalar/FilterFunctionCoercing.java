@@ -86,6 +86,7 @@ public class FilterFunctionCoercing
     @Override
     public void setDomainQL(DomainQL domainQL)
     {
-        this.genericScalarCoercing = new GenericScalarCoercing(domainQL);
+        this.genericScalarCoercing = new GenericScalarCoercing();
+        this.genericScalarCoercing.setDomainQL(domainQL);
     }
 }
