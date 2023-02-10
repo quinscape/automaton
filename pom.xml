@@ -4,7 +4,7 @@
 
     <groupId>de.quinscape.domainql</groupId>
     <artifactId>automaton</artifactId>
-    <version>0.5.8-SNAPSHOT</version>
+    <version>0.6.0-SNAPSHOT</version>
 
     <name>Automaton</name>
     <description>Opinionated convention-over-configuration / model-based application framework based on DomainQL</description>
