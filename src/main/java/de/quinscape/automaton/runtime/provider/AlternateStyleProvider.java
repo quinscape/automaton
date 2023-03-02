@@ -6,7 +6,7 @@ import de.quinscape.spring.jsview.JsViewProvider;
 import de.quinscape.spring.jsview.util.JSONUtil;
 import org.svenson.util.JSONBuilder;
 
-import javax.servlet.http.Cookie;
+import jakarta.servlet.http.Cookie;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.List;
