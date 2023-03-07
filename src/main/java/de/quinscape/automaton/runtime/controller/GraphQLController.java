@@ -51,7 +51,7 @@ public class GraphQLController
     }
 
 
-    @RequestMapping(value = GRAPHQL_URI, method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = GRAPHQL_URI, method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> serveGraphQL(
         @RequestBody Map<String,Object> body
         //@RequestParam("cid") String connectionId
