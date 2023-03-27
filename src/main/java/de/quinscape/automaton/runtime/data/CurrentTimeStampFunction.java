@@ -6,7 +6,7 @@ import org.jooq.impl.DSL;
 import java.util.List;
 
 public class CurrentTimeStampFunction
-    implements FilterFunction
+    implements ComputedValue
 {
     @Override
     public Object evaluate(String name, List<GenericScalar> args)

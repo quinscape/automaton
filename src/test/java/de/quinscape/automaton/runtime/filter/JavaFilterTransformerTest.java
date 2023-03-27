@@ -955,7 +955,7 @@ public class JavaFilterTransformerTest
         final Filter filter = fromJSON(
             "{\n" +
                 "            \"name\": null,\n" +
-                "            \"scalarType\": \"FilterFunction\",\n" +
+                "            \"scalarType\": \"ComputedValue\",\n" +
                 "            \"type\": \"Value\",\n" +
                 "            \"value\": {\n" +
                 "                \"args\": [],\n" +
@@ -979,7 +979,7 @@ public class JavaFilterTransformerTest
         final Filter filter = fromJSON(
             "{\n" +
             "    \"name\": null,\n" +
-            "    \"scalarType\": \"FilterFunction\",\n" +
+            "    \"scalarType\": \"ComputedValue\",\n" +
             "    \"type\": \"Value\",\n" +
             "    \"value\": {\n" +
             "        \"args\": [],\n" +

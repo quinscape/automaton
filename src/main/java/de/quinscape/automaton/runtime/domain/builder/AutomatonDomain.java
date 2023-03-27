@@ -4,8 +4,8 @@ import de.quinscape.automaton.runtime.scalar.ConditionScalar;
 import de.quinscape.automaton.runtime.scalar.ConditionType;
 import de.quinscape.automaton.runtime.scalar.FieldExpressionScalar;
 import de.quinscape.automaton.runtime.scalar.FieldExpressionType;
-import de.quinscape.automaton.runtime.scalar.FilterFunctionCoercing;
-import de.quinscape.automaton.runtime.scalar.FilterFunctionScalar;
+import de.quinscape.automaton.runtime.scalar.ComputedValueCoercing;
+import de.quinscape.automaton.runtime.scalar.ComputedValueScalar;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.DomainQLBuilder;
 import de.quinscape.domainql.generic.DomainObject;
@@ -26,7 +26,7 @@ import java.util.Collection;
 
 public class AutomatonDomain
 {
-    public final static String FILTER_FUNCTION_TYPE = "FilterFunction";
+    public final static String COMPUTED_VALUE_TYPE = "ComputedValue";
 
     private final static Logger log = LoggerFactory.getLogger(AutomatonDomain.class);
 
@@ -52,12 +52,12 @@ public class AutomatonDomain
             .withAdditionalScalar(BigDecimal.class, BigDecimalScalar.newScalar())
 
             .withAdditionalScalar(
-                FilterFunctionScalar.class,
+                ComputedValueScalar.class,
                 GraphQLScalarType.newScalar()
-                    .name(FILTER_FUNCTION_TYPE)
+                    .name(COMPUTED_VALUE_TYPE)
                     .description("Encapsulates a dynamically evaluated FilterDSL value")
                     .coercing(
-                        new FilterFunctionCoercing()
+                        new ComputedValueCoercing()
                     )
                 .build()
             )

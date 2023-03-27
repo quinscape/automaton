@@ -18,7 +18,7 @@ import de.quinscape.automaton.runtime.domain.op.StoreOperation;
 import de.quinscape.automaton.runtime.filter.CachedFilterContextResolver;
 import de.quinscape.automaton.runtime.merge.MergeService;
 import de.quinscape.automaton.runtime.scalar.ConditionScalar;
-import de.quinscape.automaton.runtime.scalar.FilterFunctionScalar;
+import de.quinscape.automaton.runtime.scalar.ComputedValueScalar;
 import de.quinscape.automaton.runtime.util.GraphQLUtil;
 import de.quinscape.domainql.DomainQL;
 import de.quinscape.domainql.TypeRegistry;
@@ -43,7 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import jakarta.validation.constraints.NotNull;
-import java.time.ZoneId;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -690,7 +690,7 @@ public class AutomatonStandardLogic
     }
 
     @GraphQLQuery
-    public FilterFunctionScalar _filterFnScalar(FilterFunctionScalar def)
+    public ComputedValueScalar _filterFnScalar(ComputedValueScalar def)
     {
         throw new IllegalQueryOperation("Operation only exists for schema purporses");
     }

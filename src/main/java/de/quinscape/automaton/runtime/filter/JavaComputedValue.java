@@ -4,7 +4,10 @@ import de.quinscape.domainql.generic.GenericScalar;
 
 import java.util.List;
 
-public interface JavaFilterFunction
+/**
+ * Implemented by computed value functions for the {@link JavaFilterTransformer}
+ */
+public interface JavaComputedValue
 {
     public Filter evaluate(String name, List<GenericScalar> args);
 }

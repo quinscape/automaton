@@ -3,25 +3,24 @@ package de.quinscape.automaton.runtime.scalar;
 import de.quinscape.domainql.generic.GenericScalar;
 import org.svenson.JSONTypeHint;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * Represents a dynamically evaluated FilterDSL value.
+ * Represents a dynamically evaluated FilterDSL value. (e.g. "now()")
  */
-public class FilterFunctionScalar
+public class ComputedValueScalar
 {
     private String name;
 
     private List<GenericScalar> args;
 
 
-    public FilterFunctionScalar()
+    public ComputedValueScalar()
     {
         this(null, Collections.emptyList());
     }
-    public FilterFunctionScalar(String name, List<GenericScalar> args)
+    public ComputedValueScalar(String name, List<GenericScalar> args)
     {
         this.name = name;
         this.args = args;

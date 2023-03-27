@@ -4,7 +4,7 @@ import de.quinscape.automaton.model.data.InteractiveQuery;
 import de.quinscape.automaton.model.data.QueryConfig;
 import de.quinscape.automaton.runtime.data.InteractiveQueryService;
 import de.quinscape.automaton.runtime.data.RuntimeQuery;
-import de.quinscape.automaton.runtime.scalar.FilterFunctionScalar;
+import de.quinscape.automaton.runtime.scalar.ComputedValueScalar;
 import de.quinscape.automaton.testdomain.tables.pojos.AppUser;
 import de.quinscape.automaton.testdomain.tables.pojos.Baz;
 import de.quinscape.automaton.testdomain.tables.pojos.BazLink;
@@ -77,7 +77,7 @@ public class IQueryTestLogic
     }
 
     @GraphQLQuery
-    public FilterFunctionScalar _filterFunctionScalar(FilterFunctionScalar in)
+    public ComputedValueScalar _computedValueScalar(ComputedValueScalar in)
     {
         return null;
     }

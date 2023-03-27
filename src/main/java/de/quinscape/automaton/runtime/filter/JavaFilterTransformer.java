@@ -58,7 +58,7 @@ import de.quinscape.automaton.runtime.filter.impl.TrueFilter;
 import de.quinscape.automaton.runtime.filter.impl.UnaryMinusFilter;
 import de.quinscape.automaton.runtime.filter.impl.UnaryPlusFilter;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
-import de.quinscape.automaton.runtime.scalar.FilterFunctionScalar;
+import de.quinscape.automaton.runtime.scalar.ComputedValueScalar;
 import de.quinscape.automaton.runtime.scalar.NodeType;
 import de.quinscape.domainql.DomainQL;
 import graphql.schema.Coercing;
@@ -79,7 +79,7 @@ import java.util.Map;
 public class JavaFilterTransformer
 {
     private final Map<String, Class<? extends ConfigurableFilter>> filters;
-    private final Map<String, JavaFilterFunction> filterFunctions;
+    private final Map<String, JavaComputedValue> computedValues;
 
     public JavaFilterTransformer()
     {
@@ -91,7 +91,7 @@ public class JavaFilterTransformer
         filters = createDefaultFilters();
         filters.putAll(extraFilters);
 
-        filterFunctions = createDefaultFilterFunctions();
+        computedValues = createDefaultComputedValues();
     }
 
 
@@ -168,11 +168,11 @@ public class JavaFilterTransformer
 
 
 
-    private Map<String, JavaFilterFunction> createDefaultFilterFunctions()
+    private Map<String, JavaComputedValue> createDefaultComputedValues()
     {
-        final Map<String, JavaFilterFunction> filters = new HashMap<>();
-        filters.put("now", new CurrentTimestampFilterFunction() );
-        filters.put("today", new CurrentDateFilterFunction() );
+        final Map<String, JavaComputedValue> filters = new HashMap<>();
+        filters.put("now", new CurrentTimestampComputedValue() );
+        filters.put("today", new CurrentDateComputedValue() );
         return filters;
     }
 
@@ -246,13 +246,13 @@ public class JavaFilterTransformer
             {
                 final String scalarType = ConditionBuilder.getScalarType(condition);
                 final Object value = ConditionBuilder.getValue(condition);
-                if (value instanceof FilterFunctionScalar)
+                if (value instanceof ComputedValueScalar)
                 {
-                    final FilterFunctionScalar scalar = (FilterFunctionScalar) value;
-                    final JavaFilterFunction javaFilterFunction =
-                        filterFunctions.get(scalar.getName());
+                    final ComputedValueScalar scalar = (ComputedValueScalar) value;
+                    final JavaComputedValue javaComputedValue =
+                        computedValues.get(scalar.getName());
 
-                    return javaFilterFunction.evaluate(scalar.getName(), scalar.getArgs());
+                    return javaComputedValue.evaluate(scalar.getName(), scalar.getArgs());
                 }
                 return new LiteralValue(scalarType, value);
             }

@@ -15,10 +15,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Coerces {@link FilterFunctionScalar} to map, its JSON form, and back.
+ * Coerces {@link ComputedValueScalar} to map, its JSON form, and back.
  */
-public class FilterFunctionCoercing
-    implements Coercing<FilterFunctionScalar, Map<String, Object>>, DomainQLAware
+public class ComputedValueCoercing
+    implements Coercing<ComputedValueScalar, Map<String, Object>>, DomainQLAware
 {
 
     private GenericScalarCoercing genericScalarCoercing = null;
@@ -26,11 +26,11 @@ public class FilterFunctionCoercing
     @Override
     public Map<String, Object> serialize(Object result) throws CoercingSerializeException
     {
-        if (!(result instanceof FilterFunctionScalar))
+        if (!(result instanceof ComputedValueScalar))
         {
-            throw new IllegalArgumentException(result + " is not a FilterFunctionScalar");
+            throw new IllegalArgumentException(result + " is not a ComputedValueScalar");
         }
-        final FilterFunctionScalar scalar = (FilterFunctionScalar) result;
+        final ComputedValueScalar scalar = (ComputedValueScalar) result;
         final List<GenericScalar> args = scalar.getArgs();
 
         final HashMap<String, Object> map = new HashMap<>();
@@ -50,17 +50,17 @@ public class FilterFunctionCoercing
 
 
     @Override
-    public FilterFunctionScalar parseValue(Object input) throws CoercingParseValueException
+    public ComputedValueScalar parseValue(Object input) throws CoercingParseValueException
     {
 
         if (!(input instanceof Map))
         {
             throw new CoercingParseValueException(
-                "Cannot coerce " + input + " to FilterFunctionScalar, must be map"
+                "Cannot coerce " + input + " to ComputedValueScalar, must be map"
             );
         }
         final Map<String, Object> map = (Map<String, Object>) input;
-        return new FilterFunctionScalar(
+        return new ComputedValueScalar(
             (String)map.get("name"),
             ((List<Map<String,Object>>)map.get("args")).stream()
                 .map(
@@ -77,9 +77,9 @@ public class FilterFunctionCoercing
 
 
     @Override
-    public FilterFunctionScalar parseLiteral(Object input) throws CoercingParseLiteralException
+    public ComputedValueScalar parseLiteral(Object input) throws CoercingParseLiteralException
     {
-        throw new CoercingParseLiteralException("Cannot coerce FilterFunctionScalar from literal");
+        throw new CoercingParseLiteralException("Cannot coerce ComputedValueScalar from literal");
     }
 
 

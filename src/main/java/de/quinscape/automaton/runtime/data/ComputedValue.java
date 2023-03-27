@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Implemented by classes that want to provide new dynamic value functionality
  */
-public interface FilterFunction
+public interface ComputedValue
 {
     Object evaluate(String name, List<GenericScalar> args);
 }

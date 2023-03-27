@@ -3,11 +3,6 @@ package de.quinscape.automaton.runtime.data;
 import com.google.common.collect.ImmutableMap;
 import de.quinscape.automaton.runtime.domain.builder.AutomatonDomain;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
-import de.quinscape.automaton.runtime.scalar.ConditionScalar;
-import de.quinscape.automaton.runtime.scalar.ConditionType;
-import de.quinscape.automaton.runtime.scalar.FieldExpressionScalar;
-import de.quinscape.automaton.runtime.scalar.FieldExpressionType;
-import de.quinscape.automaton.runtime.scalar.FilterFunctionScalar;
 import de.quinscape.automaton.runtime.tstimpl.DelegatingInteractiveQueryService;
 import de.quinscape.automaton.runtime.tstimpl.IQueryTestLogic;
 import de.quinscape.automaton.runtime.tstimpl.TestProvider;
@@ -40,9 +35,9 @@ import static de.quinscape.automaton.testdomain.Tables.*;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 
-public class InteractiveQueryFilterFunctionTest
+public class InteractiveQueryComputedValueTest
 {
-    private final static Logger log = LoggerFactory.getLogger(InteractiveQueryFilterFunctionTest.class);
+    private final static Logger log = LoggerFactory.getLogger(InteractiveQueryComputedValueTest.class);
 
 
     @BeforeAll
@@ -53,7 +48,7 @@ public class InteractiveQueryFilterFunctionTest
 
 
     @Test
-    public void testFilterFunction() throws IOException
+    public void testComputedValue() throws IOException
     {
         final DSLContext dslContext = TestProvider.create(ImmutableMap.of(
 "select \"foo\".\"id\", \"foo\".\"name\", \"foo\".\"num\", \"foo\".\"description\", \"foo\".\"created\", \"foo\"" +
@@ -174,7 +169,7 @@ public class InteractiveQueryFilterFunctionTest
                                     "lessThan",
                                     Arrays.asList(
                                         field("created"),
-                                        value(AutomatonDomain.FILTER_FUNCTION_TYPE, ImmutableMap.of(
+                                        value(AutomatonDomain.COMPUTED_VALUE_TYPE, ImmutableMap.of(
                                             "name", "now",
                                             "args", Collections.emptyList()
                                         ))
@@ -184,7 +179,7 @@ public class InteractiveQueryFilterFunctionTest
                                     "greaterThan",
                                     Arrays.asList(
                                         field("created"),
-                                        value("FilterFunction", ImmutableMap.of(
+                                        value(AutomatonDomain.COMPUTED_VALUE_TYPE, ImmutableMap.of(
                                             "name", "today",
                                             "args", Collections.emptyList()
                                         ))
@@ -272,7 +267,7 @@ public class InteractiveQueryFilterFunctionTest
     "              },\n" +
     "              {\n" +
     "                \"type\":\"Value\",\n" +
-    "                \"scalarType\":\"FilterFunction\",\n" +
+    "                \"scalarType\":\"ComputedValue\",\n" +
     "                \"name\":null,\n" +
     "                \"value\":{\n" +
     "                  \"args\":[\n" +
@@ -293,7 +288,7 @@ public class InteractiveQueryFilterFunctionTest
     "              },\n" +
     "              {\n" +
     "                \"type\":\"Value\",\n" +
-    "                \"scalarType\":\"FilterFunction\",\n" +
+    "                \"scalarType\":\"ComputedValue\",\n" +
     "                \"name\":null,\n" +
     "                \"value\":{\n" +
     "                  \"args\":[\n" +
