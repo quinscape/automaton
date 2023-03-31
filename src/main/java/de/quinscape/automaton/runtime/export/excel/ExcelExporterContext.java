@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -62,6 +63,17 @@ public final class ExcelExporterContext
      */
     public void addSheet(String sheetName, GraphQLQueryContext.MethodResult mr)
     {
+        addSheet(sheetName, mr, null);
+    }
+    /**
+     * Adds a new Excel sheet with the data from the given MethodResult
+     *
+     * @param sheetName         Name of the new sheet
+     * @param mr                method result
+     * @param fieldPredicate    predicate used to filter the schema references of the column states
+     */
+    public void addSheet(String sheetName, GraphQLQueryContext.MethodResult mr, Predicate<SchemaReference> fieldPredicate)
+    {
         log.debug(
             "Exporting: {} = {}",
             mr.methodReference(),
@@ -87,7 +99,12 @@ public final class ExcelExporterContext
         final HSSFRow headingsRow = sheet.createRow(0);
 
         List<Map<String, Object>> enabledColumns = columnStates.stream()
-            .filter(state -> (boolean) state.get("enabled"))
+            .filter(
+                state -> (boolean) state.get("enabled") &&
+                    (fieldPredicate == null || fieldPredicate.test(
+                        root.getField((String) state.get("name"))
+                    ))
+            )
             .collect(Collectors.toList());
 
         for (int i = 0; i < enabledColumns.size(); i++)
