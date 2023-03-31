@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.Instant;
 
 
 /**
@@ -27,7 +26,7 @@ public class ExcelExporter
 
     public final static String EXCEL_MEDIA_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
-    public static final String TIMESTAMP_MARKER = "$now";
+
 
     private final DomainQL domainQL;
     private final String metaHeadingName;
@@ -69,45 +68,12 @@ public class ExcelExporter
             return new ExportResult<>(
                 mediaType,
                 bos.toByteArray(),
-                replaceNow(fileName)
+                fileName
             );
         }
     }
 
 
-    /**
-     * Replaces "$now" in the given name with the current ISO-8601 timestamp.
-     *
-     * @param name  file name
-     *
-     * @return file name enriched with current timestamp
-     */
-    private String replaceNow(String name)
-    {
-        int pos = name.indexOf(TIMESTAMP_MARKER);
-
-        boolean replace = false;
-        if (pos == 0)
-        {
-            replace = true;
-        }
-        else
-        {
-            int slashes = 0;
-            while(pos - 1 >= 0 && name.charAt(pos - 1) == '\\')
-            {
-                slashes++;
-                pos--;
-            }
-
-            replace = (slashes & 1) == 0;
-        }
-        if (replace)
-        {
-            return name.substring(0,pos) + Instant.now().toString() + name.substring(pos + TIMESTAMP_MARKER.length());
-        }
-        return name;
-    }
 
     /**
      * Expects a single result that is converted into an Excel sheet name with a configured name, exporting the Excel

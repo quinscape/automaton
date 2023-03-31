@@ -114,7 +114,7 @@ public class GraphQLExportController
                     Map.of(
                         HttpHeaders.CONTENT_TYPE, Collections.singletonList(export.contentType()),
                         HttpHeaders.CONTENT_DISPOSITION, Collections.singletonList(
-                            "attachment; filename=\"" + export.fileName() + "\""))
+                            "attachment; filename=\"" + GraphQLExporter.replaceNow(export.fileName()) + "\""))
                 ),
                 HttpStatus.OK
             );

@@ -18,7 +18,7 @@ public class JSONExporter
     public ExportResult<String> export(GraphQLQueryContext ctx)
     {
         final String json = JSONUtil.DEFAULT_GENERATOR.forValue(ctx.data());
-        final String fileName = "iquery-" + Instant.now().toString() + ".json";
+        final String fileName = "iquery-$now.json";
 
         return new ExportResult<>(
             MediaType.APPLICATION_JSON_VALUE,
