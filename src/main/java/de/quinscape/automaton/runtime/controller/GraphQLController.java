@@ -37,7 +37,8 @@ public class GraphQLController
     public final static String GRAPHQL_URI = "/graphql";
 
     /**
-     * Special development GraphQL end point that is active if 
+     * Special development GraphQL end point for development that can be enabled using the "dev" profile. This end-point
+     * is exempt from CSRF protection requirements.
      */
     public final static String GRAPHQL_DEV_URI = AutomatonCSRFExceptions.DEV_SERVICES_PATH +  "graphql";
 
@@ -96,11 +97,11 @@ public class GraphQLController
 
         // result may contain data and/or errors
         Object result = executionResult.toSpecification();
-        return new ResponseEntity<String>(
+        return new ResponseEntity<>(
             JSONUtil.DEFAULT_GENERATOR.forValue(
                 result
             ),
-            errors.size() == 0 ? HttpStatus.OK : HttpStatus.BAD_REQUEST
+            errors.size() == 0 ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR
         );
     }
 }

@@ -5,6 +5,7 @@ import de.quinscape.automaton.runtime.attachment.AttachmentRepository;
 import de.quinscape.automaton.runtime.auth.AutomatonAuthentication;
 import de.quinscape.automaton.runtime.controller.AttachmentController;
 import de.quinscape.automaton.runtime.controller.GraphQLController;
+import de.quinscape.automaton.runtime.controller.GraphQLExportController;
 import de.quinscape.automaton.runtime.controller.ProcessController;
 import de.quinscape.automaton.runtime.controller.ScopeSyncController;
 import de.quinscape.automaton.runtime.controller.TranslationFlushController;
@@ -141,6 +142,14 @@ public class AutomatonConfiguration
     {
         return new GraphQLController(
             graphQL
+        );
+    }
+
+    @Bean
+    public GraphQLExportController graphQLExportController(DomainQL domainQL, GraphQL graphQL)
+    {
+        return new GraphQLExportController(
+            domainQL, graphQL
         );
     }
 
