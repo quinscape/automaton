@@ -40,14 +40,36 @@ public class SchemaReference
 
     private final GraphQLOutputType type;
 
+    private final String dotPath;
 
-    private SchemaReference(DomainQL domainQL, String rootType, List<String> path)
+
+    private SchemaReference(DomainQL domainQL, String rootType, List<String> path, String dotPathSource)
     {
         this.domainQL = domainQL;
         this.rootType = rootType;
         this.path = path;
 
+        dotPath = dotPathSource != null ? dotPathSource : createDotPath(path);
+
         type = resolve(domainQL, rootType, path);
+    }
+
+
+    private static String createDotPath(List<String> path)
+    {
+        final StringBuilder sb = new StringBuilder();
+        for (Iterator<String> iterator = path.iterator(); iterator.hasNext(); )
+        {
+            String s = iterator.next();
+            sb.append(s);
+
+            if (iterator.hasNext())
+            {
+                sb.append('.');
+            }
+        }
+
+        return sb.toString();
     }
 
 
@@ -82,7 +104,7 @@ public class SchemaReference
         }
         else
         {
-            return new SchemaReference(domainQL, rootType, path.subList(0, path.size() - 1));
+            return SchemaReference.newRef(domainQL, rootType, path.subList(0, path.size() - 1));
         }
     }
 
@@ -110,7 +132,7 @@ public class SchemaReference
     {
         final List<String> p = new ArrayList<>(this.path);
         p.addAll(path);
-        return new SchemaReference(domainQL, rootType, p);
+        return SchemaReference.newRef(domainQL, rootType, p);
     }
 
 
@@ -293,7 +315,7 @@ public class SchemaReference
 
         Object current = root;
 
-        SchemaReference currentPath = new SchemaReference(domainQL, rootType, Collections.emptyList());
+        SchemaReference currentPath = SchemaReference.newRef(domainQL, rootType, Collections.emptyList());
         final int pathLen = path.size();
         final int last = pathLen - 1;
         for (int i = 0; i < pathLen; i++)
@@ -345,7 +367,8 @@ public class SchemaReference
         return new SchemaReference(
             domainQL,
             rootType,
-            Util.split(path, ".")
+            Util.split(path, "."),
+            path
         );
     }
     /**
@@ -362,7 +385,8 @@ public class SchemaReference
         return new SchemaReference(
             domainQL,
             rootType,
-            path
+            path,
+            null
         );
     }
 
@@ -379,7 +403,8 @@ public class SchemaReference
         return new SchemaReference(
             domainQL,
             rootType,
-            Collections.emptyList()
+            Collections.emptyList(),
+            ""
         );
     }
 
@@ -387,7 +412,7 @@ public class SchemaReference
     @Override
     public String toString()
     {
-        return super.toString() + ": " + this.rootType + (path.size() > 0 ?  "->" + join(path) : "");
+        return super.toString() + ": " + this.rootType + (path.size() > 0 ?  "->" + dotPath : "");
     }
 
 
@@ -406,20 +431,8 @@ public class SchemaReference
         return path.get(path.size() - 1);
     }
 
-    private static String join(List<String> path)
+    public String toDotPath()
     {
-        final StringBuilder sb = new StringBuilder();
-        for (Iterator<String> iterator = path.iterator(); iterator.hasNext(); )
-        {
-            String s = iterator.next();
-            sb.append(s);
-
-            if (iterator.hasNext())
-            {
-                sb.append(".");
-            }
-        }
-
-        return sb.toString();
+        return dotPath;
     }
 }
