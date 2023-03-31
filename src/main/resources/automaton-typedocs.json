@@ -1100,7 +1100,7 @@
       },
       {
         "name":"pageSize",
-        "description":"Maximum number of paginated results.,",
+        "description":"Maximum number of paginated results. Set to zero to disable pagination.",
         "paramDocs":[
           
         ]

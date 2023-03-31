@@ -57,7 +57,7 @@ public final class QueryConfig
 
 
     /**
-     * Maximum number of paginated results.,
+     * Maximum number of paginated results. Set to zero to disable pagination.
      * @return
      */
     @GraphQLField(defaultValue = "10")
