@@ -132,6 +132,14 @@
             <version>3.1.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>5.2.3</version>
+            <optional>true</optional>
+        </dependency>
+
+
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.hamcrest</groupId>
