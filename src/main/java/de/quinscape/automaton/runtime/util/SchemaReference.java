@@ -391,6 +391,21 @@ public class SchemaReference
     }
 
 
+    /**
+     * Returns the field name.
+     *
+     * @return field name or null if root
+     */
+    public String getFieldName()
+    {
+        if (isRoot())
+        {
+            return null;
+        }
+
+        return path.get(path.size() - 1);
+    }
+
     private static String join(List<String> path)
     {
         final StringBuilder sb = new StringBuilder();
