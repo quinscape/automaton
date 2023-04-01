@@ -26,9 +26,10 @@ import java.util.List;
  * the login field of the owner object within the Foo type).
  *
  * The class creates parent and field / child references, provides information about the
- * current reference and fetches the data methodResult of the current reference from an object graph.
+ * current reference and fetches the data value of the current reference from an object graph.
  *
  * @see #newRef(DomainQL, String)
+ * @see #newRef(DomainQL, String, String)
  */
 public class SchemaReference
 {
@@ -84,6 +85,11 @@ public class SchemaReference
     }
 
 
+    /**
+     * Returns true if the reference points to the root type itself, i.e. it has an empty path.
+     *
+     * @return true if root / has empty path
+     */
     public boolean isRoot()
     {
         return path.size() == 0;
@@ -137,9 +143,9 @@ public class SchemaReference
 
 
     /**
-     * Returns true if this path points to a non-null methodResult.
+     * Returns true if this path points to a non-null value.
      *
-     * @return true if non-null methodResult
+     * @return true if non-null result
      */
     public boolean isNonNull()
     {
@@ -148,9 +154,9 @@ public class SchemaReference
 
 
     /**
-     * Returns true if the current path points to a list methodResult.
+     * Returns true if the current path points to a list value.
      *
-     * @return true if list methodResult
+     * @return true if list
      */
     public boolean isList()
     {
@@ -159,9 +165,9 @@ public class SchemaReference
 
 
     /**
-     * Returns the unwrapped type this schema reference points to
+     * Returns the unwrapped type this schema reference points to.
      *
-     * @return type
+     * @return type unwrapped type
      */
     public GraphQLUnmodifiedType getType()
     {
@@ -170,11 +176,11 @@ public class SchemaReference
 
 
     /**
-     * Returns the unwrapped type this schema reference points to
+     * Returns the modified type this schema reference points to, i.e. the type with all nonNull and list wrappers.
      *
-     * @return type
+     * @return type modified type
      */
-    public GraphQLOutputType getOriginalType()
+    public GraphQLOutputType getModifiedType()
     {
         return type;
     }
@@ -203,7 +209,7 @@ public class SchemaReference
      * Resolves the raw GraphQL type resulting from traversing the given path starting at the given root type. This is mostly
      * meant for internal usage, but can be used to quickly retrieve a single type.
      *
-     * @param graphQLSchema     schema
+     * @param domainQL          DomainQL instance
      * @param rootType          Name of the root type
      * @param path              path separated with dots (e.g. "name" / "owner.login")
      *
@@ -262,11 +268,12 @@ public class SchemaReference
     }
 
     /**
-     * Returns the field or type meta methodResult with the given name, depending on what this schema reference points to.
+     * Returns the field or type meta value with the given name, depending on what this schema reference points to.
      *
      * @param name      meta name
-     * @return  meta methodResult
-     * @param <T> expected meta methodResult type
+     *
+     * @return  meta value
+     * @param <T> expected meta value type
      */
     public <T> T getMeta(String name)
     {
@@ -375,8 +382,8 @@ public class SchemaReference
      * Creates a new schema reference
      *
      * @param domainQL      DomainQL instance
-     * @param rootType      root tyoe
-     * @param path          Path from the root type in dot notation (e.g. "owner.login")
+     * @param rootType      root type
+     * @param path          path as list of strings
      *
      * @return new schema reference
      */

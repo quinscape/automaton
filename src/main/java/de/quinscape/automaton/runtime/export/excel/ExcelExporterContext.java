@@ -139,7 +139,7 @@ public final class ExcelExporterContext
                     throw new ExcelExportException(rootType + "." + columnName + " is no scalar");
                 }
 
-                final GraphQLOutputType origType = column.getOriginalType();
+                final GraphQLOutputType origType = column.getModifiedType();
                 final GraphQLScalarType scalarType = (GraphQLScalarType) GraphQLTypeUtil.unwrapAll(origType);
 
                 final Object fieldValue = column.get(row);
