@@ -77,7 +77,8 @@ public class FilterTransformer
 
     private Map<String, ComputedValue> computedValues = ImmutableMap.of(
         "now", new CurrentTimeStampFunction(),
-        "today", new CurrentDateFunction()
+        "today", new CurrentDateFunction(),
+        "param", new JasperParameterFunction()
     );
 
 

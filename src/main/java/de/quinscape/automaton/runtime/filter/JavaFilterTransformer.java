@@ -1,6 +1,7 @@
 package de.quinscape.automaton.runtime.filter;
 
 import de.quinscape.automaton.runtime.AutomatonException;
+import de.quinscape.automaton.runtime.data.ComputedValueException;
 import de.quinscape.automaton.runtime.filter.impl.AddFilter;
 import de.quinscape.automaton.runtime.filter.impl.AndFilter;
 import de.quinscape.automaton.runtime.filter.impl.BetweenFilter;
@@ -173,6 +174,7 @@ public class JavaFilterTransformer
         final Map<String, JavaComputedValue> filters = new HashMap<>();
         filters.put("now", new CurrentTimestampComputedValue() );
         filters.put("today", new CurrentDateComputedValue() );
+        filters.put("param", (name,args) -> { throw new ComputedValueException("Parametrization not supported for JavaFilterTransformer"); });
         return filters;
     }
 
