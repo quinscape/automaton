@@ -19,6 +19,11 @@ public class ToStringTransformer
         final List<Map<String, Object>> operands = ConditionBuilder.getOperands(node);
         final Object value = transformer.transform(operands.get(0));
 
+        if (value == null)
+        {
+            return null;
+        }
+
         if (!(value instanceof Field))
         {
             throw new FilterTransformationException("Argument to toString() is not a field:" + value);

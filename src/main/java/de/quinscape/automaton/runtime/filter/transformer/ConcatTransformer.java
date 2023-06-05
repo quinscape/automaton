@@ -8,6 +8,7 @@ import org.jooq.Field;
 import org.jooq.impl.DSL;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class ConcatTransformer
     implements JOOQTransformer
@@ -19,7 +20,11 @@ public class ConcatTransformer
             .stream()
             .map(o -> {
                 final Object result = transformer.transform(o);
-                if (result instanceof Field)
+                if (result == null)
+                {
+                    return null;
+                }
+                else if (result instanceof Field)
                 {
                     return (Field<?>) result;
                 }
@@ -28,6 +33,7 @@ public class ConcatTransformer
                     throw new FilterTransformationException("Argument to concat is not a field or value: " + result);
                 }
             })
+            .filter(Objects::nonNull)
             .toArray(Field[]::new);
 
         return DSL.concat(fields);
