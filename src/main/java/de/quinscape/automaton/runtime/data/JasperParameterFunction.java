@@ -20,6 +20,6 @@ public class JasperParameterFunction
             throw new ComputedValueException("JasperParameterFunction accepts exactly 1 String parameter: " + JSONUtil.DEFAULT_GENERATOR.forValue(args));
         }
         final String parameterName = (String) args.get(0).getValue();
-        return DSL.field("$P{" + parameterName + "}");
+        return DSL.val("$P{" + parameterName + "}");
     }
 }
