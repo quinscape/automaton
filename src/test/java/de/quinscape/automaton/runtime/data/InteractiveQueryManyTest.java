@@ -211,7 +211,7 @@ public class InteractiveQueryManyTest
             new DefaultInteractiveQueryService(
                 domainQL,
                 dslContext,
-                new FilterTransformer(domainQL)
+                new FilterTransformer()
             )
         );
 

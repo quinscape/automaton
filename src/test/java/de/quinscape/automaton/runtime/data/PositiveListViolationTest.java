@@ -141,7 +141,7 @@ public class PositiveListViolationTest
             new DefaultInteractiveQueryService(
                 domainQL,
                 dslContext,
-                new FilterTransformer(domainQL)
+                new FilterTransformer()
             )
         );
 

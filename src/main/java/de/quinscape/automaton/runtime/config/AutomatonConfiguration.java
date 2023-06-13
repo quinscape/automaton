@@ -261,7 +261,6 @@ public class AutomatonConfiguration
     )
     {
         return new FilterTransformer(
-            domainQL,
             filterContextRegistry()
         );
     }

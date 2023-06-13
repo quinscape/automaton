@@ -1,6 +1,7 @@
 package de.quinscape.automaton.runtime.data;
 
 import de.quinscape.domainql.generic.GenericScalar;
+import org.jooq.Field;
 
 import java.util.List;
 
@@ -9,5 +10,5 @@ import java.util.List;
  */
 public interface ComputedValue
 {
-    Object evaluate(ComputedValueContext ctx);
+    Object evaluate(String name, List<GenericScalar> args, Field<?> conditionLeftSideField);
 }
