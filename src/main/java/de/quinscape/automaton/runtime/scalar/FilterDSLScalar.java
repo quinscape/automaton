@@ -54,6 +54,6 @@ abstract class FilterDSLScalar
     @Override
     public String toString()
     {
-        return super.toString() + ": " + JSONUtil.DEFAULT_GENERATOR.forValue(root);
+        return super.toString() + ": " + root;
     }
 }
