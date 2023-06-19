@@ -2,6 +2,7 @@ package de.quinscape.automaton.runtime.data;
 
 import com.esotericsoftware.reflectasm.MethodAccess;
 import com.google.common.collect.ImmutableMap;
+import de.quinscape.automaton.model.domain.DecimalPrecision;
 import de.quinscape.automaton.runtime.AutomatonException;
 import de.quinscape.automaton.runtime.filter.CachedFilterContextResolver;
 import de.quinscape.automaton.runtime.filter.transformer.ConcatTransformer;
@@ -11,10 +12,16 @@ import de.quinscape.automaton.runtime.scalar.ConditionScalar;
 import de.quinscape.automaton.runtime.scalar.FieldExpressionScalar;
 import de.quinscape.automaton.runtime.scalar.ComputedValueScalar;
 import de.quinscape.automaton.runtime.scalar.NodeType;
-import de.quinscape.domainql.generic.GenericScalar;
+import de.quinscape.domainql.DomainQL;
+import de.quinscape.domainql.TableLookup;
+import de.quinscape.domainql.meta.DomainQLMeta;
 import de.quinscape.spring.jsview.util.JSONUtil;
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLTypeUtil;
 import org.jooq.Condition;
 import org.jooq.Field;
+import org.jooq.Name;
 import org.jooq.OrderField;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
@@ -67,6 +74,8 @@ public class FilterTransformer
 
     private final static JSON JSON_GEN = JSONUtil.DEFAULT_GENERATOR;
 
+    private final DomainQL domainQL;
+
     private final FilterContextRegistry registry;
 
     private Map<String, JOOQTransformer> transformers = ImmutableMap.of(
@@ -82,14 +91,15 @@ public class FilterTransformer
     );
 
 
-    public FilterTransformer()
+    public FilterTransformer(DomainQL domainQL)
     {
-        this(null);
+        this(domainQL, null);
     }
 
 
-    public FilterTransformer(FilterContextRegistry registry)
+    public FilterTransformer(DomainQL domainQL, FilterContextRegistry registry)
     {
+        this.domainQL = domainQL;
         this.registry = registry;
     }
 
@@ -101,7 +111,7 @@ public class FilterTransformer
 
         final CachedFilterContextResolver resolver = new CachedFilterContextResolver(registry);
 
-        final Object transformed = transformRecursive(resolver, fieldResolver, conditionScalar.getRoot());
+        final Object transformed = transformRecursive(resolver, fieldResolver, conditionScalar.getRoot(), null);
 
 //        if (!(transformed instanceof Condition))
 //        {
@@ -118,7 +128,7 @@ public class FilterTransformer
     {
         final CachedFilterContextResolver resolver = new CachedFilterContextResolver(registry);
 
-        final Object transformed = transformRecursive(resolver, fieldResolver, fieldExpressionScalar.getRoot());
+        final Object transformed = transformRecursive(resolver, fieldResolver, fieldExpressionScalar.getRoot(), null);
 
         if (transformed == null)
         {
@@ -135,7 +145,8 @@ public class FilterTransformer
 
     private Object transformRecursive(
         CachedFilterContextResolver resolver, FieldResolver fieldResolver,
-        Map<String, Object> node
+        Map<String, Object> node,
+        Map<String, Object> parent
     )
     {
         if (node == null)
@@ -152,7 +163,7 @@ public class FilterTransformer
             case COMPONENT:
             {
                 final Map<String, Object> kid = ConditionBuilder.getCondition(node);
-                return transformRecursive(resolver, fieldResolver, kid);
+                return transformRecursive(resolver, fieldResolver, kid, node);
             }
             case CONDITION:
             {
@@ -162,7 +173,7 @@ public class FilterTransformer
 
                 if (name.equals("and"))
                 {
-                    final List<? extends Condition> conditions = transformOperands(resolver, fieldResolver, operands);
+                    final List<? extends Condition> conditions = transformOperands(resolver, fieldResolver, operands, node);
                     if (conditions.size() == 0)
                     {
                         return DSL.trueCondition();
@@ -174,7 +185,7 @@ public class FilterTransformer
                 }
                 else if (name.equals("or"))
                 {
-                    final List<? extends Condition> conditions = transformOperands(resolver, fieldResolver, operands);
+                    final List<? extends Condition> conditions = transformOperands(resolver, fieldResolver, operands, node);
                     if (conditions.size() == 0)
                     {
                         return DSL.trueCondition();
@@ -191,7 +202,7 @@ public class FilterTransformer
                         throw new FilterTransformationException("Not has only one argument");
                     }
 
-                    final List<? extends Condition> conditions = transformOperands(resolver, fieldResolver, operands);
+                    final List<? extends Condition> conditions = transformOperands(resolver, fieldResolver, operands, node);
                     if(conditions.size()==0) {
                         return DSL.trueCondition();
                     }
@@ -223,8 +234,8 @@ public class FilterTransformer
                 final Object value = ConditionBuilder.getValue(node);
                 if (value instanceof ComputedValueScalar)
                 {
-                    final ComputedValueScalar scalar = (ComputedValueScalar) value;
-                    return invokeComputedValue(scalar.getName(),scalar.getArgs());
+                    final ComputedValueScalar computedValueScalar = (ComputedValueScalar) value;
+                    return invokeComputedValue(parent, computedValueScalar, fieldResolver);
                 }
 
                 return DSL.val(value);
@@ -250,7 +261,8 @@ public class FilterTransformer
                         transformRecursive(
                             resolver,
                             fieldResolver,
-                            kid
+                            kid,
+                            node
                         )
                     );
                 }
@@ -273,10 +285,111 @@ public class FilterTransformer
     }
 
 
-    private Object invokeComputedValue(String name, List<GenericScalar> args)
+    private Object invokeComputedValue(Map<String, Object> parent, ComputedValueScalar computedValueScalar,
+        FieldResolver fieldResolver
+    )
     {
-        return computedValues.get(name).evaluate(name, args);
+        final ComputedValueTypeContext typeContext = resolveTypeContext(parent, computedValueScalar, fieldResolver);
+        final ComputedValue computedValue = computedValues.get(computedValueScalar.getName());
+        final ComputedValueContext ctx = new ComputedValueContext(computedValueScalar, typeContext);
 
+        return computedValue.evaluate(ctx);
+    }
+
+
+    private ComputedValueTypeContext resolveTypeContext(Map<String, Object> node, ComputedValueScalar computedValueScalar,
+        FieldResolver fieldResolver
+    )
+    {
+        final NodeType nodeType = NodeType.forName(
+            ConditionBuilder.getType(node)
+        );
+
+        switch (nodeType)
+        {
+            case COMPONENT:
+            {
+                final Map<String, Object> condition = ConditionBuilder.getCondition(node);
+                return resolveTypeContext(condition, computedValueScalar, fieldResolver);
+            }
+            case OPERATION:
+            case CONDITION:
+            {
+                final List<Map<String, Object>> operands = ConditionBuilder.getOperands(node);
+
+                for (Map<String, Object> operand : operands)
+                {
+                    final ComputedValueTypeContext ctx = resolveTypeContext(
+                        operand,
+                        computedValueScalar,
+                        fieldResolver
+                    );
+                    if (ctx != null)
+                    {
+                        if (nodeType == NodeType.OPERATION)
+                        {
+                            // operation removes the direct field reference
+                            return new ComputedValueTypeContext(null, null, ctx.scalarType(), ctx.detail());
+                        }
+                        return ctx;
+                    }
+                }
+                return null;
+            }
+            case FIELD:
+            {
+
+                final String name = ConditionBuilder.getName(node);
+                final Name qualifiedName = fieldResolver.resolveField(name).getQualifiedName();
+                final String typeName = findType(qualifiedName.first());
+
+                final GraphQLObjectType type = (GraphQLObjectType) domainQL.getGraphQLSchema().getType(typeName);
+                if (type == null)
+                {
+                    throw new FilterTransformationException("Could not find type '" + typeName + "'");
+                }
+
+                final String fieldName = qualifiedName.last();
+                final GraphQLFieldDefinition fieldDefinition = type.getFieldDefinition(fieldName);
+
+                if (fieldDefinition == null)
+                {
+                    throw new FilterTransformationException("Could not find field '" + fieldName + " in " + type);
+                }
+
+                final DomainQLMeta metaData = domainQL.getMetaData();
+                DecimalPrecision precision = metaData.getTypeMeta(typeName).getFieldMeta(
+                    fieldName,
+                    "decimalPrecision"
+                );
+
+                return new ComputedValueTypeContext(
+                    typeName,
+                    fieldName,
+                    GraphQLTypeUtil.unwrapAll(
+                        fieldDefinition.getType()
+                    ).getName(),
+                    precision
+                );
+
+            }
+            default:
+                return null;
+        }
+    }
+
+
+    private String findType(String name)
+    {
+        for (TableLookup lookup : domainQL.getJooqTables().values())
+        {
+            if (lookup.getTable().getName().equals(name))
+            {
+                return lookup.getPojoType().getSimpleName();
+            }
+        }
+
+        throw new FilterTransformationException("Could not find table '" + name + "'");
     }
 
 
@@ -296,7 +409,8 @@ public class FilterTransformer
         final Object value = transformRecursive(
             resolver,
             fieldResolver,
-            operands.get(0)
+            operands.get(0),
+            condition
         );
 
         // field reference is not part of this query execution, we ignore the whole condition
@@ -319,20 +433,21 @@ public class FilterTransformer
         {
             holder = existing;
         }
-        return holder.invoke(field, transformRestOfOperands(resolver, fieldResolver, operands));
+        return holder.invoke(field, transformRestOfOperands(resolver, fieldResolver, operands, condition));
     }
 
 
     private Object[] transformRestOfOperands(
         CachedFilterContextResolver resolver,
         FieldResolver fieldResolver,
-        List<Map<String, Object>> operands
+        List<Map<String, Object>> operands,
+        Map<String, Object> parent
     )
     {
         Object[] array = new Object[operands.size() - 1];
         for (int i = 1; i < operands.size(); i++)
         {
-            array[i - 1] = transformRecursive(resolver, fieldResolver, operands.get(i));
+            array[i - 1] = transformRecursive(resolver, fieldResolver, operands.get(i), parent);
         }
         return array;
     }
@@ -340,7 +455,8 @@ public class FilterTransformer
 
     private List<? extends Condition> transformOperands(
         CachedFilterContextResolver resolver, FieldResolver fieldResolver,
-        List<Map<String, Object>> operands
+        List<Map<String, Object>> operands,
+        Map<String, Object> parent
     )
     {
         List<Condition> list = new ArrayList<>(operands.size());
@@ -350,7 +466,8 @@ public class FilterTransformer
             final Object value = transformRecursive(
                 resolver,
                 fieldResolver,
-                operand
+                operand,
+                parent
             );
 
             if (value != null)

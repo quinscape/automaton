@@ -3,10 +3,6 @@ package de.quinscape.automaton.runtime.data;
 import com.google.common.collect.ImmutableMap;
 import de.quinscape.automaton.runtime.domain.builder.AutomatonDomain;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
-import de.quinscape.automaton.runtime.scalar.ConditionScalar;
-import de.quinscape.automaton.runtime.scalar.ConditionType;
-import de.quinscape.automaton.runtime.scalar.FieldExpressionScalar;
-import de.quinscape.automaton.runtime.scalar.FieldExpressionType;
 import de.quinscape.automaton.runtime.tstimpl.DelegatingInteractiveQueryService;
 import de.quinscape.automaton.runtime.tstimpl.IQueryTestLogic;
 import de.quinscape.automaton.runtime.tstimpl.TestProvider;
@@ -22,7 +18,6 @@ import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import org.jooq.DSLContext;
-import org.jooq.Record5;
 import org.jooq.Record6;
 import org.jooq.Result;
 import org.jooq.impl.DSL;
@@ -186,7 +181,7 @@ public class InteractiveQuerySortTest
             new DefaultInteractiveQueryService(
                 domainQL,
                 dslContext,
-                new FilterTransformer()
+                new FilterTransformer(domainQL)
             )
         );
 

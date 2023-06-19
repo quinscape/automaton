@@ -117,7 +117,7 @@ public class InteractiveQueryConditionTest
             new DefaultInteractiveQueryService(
                 domainQL,
                 dslContext,
-                new FilterTransformer()
+                new FilterTransformer(domainQL)
             )
         );
 

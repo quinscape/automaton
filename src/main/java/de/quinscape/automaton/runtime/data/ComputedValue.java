@@ -9,5 +9,5 @@ import java.util.List;
  */
 public interface ComputedValue
 {
-    Object evaluate(String name, List<GenericScalar> args);
+    Object evaluate(ComputedValueContext ctx);
 }

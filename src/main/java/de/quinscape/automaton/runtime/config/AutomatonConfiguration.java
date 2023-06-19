@@ -256,9 +256,12 @@ public class AutomatonConfiguration
     }
     
     @Bean
-    public FilterTransformer filterTransformer()
+    public FilterTransformer filterTransformer(
+        @Lazy DomainQL domainQL
+    )
     {
         return new FilterTransformer(
+            domainQL,
             filterContextRegistry()
         );
     }

@@ -9,7 +9,7 @@ public class CurrentDateFunction
     implements ComputedValue
 {
     @Override
-    public Object evaluate(String name, List<GenericScalar> args)
+    public Object evaluate(ComputedValueContext ctx)
     {
         return DSL.currentDate();
     }

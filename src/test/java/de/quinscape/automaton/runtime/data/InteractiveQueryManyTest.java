@@ -3,10 +3,6 @@ package de.quinscape.automaton.runtime.data;
 import com.google.common.collect.ImmutableMap;
 import de.quinscape.automaton.runtime.domain.builder.AutomatonDomain;
 import de.quinscape.automaton.runtime.scalar.ConditionBuilder;
-import de.quinscape.automaton.runtime.scalar.ConditionScalar;
-import de.quinscape.automaton.runtime.scalar.ConditionType;
-import de.quinscape.automaton.runtime.scalar.FieldExpressionScalar;
-import de.quinscape.automaton.runtime.scalar.FieldExpressionType;
 import de.quinscape.automaton.runtime.tstimpl.DelegatingInteractiveQueryService;
 import de.quinscape.automaton.runtime.tstimpl.IQueryTestLogic;
 import de.quinscape.automaton.runtime.tstimpl.TestProvider;
@@ -24,7 +20,6 @@ import graphql.GraphQL;
 import org.jooq.DSLContext;
 import org.jooq.Record2;
 import org.jooq.Record4;
-import org.jooq.Record6;
 import org.jooq.Result;
 import org.jooq.impl.DSL;
 import org.jooq.tools.jdbc.MockResult;
@@ -32,8 +27,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -218,7 +211,7 @@ public class InteractiveQueryManyTest
             new DefaultInteractiveQueryService(
                 domainQL,
                 dslContext,
-                new FilterTransformer()
+                new FilterTransformer(domainQL)
             )
         );
 

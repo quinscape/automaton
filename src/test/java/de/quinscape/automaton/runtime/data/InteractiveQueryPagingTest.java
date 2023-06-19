@@ -22,7 +22,6 @@ import graphql.ExecutionInput;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import org.jooq.DSLContext;
-import org.jooq.Record5;
 import org.jooq.Record6;
 import org.jooq.Result;
 import org.jooq.impl.DSL;
@@ -190,7 +189,7 @@ public class InteractiveQueryPagingTest
             new DefaultInteractiveQueryService(
                 domainQL,
                 dslContext,
-                new FilterTransformer()
+                new FilterTransformer(domainQL)
             )
         );
 

@@ -114,7 +114,7 @@ public class InteractiveQueryComputedValueTest
             new DefaultInteractiveQueryService(
                 domainQL,
                 dslContext,
-                new FilterTransformer()
+                new FilterTransformer(domainQL)
             )
         );
 
