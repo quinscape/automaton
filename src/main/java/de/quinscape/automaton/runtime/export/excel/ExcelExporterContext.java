@@ -11,9 +11,12 @@ import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLTypeUtil;
 import jakarta.validation.constraints.NotNull;
 import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.BuiltinFormats;
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.svenson.JSON;
@@ -45,6 +48,10 @@ public final class ExcelExporterContext
 
     private final Map<String, Integer> usedSheetNames = new HashMap<>();
 
+    private final HSSFCellStyle dateStyle;
+
+    private final HSSFCellStyle timestampStyle;
+
 
     public ExcelExporterContext(
         GraphQLQueryContext queryContext, HSSFWorkbook workbook,
@@ -54,6 +61,12 @@ public final class ExcelExporterContext
         this.queryContext = queryContext;
         this.workbook = workbook;
         this.metaHeadingName = metaHeadingName;
+
+        dateStyle = workbook.createCellStyle();
+        dateStyle.setDataFormat((short) 0xf);
+
+        timestampStyle = workbook.createCellStyle();
+        timestampStyle.setDataFormat((short) 0x16);
     }
 
 
@@ -150,6 +163,11 @@ public final class ExcelExporterContext
             }
         }
 
+        for (int i = 0; i < enabledColumns.size(); i++)
+        {
+            sheet.autoSizeColumn(i);
+        }
+
     }
 
 
@@ -177,7 +195,7 @@ public final class ExcelExporterContext
      * @param scalarType    GraphQL scalar type
      * @param value         value
      */
-    private static void setCellValue(HSSFCell cell, GraphQLScalarType scalarType, Object value)
+    private void setCellValue(HSSFCell cell, GraphQLScalarType scalarType, Object value)
     {
         if (value == null)
         {
@@ -211,11 +229,13 @@ public final class ExcelExporterContext
         {
             Date date = (Date) value;
             cell.setCellValue(date.toLocalDate());
+            cell.setCellStyle(dateStyle);
         }
         else if (scalarType.getName().equals("TimeStamp"))
         {
             Timestamp timestamp = (Timestamp) value;
             cell.setCellValue(timestamp.toLocalDateTime());
+            cell.setCellStyle(timestampStyle);
         }
         else
         {
