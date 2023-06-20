@@ -18,6 +18,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.svenson.JSON;
 
+import java.sql.Date;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -177,7 +179,11 @@ public final class ExcelExporterContext
      */
     private static void setCellValue(HSSFCell cell, GraphQLScalarType scalarType, Object value)
     {
-        if (value instanceof List)
+        if (value == null)
+        {
+            cell.setCellValue("---");
+        }
+        else if (value instanceof List)
         {
             StringBuilder buf = new StringBuilder();
             List<?> list = (List<?>) value;
@@ -203,15 +209,17 @@ public final class ExcelExporterContext
         }
         else if (scalarType.getName().equals("Date"))
         {
-            cell.setCellValue((LocalDate) value);
+            Date date = (Date) value;
+            cell.setCellValue(date.toLocalDate());
         }
         else if (scalarType.getName().equals("TimeStamp"))
         {
-            cell.setCellValue((LocalDateTime) value);
+            Timestamp timestamp = (Timestamp) value;
+            cell.setCellValue(timestamp.toLocalDateTime());
         }
         else
         {
-            cell.setCellValue(value == null ? "" : value.toString());
+            cell.setCellValue(value.toString());
         }
     }
 
