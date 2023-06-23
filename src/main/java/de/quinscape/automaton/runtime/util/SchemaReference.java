@@ -327,7 +327,12 @@ public class SchemaReference
         final int last = pathLen - 1;
         for (int i = 0; i < pathLen; i++)
         {
-            String p = path.get(i);
+            if (current == null)
+            {
+                return null;
+            }
+
+            final String p = path.get(i);
             final Object value = beanUtil.getProperty(current, p);
 
             if (value instanceof List)

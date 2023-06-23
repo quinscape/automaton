@@ -132,6 +132,14 @@ class SchemaReferenceTest
             assertThat(root.getField("owner.bazes.name").get(foo), is(Arrays.asList("Baz #1", "Baz #2")));
         }
 
+        {
+            Map<String,Object> foo = readTestData("foo-without-owner.json");
+            final SchemaReference root = SchemaReference.newRef(createDomain(), "Foo");
+
+            assertThat(root.getField("name").get(foo), is("Foo #2"));
+            assertThat(root.getField("owner.login").get(foo), is(nullValue()));
+        }
+
     }
 
 
