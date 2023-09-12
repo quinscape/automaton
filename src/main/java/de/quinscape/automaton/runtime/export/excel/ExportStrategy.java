@@ -8,7 +8,7 @@ import de.quinscape.automaton.runtime.export.GraphQLQueryContext;
 public interface ExportStrategy
 {
     /**
-     * Generates the Excel export by getting datta from the given query context and then calling methods on the exporter
+     * Generates the Excel export by getting data from the given query context and then calling methods on the exporter
      * context.
      *
      * @param ctx               exporter context

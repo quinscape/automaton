@@ -10,21 +10,18 @@ import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLTypeUtil;
 import jakarta.validation.constraints.NotNull;
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFCellStyle;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.BuiltinFormats;
-import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.svenson.JSON;
 
 import java.sql.Date;
 import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,19 +39,19 @@ public final class ExcelExporterContext
 
     private final GraphQLQueryContext queryContext;
 
-    private final HSSFWorkbook workbook;
+    private final XSSFWorkbook workbook;
 
     private final String metaHeadingName;
 
     private final Map<String, Integer> usedSheetNames = new HashMap<>();
 
-    private final HSSFCellStyle dateStyle;
+    private final XSSFCellStyle dateStyle;
 
-    private final HSSFCellStyle timestampStyle;
+    private final XSSFCellStyle timestampStyle;
 
 
     public ExcelExporterContext(
-        GraphQLQueryContext queryContext, HSSFWorkbook workbook,
+        GraphQLQueryContext queryContext, XSSFWorkbook workbook,
         String metaHeadingName
     )
     {
@@ -110,8 +107,8 @@ public final class ExcelExporterContext
             rootType
         );
 
-        final HSSFSheet sheet = workbook.createSheet(uniqueSheetName);
-        final HSSFRow headingsRow = sheet.createRow(0);
+        final XSSFSheet sheet = workbook.createSheet(uniqueSheetName);
+        final XSSFRow headingsRow = sheet.createRow(0);
 
         List<Map<String, Object>> enabledColumns = columnStates.stream()
             .filter(
@@ -125,7 +122,7 @@ public final class ExcelExporterContext
         for (int i = 0; i < enabledColumns.size(); i++)
         {
             Map<String, Object> columnState = enabledColumns.get(i);
-            final HSSFCell cell = headingsRow.createCell(i);
+            final XSSFCell cell = headingsRow.createCell(i);
             final String columnName = (String) columnState.get("name");
             final SchemaReference column = root.getField(columnName);
 
@@ -136,11 +133,11 @@ public final class ExcelExporterContext
         for (int i = 0; i < rows.size(); i++)
         {
             Map<String, Object> row = rows.get(i);
-            final HSSFRow dataRow = sheet.createRow(i + 1);
+            final XSSFRow dataRow = sheet.createRow(i + 1);
             for (int j = 0; j < enabledColumns.size(); j++)
             {
                 Map<String, Object> columnState = enabledColumns.get(j);
-                final HSSFCell cell = dataRow.createCell(j);
+                final XSSFCell cell = dataRow.createCell(j);
 
                 final String columnName = (String) columnState.get("name");
                 final SchemaReference column = SchemaReference.newRef(
@@ -176,7 +173,7 @@ public final class ExcelExporterContext
      *
      * @return workbook
      */
-    public HSSFWorkbook getWorkbook()
+    public XSSFWorkbook getWorkbook()
     {
         return workbook;
     }
@@ -195,7 +192,7 @@ public final class ExcelExporterContext
      * @param scalarType    GraphQL scalar type
      * @param value         value
      */
-    private void setCellValue(HSSFCell cell, GraphQLScalarType scalarType, Object value)
+    private void setCellValue(XSSFCell cell, GraphQLScalarType scalarType, Object value)
     {
         if (value == null)
         {
