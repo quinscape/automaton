@@ -5,7 +5,7 @@ import de.quinscape.automaton.runtime.export.GraphQLExporter;
 import de.quinscape.automaton.runtime.export.GraphQLQueryContext;
 import de.quinscape.automaton.runtime.util.SchemaReference;
 import de.quinscape.domainql.DomainQL;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +16,7 @@ import java.util.function.Predicate;
 
 /**
  * GraphQLExport implementation for Excel sheets. Can be configured via builder including a strategy of how many
- * queries to export into how many excel sheets.
+ * queries to export into how many Excel sheets.
  *
  * @see #newExporter(DomainQL)
  */
@@ -57,7 +57,7 @@ public class ExcelExporter
     {
         try
             (
-                HSSFWorkbook workbook = new HSSFWorkbook();
+                XSSFWorkbook workbook = new XSSFWorkbook();
                 final ByteArrayOutputStream bos = new ByteArrayOutputStream()
             )
         {
