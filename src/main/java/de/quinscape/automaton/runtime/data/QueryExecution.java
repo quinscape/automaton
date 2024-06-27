@@ -11,15 +11,10 @@ import graphql.schema.SelectedField;
 import org.jooq.Field;
 import org.svenson.util.IntrospectionUtil;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import static org.jooq.impl.DSL.*;
+import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.name;
 
 /**
  * Encapsulates a query execution potentially consisting of multiple SQL queries.
@@ -156,44 +151,57 @@ public final class QueryExecution
      * @return JOOQ field
      */
     @Override
-    public Field<?> resolveField(String fieldName)
-    {
-        final SelectedField field = env.getSelectionSet().getFields(RuntimeQuery.ROWS_PREFIX + fieldName.replace('.', '/')).get(0);
+    public Field<?> resolveField(String fieldName) {
+        List<SelectedField> queryFieldList = env.getSelectionSet().getFields(RuntimeQuery.ROWS_PREFIX + fieldName.replace('.', '/'));
 
-        if (field == null)
-        {
-            throw new RuntimeQueryException("Could not resolve field: '" + fieldName + "'");
+        if (queryFieldList.isEmpty()) {
+            return lookupConditionFieldInRootType(fieldName);
+        } else {
+            final SelectedField field = queryFieldList.get(0);
+            if (field == null) {
+                throw new RuntimeQueryException("Could not resolve field: '" + fieldName + "'");
+            }
+
+            String parentLocation = getParent(field.getQualifiedName());
+            final SelectedField parentField = env.getSelectionSet().getFields(parentLocation).get(0);
+
+            String domainType = GraphQLTypeUtil.unwrapAll(parentField.getType()).getName();
+            Field<?> dbField = domainQL.lookupField(domainType, field.getName());
+            if (dbField == null) {
+                throw new RuntimeQueryException(
+                        "Field " + domainType + "." + field.getName() + " exists but is not backed by a database field and therefore cannot be filtered in a database query"
+                );
+            }
+            return evaluateFieldWithJoin(dbField, parentLocation);
         }
+    }
 
-        final String parentLocation = getParent(field.getQualifiedName());
-        final SelectedField parentField = env.getSelectionSet().getFields(parentLocation).get(0);
+    private Field<?> lookupConditionFieldInRootType(String fieldName) {
+        final GraphQLUnmodifiedType type = GraphQLTypeUtil.unwrapAll(env.getSelectionSet().getFields(
+                fieldRoot).get(0).getType());
 
-        final String domainType = GraphQLTypeUtil.unwrapAll(parentField.getType()).getName();
-        final Field<?> dbField = domainQL.lookupField(domainType, field.getName());
-
-        if (dbField == null)
-        {
+        Field<?> dbField = domainQL.lookupField(type.getName(), fieldName);
+        if (dbField == null) {
             throw new RuntimeQueryException(
-                "Field " + domainType + "." + field.getName() + " exists but is not backed by a database field and therefore cannot be filtered in a database query"
+                    "Field " + fieldName + " could not be resolved."
             );
         }
+        return evaluateFieldWithJoin(dbField, getFieldRoot());
+    }
 
-        final String dbFieldName = dbField.getName();
-
-        final QueryJoin join = getJoin(parentLocation);
-        if (join == null)
-        {
+    private Field<?> evaluateFieldWithJoin(Field<?> dbField, String joinField) {
+        final QueryJoin join = getJoin(joinField);
+        if (join == null) {
             return null;
         }
 
         return field(
-            name(
-                join.getAlias(), dbFieldName
-            ),
-            dbField.getType()
+                name(
+                        join.getAlias(), dbField.getName()
+                ),
+                dbField.getType()
         );
     }
-
 
     public static String getParent(String qualifiedName)
     {
