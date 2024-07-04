@@ -8,6 +8,7 @@ import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLTypeUtil;
 import graphql.schema.GraphQLUnmodifiedType;
 import graphql.schema.SelectedField;
+import org.apache.commons.codec.binary.StringUtils;
 import org.jooq.Field;
 import org.svenson.util.IntrospectionUtil;
 
@@ -177,6 +178,9 @@ public final class QueryExecution
     }
 
     private Field<?> lookupConditionFieldInRootType(String fieldName) {
+        if (!StringUtils.equals(fieldRoot, "rows")) {
+            return null;
+        }
         final GraphQLUnmodifiedType type = GraphQLTypeUtil.unwrapAll(env.getSelectionSet().getFields(
                 fieldRoot).get(0).getType());
 
