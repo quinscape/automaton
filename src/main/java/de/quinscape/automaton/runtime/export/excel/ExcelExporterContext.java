@@ -22,11 +22,7 @@ import org.svenson.JSON;
 
 import java.sql.Date;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -77,14 +73,29 @@ public final class ExcelExporterContext
     {
         addSheet(sheetName, mr, null);
     }
+
+
+    /**
+     * Adds a new Excel sheet with the data from the given MethodResult
+     *
+     * @param sheetName     Name of the new sheet
+     * @param mr            method result
+     * @param fieldPredicate    predicate used to filter the schema references of the column states
+     */
+    public void addSheet(String sheetName, GraphQLQueryContext.MethodResult mr,Predicate<SchemaReference> fieldPredicate)
+    {
+        addSheet(sheetName, mr, fieldPredicate, null);
+    }
+
     /**
      * Adds a new Excel sheet with the data from the given MethodResult
      *
      * @param sheetName         Name of the new sheet
      * @param mr                method result
      * @param fieldPredicate    predicate used to filter the schema references of the column states
+     * @param columnOrderComparator Comparator to custom sort the order the exported columns
      */
-    public void addSheet(String sheetName, GraphQLQueryContext.MethodResult mr, Predicate<SchemaReference> fieldPredicate)
+    public void addSheet(String sheetName, GraphQLQueryContext.MethodResult mr, Predicate<SchemaReference> fieldPredicate,Comparator<Map<String, Object>> columnOrderComparator)
     {
         log.debug(
             "Exporting: {} = {}",
@@ -118,6 +129,10 @@ public final class ExcelExporterContext
                     ))
             )
             .collect(Collectors.toList());
+
+        if(columnOrderComparator != null) {
+            enabledColumns.sort(columnOrderComparator);
+        }
 
         for (int i = 0; i < enabledColumns.size(); i++)
         {
@@ -269,6 +284,7 @@ public final class ExcelExporterContext
      */
     private Map<String,Object> validateIQuery(Object value)
     {
+
         final Set<Member> members = Set.of(
             new Member("type", String.class),
             new Member("columnStates", List.class),
