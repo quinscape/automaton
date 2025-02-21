@@ -19,7 +19,6 @@ import de.quinscape.spring.jsview.util.JSONUtil;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLOutputType;
 import graphql.schema.SelectedField;
 import org.apache.commons.beanutils.ConstructorUtils;
 import org.jooq.Condition;
@@ -765,7 +764,7 @@ public final class RuntimeQuery<T>
             selectedDBFields.add(aliasedField);
             fields.add(qualifiedTargetName);
             final ColumnState newState = new ColumnState(queryJoin.getColumnName(targetField));
-            query.getQueryColumns().add(newState);
+            query.addQueryColumn(newState);
             selectedColumns.add(newState);
         }
     }
@@ -850,13 +849,11 @@ public final class RuntimeQuery<T>
     )
     {
         final List<SelectedField> fields = env.getSelectionSet().getFields(fieldRoot + "/*");
-        List<ColumnState> queryFields = new ArrayList<>();
 
         final QueryExecution queryExecution = new QueryExecution(
             env,
             domainQL,
             fieldRoot,
-            queryFields,
             relationModel,
             parentJoin
         );
@@ -869,7 +866,7 @@ public final class RuntimeQuery<T>
             queryExecution
         );
 
-        collectQueriesFromFields(queries, fields, queryFields, queryExecution, queryExecution.getRootJoin());
+        collectQueriesFromFields(queries, fields, queryExecution, queryExecution.getRootJoin());
 
     }
 
@@ -880,14 +877,12 @@ public final class RuntimeQuery<T>
      *
      * @param queries         list of collected query executions
      * @param fields          list of selected graphql fields within the parent object
-     * @param queryFields     list of selected column states
      * @param parentExecution parent execution or <code>null</code> if this is the root execution
      * @param parentJoin      query join within the parent execution the new execution is connected to
      */
     private void collectQueriesFromFields(
         List<QueryExecution> queries,
         List<SelectedField> fields,
-        List<ColumnState> queryFields,
         QueryExecution parentExecution,
         QueryJoin parentJoin
     )
@@ -918,7 +913,7 @@ public final class RuntimeQuery<T>
                     throw new RuntimeQueryException("Could not find column state for field '" + parentLocation + "'");
                 }
 
-                queryFields.add(first.get());
+                parentExecution.addQueryColumn(first.get());
             }
             else if (dataFetcher instanceof ReferenceFetcher)
             {
@@ -947,7 +942,7 @@ public final class RuntimeQuery<T>
                 parentExecution.registerJoin(parentLocation, queryJoin);
 
                 final List<SelectedField> fieldsofRef = env.getSelectionSet().getFields(parentLocation + "/*");
-                collectQueriesFromFields(queries, fieldsofRef, queryFields, parentExecution, queryJoin);
+                collectQueriesFromFields(queries, fieldsofRef, parentExecution, queryJoin);
                 //queryFields.add(new ColumnState(qualifiedName.substring(ROWS_LOCATION.length() + 1)));
             }
         }

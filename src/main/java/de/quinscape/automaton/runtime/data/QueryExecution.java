@@ -13,11 +13,11 @@ import org.svenson.util.IntrospectionUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.jooq.impl.DSL.*;
 
@@ -25,7 +25,7 @@ import static org.jooq.impl.DSL.*;
  * Encapsulates a query execution potentially consisting of multiple SQL queries.
  *
  */
-public final class QueryExecution
+final class QueryExecution
     implements FieldResolver
 {
     private final DataFetchingEnvironment env;
@@ -50,7 +50,6 @@ public final class QueryExecution
         DataFetchingEnvironment env,
         DomainQL domainQL,
         String fieldRoot,
-        List<ColumnState> queryColumns,
         RelationModel relationModel,
         QueryJoin parentJoin
     )
@@ -65,13 +64,8 @@ public final class QueryExecution
         }
 
 
-        if (queryColumns == null)
-        {
-            throw new IllegalArgumentException("queryFields can't be null");
-        }
-
         this.fieldRoot = fieldRoot;
-        this.queryColumns = queryColumns;
+        this.queryColumns = new ArrayList<>();
 
         // we need to make sure that we declare the queries in insertion order
         joins = new LinkedHashMap<>();
@@ -101,7 +95,12 @@ public final class QueryExecution
 
     public List<ColumnState> getQueryColumns()
     {
-        return queryColumns;
+        return Collections.unmodifiableList(queryColumns);
+    }
+
+    public void addQueryColumn(ColumnState state)
+    {
+        this.queryColumns.add(state);
     }
 
 
