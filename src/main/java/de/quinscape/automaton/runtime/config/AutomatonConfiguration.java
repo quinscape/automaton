@@ -17,6 +17,7 @@ import de.quinscape.automaton.runtime.data.FilterContextRegistry;
 import de.quinscape.automaton.runtime.data.FilterTransformer;
 import de.quinscape.automaton.runtime.data.InteractiveQueryService;
 import de.quinscape.automaton.runtime.domain.IdGenerator;
+import de.quinscape.automaton.runtime.domain.ReferenceHelper;
 import de.quinscape.automaton.runtime.domain.op.BatchStoreOperation;
 import de.quinscape.automaton.runtime.domain.op.StoreOperation;
 import de.quinscape.automaton.runtime.filter.JavaFilterTransformer;
@@ -343,6 +344,12 @@ public class AutomatonConfiguration
     public MetadataProvider automatonMetaDataProvider()
     {
         return new AutomatonMetadataProvider();
+    }
+
+    @Bean
+    public ReferenceHelper relationHelper(@Lazy DomainQL domainQL)
+    {
+        return new ReferenceHelper(domainQL);
     }
 
 
